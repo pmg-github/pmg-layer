@@ -50,7 +50,7 @@
   },
   "peerDependencies": {
     "nuxt": "^4.0.0",
-    "@tiptap/core": "^3.27.4",
-    "@tiptap/vue-3": "^3.27.4"
+    "@tiptap/core": ">=3.26.0 <4",
+    "@tiptap/vue-3": ">=3.26.0 <4"
   }
 }
