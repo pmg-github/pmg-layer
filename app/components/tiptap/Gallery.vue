@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
 import type { BoArticleImageModel } from "models";
+import Modal from "../Modal.vue";
 
 const props = defineProps<NodeViewProps>();
 

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import Modal from "../../app/components/Modal.vue";
-
 const counter = ref(0);
 const isModalOpen = ref(false);
 

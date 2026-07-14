@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
+import Modal from "../Modal.vue";
 
 interface VideoAttrs {
   videoId?: string;
