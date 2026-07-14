@@ -1,0 +1,8 @@
+node_modules
+.nuxt
+.output
+.playground/.nuxt
+.playground/.output
+dist
+*.log
+.DS_Store

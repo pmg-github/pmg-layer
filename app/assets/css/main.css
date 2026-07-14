@@ -1,0 +1,10 @@
+:root {
+  --layer-starter-primary: #00dc82;
+}
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
