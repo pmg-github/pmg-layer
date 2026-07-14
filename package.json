@@ -1,9 +1,21 @@
 {
-  "name": "@yourscope/nuxt-layer-starter",
+  "name": "pmg-layer",
   "version": "0.1.0",
   "description": "A reusable Nuxt 4 layer with shared components, composables, utils and config.",
   "type": "module",
   "main": "./nuxt.config.ts",
+  "exports": {
+    ".": "./nuxt.config.ts",
+    "./nuxt.config": "./nuxt.config.ts",
+    "./utils/extensions/video": {
+      "types": "./app/utils/extensions/video.ts",
+      "import": "./app/utils/extensions/video.ts"
+    },
+    "./utils/extensions/gallery": {
+      "types": "./app/utils/extensions/gallery.ts",
+      "import": "./app/utils/extensions/gallery.ts"
+    }
+  },
   "types": "./index.d.ts",
   "files": [
     "app",
