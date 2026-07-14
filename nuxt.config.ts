@@ -5,6 +5,7 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@vueuse/nuxt",
     "@nuxtjs/tailwindcss",
+    "reka-ui/nuxt",
   ],
 
   i18n: {

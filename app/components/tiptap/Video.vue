@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
-import Modal from "../layout/Modal.vue";
 
 interface VideoAttrs {
   videoId?: string;
@@ -190,7 +189,9 @@ const clearVideo = () => {
     >
       <div class="space-y-4">
         <div>
-          <label class="mb-1 block text-sm text-gray-600">Video reference</label>
+          <label class="mb-1 block text-sm text-gray-600"
+            >Video reference</label
+          >
           <input
             v-model="draftVideoId"
             type="text"
