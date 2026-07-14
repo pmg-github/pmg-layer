@@ -14,15 +14,6 @@ export default defineNuxtConfig({
     vueI18n: "./i18n.config.ts",
   },
 
-  // Shared global CSS (consuming project can override/append its own)
-  css: ["./app/assets/css/main.css"],
-
-  tailwindcss: {
-    cssPath: "./app/assets/css/tailwind.css",
-    configPath: "./tailwind.config.ts",
-    viewer: false,
-  },
-
   // Shared runtime config defaults — override per-project via .env or nuxt.config
   runtimeConfig: {
     public: {
