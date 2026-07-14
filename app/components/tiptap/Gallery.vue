@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
 import type { BoArticleImageModel } from "models";
+import Modal from "../layout/Modal.vue";
 
 const props = defineProps<NodeViewProps>();
 
@@ -201,20 +202,13 @@ onUnmounted(() => {
       }}
     </small>
 
-    <div
-      v-if="isEditable && isManageOpen"
-      class="mt-3 rounded-lg border border-gray-200 bg-white p-4"
+    <Modal
+      :open="isEditable && isManageOpen"
+      title="Fotogallerij"
+      size="2xl"
+      @update:open="isManageOpen = $event"
     >
-      <div class="mb-3 flex items-center justify-between">
-        <strong class="text-sm">Fotogallerij ({{ images.length }})</strong>
-        <button
-          type="button"
-          class="rounded px-3 py-1 text-xs text-gray-600 hover:bg-gray-100"
-          @click="isManageOpen = false"
-        >
-          Close
-        </button>
-      </div>
+      <div class="mb-3 text-sm text-gray-600">{{ images.length }} images</div>
 
       <div v-if="!images.length" class="text-sm text-gray-500">No images.</div>
 
@@ -267,7 +261,19 @@ onUnmounted(() => {
           />
         </div>
       </div>
-    </div>
+
+      <template #footer>
+        <div class="flex justify-end">
+          <button
+            type="button"
+            class="rounded px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100"
+            @click="isManageOpen = false"
+          >
+            Close
+          </button>
+        </div>
+      </template>
+    </Modal>
 
     <div
       v-if="!isEditable && isLightboxOpen"

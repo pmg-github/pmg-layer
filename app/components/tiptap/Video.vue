@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
+import Modal from "../layout/Modal.vue";
 
 interface VideoAttrs {
   videoId?: string;
@@ -181,15 +182,15 @@ const clearVideo = () => {
       </button>
     </div>
 
-    <div
-      v-if="isEditable && isEditing"
-      class="mt-3 rounded-lg border border-gray-200 bg-white p-4"
+    <Modal
+      :open="isEditable && isEditing"
+      title="Configure video"
+      size="md"
+      @update:open="isEditing = $event"
     >
       <div class="space-y-4">
         <div>
-          <label class="mb-1 block text-sm text-gray-600"
-            >Video reference</label
-          >
+          <label class="mb-1 block text-sm text-gray-600">Video reference</label>
           <input
             v-model="draftVideoId"
             type="text"
@@ -208,8 +209,10 @@ const clearVideo = () => {
             Muted
           </label>
         </div>
+      </div>
 
-        <div class="flex items-center justify-between pt-2">
+      <template #footer>
+        <div class="flex items-center justify-between">
           <button
             type="button"
             class="rounded px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
@@ -236,7 +239,7 @@ const clearVideo = () => {
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </Modal>
   </NodeViewWrapper>
 </template>
