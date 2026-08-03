@@ -130,7 +130,10 @@ Create `app/composables/useImagePicker.ts` in the consuming application to
 override it. Nuxt gives the consuming app precedence over the layer.
 
 ```ts
-import type { ImagePickerOptions } from "pmg-layer/composables/useImagePicker";
+import type {
+  ImageEditorOptions,
+  ImagePickerOptions,
+} from "pmg-layer/composables/useImagePicker";
 
 export const useImagePicker = () => {
   const pickImages = async (options?: ImagePickerOptions) => {
@@ -139,14 +142,19 @@ export const useImagePicker = () => {
     return openImagePicker(options);
   };
 
-  return { pickImages };
+  const editImage = async (options: ImageEditorOptions) => {
+    return openImageEditor(options);
+  };
+
+  return { pickImages, editImage };
 };
 ```
 
 `pickImages()` receives optional `folderId`, `maxSelected`, `jobCode`,
 `aspectRatio`, and `currentSelection` values and must resolve to an image array.
-It may reject when the user cancels. The layer stub throws a descriptive error
-so missing integration is detected immediately.
+`editImage()` receives the selected image and an optional `folderId`. Either
+method may reject when the user cancels. The layer stub throws a descriptive
+error so missing integration is detected immediately.
 
 ## TipTap Extensions Usage
 
