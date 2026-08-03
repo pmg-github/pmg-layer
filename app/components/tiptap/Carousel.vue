@@ -7,24 +7,10 @@ import "swiper/swiper-bundle.css";
 import { Navigation } from "swiper/modules";
 import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
-import { useImagePicker } from "#imports";
-import * as nuxtImports from "#imports";
+import { useArticleStore, useImagePicker } from "#imports";
 
-interface ArticleImageContext {
-  metaData: { jobCode?: string };
-  fetchImageCaptions: (
-    images: BoArticleImageModel[],
-  ) => Promise<BoArticleImageModel[]>;
-}
-
-// A consuming app's auto-imported article store is used when present. Keeping
-// this optional lets the layer run independently while preserving job-code and
-// caption enrichment in the main application.
-const articleStore = (
-  nuxtImports as unknown as {
-    useArticleStore?: () => ArticleImageContext;
-  }
-).useArticleStore?.();
+// Nuxt resolves the consuming app's store before the layer fallback.
+const articleStore = useArticleStore();
 const { pickImages, editImage } = useImagePicker();
 
 const props = defineProps<NodeViewProps>();
@@ -64,7 +50,7 @@ const handleSelectImages = async () => {
     const selectedImages = (await pickImages({
       folderId: 74,
       maxSelected: Infinity,
-      jobCode: articleStore?.metaData.jobCode,
+      jobCode: articleStore.metaData.jobCode,
     })) as FileButtonViewModel[];
 
     await onImagesSelected(selectedImages);
@@ -78,7 +64,7 @@ const handleManageImages = async () => {
     const selectedImages = (await pickImages({
       folderId: 74,
       maxSelected: Infinity,
-      jobCode: articleStore?.metaData.jobCode,
+      jobCode: articleStore.metaData.jobCode,
       currentSelection: images.value,
     })) as FileButtonViewModel[];
 
@@ -125,9 +111,7 @@ const onImagesSelected = async (selectedImages: FileButtonViewModel[]) => {
     return;
   }
 
-  const withCaptions = articleStore
-    ? await articleStore.fetchImageCaptions(brandNewImages)
-    : brandNewImages;
+  const withCaptions = await articleStore.fetchImageCaptions(brandNewImages);
   const captionMap = new Map(withCaptions.map((image) => [image.id, image]));
   props.updateAttributes({
     images: newImages.map((image) => ({
@@ -202,9 +186,7 @@ const onDrop = async (event: DragEvent) => {
     altText: "",
     caption: "",
   };
-  const withCaptions = articleStore
-    ? await articleStore.fetchImageCaptions([newImage])
-    : [newImage];
+  const withCaptions = await articleStore.fetchImageCaptions([newImage]);
 
   props.updateAttributes({
     images: [
