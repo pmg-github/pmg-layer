@@ -1,76 +1,75 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
 import { Swiper, SwiperSlide } from "swiper/vue";
-import { Navigation } from "swiper/modules";
 import "swiper/swiper-bundle.css";
+import { Navigation } from "swiper/modules";
+import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
-import type { BoArticleImageModel } from "models";
 import { useImagePicker } from "#imports";
-import Modal from "../Modal.vue";
+import * as nuxtImports from "#imports";
 
-type PickerImage = Pick<BoArticleImageModel, "id" | "url"> &
-  Partial<BoArticleImageModel>;
+interface ArticleImageContext {
+  metaData: { jobCode?: string };
+  fetchImageCaptions: (
+    images: BoArticleImageModel[],
+  ) => Promise<BoArticleImageModel[]>;
+}
 
-const props = defineProps<NodeViewProps>();
+// A consuming app's auto-imported article store is used when present. Keeping
+// this optional lets the layer run independently while preserving job-code and
+// caption enrichment in the main application.
+const articleStore = (
+  nuxtImports as unknown as {
+    useArticleStore?: () => ArticleImageContext;
+  }
+).useArticleStore?.();
 const { pickImages, editImage } = useImagePicker();
 
-const isEditable = computed(() => props.editor.isEditable ?? false);
+const props = defineProps<NodeViewProps>();
+
 const isModalOpen = ref(false);
 const isDragOver = ref(false);
 const currentSlide = ref(0);
 const prevButtonRef = ref<HTMLElement | null>(null);
 const nextButtonRef = ref<HTMLElement | null>(null);
-const modalImages = ref<BoArticleImageModel[]>([]);
+const modalScrollContainer = ref<HTMLElement | null>(null);
+const modalPanel = ref<HTMLElement | null>(null);
 
 const images = computed<BoArticleImageModel[]>(
   () => (props.node.attrs.images as BoArticleImageModel[] | undefined) ?? [],
 );
+
 const imagesKey = computed(() =>
   images.value.map((image) => image.id).join("-"),
 );
+const modalImages = ref<BoArticleImageModel[]>([]);
 const hasImages = computed(() => images.value.length > 0);
 
 watch(
   () => images.value.length,
   (length) => {
-    if (!length) currentSlide.value = 0;
-    else if (currentSlide.value >= length) currentSlide.value = length - 1;
+    if (!length) {
+      currentSlide.value = 0;
+      return;
+    }
+
+    if (currentSlide.value >= length) currentSlide.value = length - 1;
   },
 );
-
-watch(isModalOpen, (isOpen) => {
-  if (isOpen) modalImages.value = [...images.value];
-});
-
-const toBoImageModel = (image: PickerImage): BoArticleImageModel => ({
-  ...image,
-  id: image.id,
-  url: image.url,
-  copyRight: image.copyRight ?? "",
-  altText: image.altText ?? "",
-  caption: image.caption ?? "",
-});
-
-const applySelectedImages = (selectedImages: PickerImage[]) => {
-  const currentMap = new Map(images.value.map((image) => [image.id, image]));
-  const nextImages = selectedImages.map((image) =>
-    toBoImageModel({ ...currentMap.get(image.id), ...image }),
-  );
-
-  props.updateAttributes({ images: nextImages });
-  modalImages.value = [...nextImages];
-};
 
 const handleSelectImages = async () => {
   try {
     const selectedImages = (await pickImages({
       folderId: 74,
       maxSelected: Infinity,
-    })) as PickerImage[];
-    applySelectedImages(selectedImages);
+      jobCode: articleStore?.metaData.jobCode,
+    })) as FileButtonViewModel[];
+
+    await onImagesSelected(selectedImages);
   } catch {
-    // The consuming picker may reject when the user cancels.
+    // User cancelled - do nothing.
   }
 };
 
@@ -79,11 +78,14 @@ const handleManageImages = async () => {
     const selectedImages = (await pickImages({
       folderId: 74,
       maxSelected: Infinity,
+      jobCode: articleStore?.metaData.jobCode,
       currentSelection: images.value,
-    })) as PickerImage[];
-    applySelectedImages(selectedImages);
+    })) as FileButtonViewModel[];
+
+    await onImagesSelected(selectedImages);
+    modalImages.value = [...images.value];
   } catch {
-    // Keep the carousel modal open when the user cancels.
+    // User cancelled - keep carousel modal open.
   }
 };
 
@@ -91,8 +93,54 @@ const handleReorder = () => {
   props.updateAttributes({ images: [...modalImages.value] });
 };
 
+const handleOpenManageModal = () => {
+  isModalOpen.value = true;
+};
+
+const toBoImageModel = (
+  image: FileButtonViewModel | BoArticleImageModel,
+): BoArticleImageModel => ({
+  id: image.id,
+  url: image.url,
+  copyRight: (image as BoArticleImageModel).copyRight ?? "",
+  altText: (image as BoArticleImageModel).altText ?? "",
+  caption: (image as BoArticleImageModel).caption ?? "",
+});
+
+const onImagesSelected = async (selectedImages: FileButtonViewModel[]) => {
+  const newImages = selectedImages.map(toBoImageModel);
+
+  if (!newImages.length) {
+    props.updateAttributes({ images: [] });
+    return;
+  }
+
+  const currentMap = new Map(images.value.map((image) => [image.id, image]));
+  const brandNewImages = newImages.filter(
+    (image) => !currentMap.has(image.id),
+  );
+
+  if (!brandNewImages.length) {
+    props.updateAttributes({ images: newImages });
+    return;
+  }
+
+  const withCaptions = articleStore
+    ? await articleStore.fetchImageCaptions(brandNewImages)
+    : brandNewImages;
+  const captionMap = new Map(withCaptions.map((image) => [image.id, image]));
+  props.updateAttributes({
+    images: newImages.map((image) => ({
+      ...(captionMap.get(image.id) ?? currentMap.get(image.id) ?? image),
+    })),
+  });
+};
+
 const updateImageCaption = (id: number, caption: string) => {
-  const image = modalImages.value.find((item) => item.id === id);
+  const index = modalImages.value.findIndex((image) => image.id === id);
+  if (index === -1) return;
+
+  const image = modalImages.value[index];
   if (!image) return;
   image.caption = caption;
   props.updateAttributes({ images: [...modalImages.value] });
@@ -111,16 +159,17 @@ const handleEditImage = async (index: number) => {
     const editedImage = (await editImage({
       image: currentImage,
       folderId: 74,
-    })) as PickerImage | null;
-    if (!editedImage) return;
+    })) as FileButtonViewModel | BoArticleImageModel | null;
 
-    modalImages.value[index] = toBoImageModel({
-      ...currentImage,
-      ...editedImage,
-    });
-    props.updateAttributes({ images: [...modalImages.value] });
+    if (editedImage) {
+      modalImages.value[index] = {
+        ...modalImages.value[index],
+        ...toBoImageModel(editedImage),
+      };
+      props.updateAttributes({ images: [...modalImages.value] });
+    }
   } catch {
-    // The consuming image editor may reject when the user cancels.
+    // User cancelled editing.
   }
 };
 
@@ -137,7 +186,7 @@ const onDragLeave = () => {
   isDragOver.value = false;
 };
 
-const onDrop = (event: DragEvent) => {
+const onDrop = async (event: DragEvent) => {
   isDragOver.value = false;
   const raw = event.dataTransfer?.getData(TILE_IMAGE_DRAG_TYPE);
   if (!raw) return;
@@ -145,15 +194,85 @@ const onDrop = (event: DragEvent) => {
   event.preventDefault();
   event.stopPropagation();
 
-  try {
-    const image = JSON.parse(raw) as PickerImage;
-    props.updateAttributes({
-      images: [...images.value, toBoImageModel(image)],
-    });
-  } catch {
-    // Ignore malformed drag payloads from outside the image tile system.
+  const { id, url } = JSON.parse(raw) as { id: number; url: string };
+  const newImage: BoArticleImageModel = {
+    id,
+    url,
+    copyRight: "",
+    altText: "",
+    caption: "",
+  };
+  const withCaptions = articleStore
+    ? await articleStore.fetchImageCaptions([newImage])
+    : [newImage];
+
+  props.updateAttributes({
+    images: [
+      ...images.value,
+      ...(withCaptions.length ? withCaptions : [newImage]),
+    ],
+  });
+};
+
+const DRAG_SCROLL_ZONE = 120;
+const DRAG_SCROLL_MAX_SPEED = 18;
+
+let modalDragScrollRaf: number | null = null;
+let modalDragScrollClientY: number | null = null;
+
+const modalDragScrollStep = () => {
+  const container = modalScrollContainer.value;
+  const panel = modalPanel.value;
+  if (
+    !container ||
+    !panel ||
+    modalDragScrollClientY === null ||
+    !isModalOpen.value
+  ) {
+    modalDragScrollRaf = null;
+    return;
+  }
+
+  const panelRect = panel.getBoundingClientRect();
+  const distFromTop = modalDragScrollClientY - panelRect.top;
+  const distFromBottom = panelRect.bottom - modalDragScrollClientY;
+
+  let speed = 0;
+  if (distFromTop < DRAG_SCROLL_ZONE && distFromTop >= 0) {
+    const intensity = 1 - distFromTop / DRAG_SCROLL_ZONE;
+    speed = -intensity * DRAG_SCROLL_MAX_SPEED;
+  } else if (distFromBottom < DRAG_SCROLL_ZONE && distFromBottom >= 0) {
+    const intensity = 1 - distFromBottom / DRAG_SCROLL_ZONE;
+    speed = intensity * DRAG_SCROLL_MAX_SPEED;
+  }
+
+  if (speed !== 0) container.scrollTop += speed;
+  modalDragScrollRaf = requestAnimationFrame(modalDragScrollStep);
+};
+
+const onModalDragOver = (event: DragEvent) => {
+  if (!isModalOpen.value) return;
+  event.preventDefault();
+  event.stopPropagation();
+
+  modalDragScrollClientY = event.clientY;
+  if (modalDragScrollRaf === null) {
+    modalDragScrollRaf = requestAnimationFrame(modalDragScrollStep);
   }
 };
+
+const stopModalDragScroll = () => {
+  modalDragScrollClientY = null;
+  if (modalDragScrollRaf !== null) {
+    cancelAnimationFrame(modalDragScrollRaf);
+    modalDragScrollRaf = null;
+  }
+};
+
+watch(isModalOpen, (isOpen) => {
+  if (isOpen) modalImages.value = [...images.value];
+  else stopModalDragScroll();
+});
 </script>
 
 <template>
@@ -169,16 +288,17 @@ const onDrop = (event: DragEvent) => {
       class="relative flex aspect-video items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6 transition-all hover:border-blue-400 hover:bg-blue-50"
     >
       <button
-        v-if="isEditable"
         type="button"
         class="flex cursor-pointer flex-col items-center justify-center"
         @click="handleSelectImages"
       >
-        <span
-          class="absolute left-3 top-3 rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
-        >
-          Fotocarrousel
-        </span>
+        <div class="absolute left-3 top-3">
+          <span
+            class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
+          >
+            Fotocarrousel
+          </span>
+        </div>
         <Icon
           name="material-symbols:gallery-thumbnail"
           class="mb-4 size-12 text-gray-400"
@@ -192,7 +312,6 @@ const onDrop = (event: DragEvent) => {
           Selecteer foto's
         </span>
       </button>
-      <p v-else class="text-gray-500">Nog geen foto's toegevoegd</p>
     </div>
 
     <div v-else class="w-full">
@@ -204,7 +323,7 @@ const onDrop = (event: DragEvent) => {
           :space-between="16"
           :slides-per-view="1"
           :navigation="{ nextEl: nextButtonRef, prevEl: prevButtonRef }"
-          :loop="images.length > 1"
+          :loop="true"
           :prevent-clicks-propagation="true"
           class="h-full w-full"
           @slide-change-transition-end="
@@ -231,7 +350,7 @@ const onDrop = (event: DragEvent) => {
           <button
             ref="prevButtonRef"
             type="button"
-            class="ml-2 flex items-center justify-center rounded-full bg-black/50 p-2 text-white hover:bg-black/70 focus:outline-none"
+            class="ml-2 flex items-center justify-center rounded-full bg-black bg-opacity-50 p-2 text-white transition-opacity hover:bg-opacity-70 focus:outline-none"
             aria-label="Previous slide"
             @click.stop
           >
@@ -245,28 +364,29 @@ const onDrop = (event: DragEvent) => {
           <button
             ref="nextButtonRef"
             type="button"
-            class="mr-2 flex items-center justify-center rounded-full bg-black/50 p-2 text-white hover:bg-black/70 focus:outline-none"
+            class="mr-2 flex items-center justify-center rounded-full bg-black bg-opacity-50 p-2 text-white transition-opacity hover:bg-opacity-70 focus:outline-none"
             aria-label="Next slide"
             @click.stop
           >
             <Icon name="material-symbols:chevron-right" class="size-8" />
           </button>
         </div>
-        <span
+        <div
           v-if="images.length > 1"
           class="absolute bottom-2 left-2 z-[3] rounded-full bg-black/50 px-2.5 py-1 text-xs font-semibold tabular-nums text-white"
         >
           {{ currentSlide + 1 }} / {{ images.length }}
-        </span>
-        <button
-          v-if="isEditable"
-          type="button"
-          class="absolute right-2 top-2 z-[3] flex items-center justify-center rounded-full bg-gray-800/70 p-2 text-white hover:bg-gray-800/90 focus:outline-none focus:ring-2 focus:ring-white"
-          title="Manage images"
-          @click.stop="isModalOpen = true"
-        >
-          <Icon name="material-symbols:edit-outline" class="size-5" />
-        </button>
+        </div>
+        <div class="absolute right-2 top-2 z-[3] flex gap-2">
+          <button
+            type="button"
+            class="flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+            title="Manage images"
+            @click.stop="handleOpenManageModal"
+          >
+            <Icon name="material-symbols:edit-outline" class="size-5" />
+          </button>
+        </div>
       </div>
 
       <small>
@@ -279,95 +399,122 @@ const onDrop = (event: DragEvent) => {
       </small>
     </div>
 
-    <Modal
-      :open="isEditable && isModalOpen"
-      size="5xl"
-      @update:open="isModalOpen = $event"
+    <Dialog
+      class="relative z-50"
+      :open="isModalOpen"
+      @close="isModalOpen = false"
     >
-      <template #header>
-        <h3 class="text-xl font-bold">
-          Fotocarrousel ({{ modalImages.length }})
-        </h3>
-      </template>
-
-      <div class="mb-4 flex items-center justify-between">
-        <p class="text-sm text-gray-600">Beheer de foto's in de carrousel</p>
-        <button
-          type="button"
-          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          @click="handleManageImages"
-        >
-          <Icon name="material-symbols:add" class="mr-1.5 inline-block size-4" />
-          Foto's toevoegen
-        </button>
-      </div>
-
-      <Draggable
-        v-model="modalImages"
-        :animation="200"
-        :scroll="true"
-        :scroll-sensitivity="120"
-        :scroll-speed="18"
-        handle=".drag-handle"
-        class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
-        @end="handleReorder"
+      <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
+      <div
+        ref="modalScrollContainer"
+        class="fixed inset-0 flex items-start justify-center overflow-y-auto p-4"
+        @dragover="onModalDragOver"
+        @drop="stopModalDragScroll"
+        @dragend="stopModalDragScroll"
       >
-        <div
-          v-for="(image, index) in modalImages"
-          :key="image.id"
-          class="group relative rounded-lg"
+        <DialogPanel
+          ref="modalPanel"
+          class="mt-16 w-full max-w-5xl rounded-lg bg-white p-6"
         >
-          <div class="relative aspect-video">
-            <img
-              :src="image.url"
-              alt=""
-              class="h-full w-full rounded bg-gray-100 object-contain"
-            />
-            <div class="absolute right-2 top-2 flex flex-col gap-2">
-              <button
-                type="button"
-                class="flex size-8 items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
-                title="Bewerken"
-                @click="handleEditImage(index)"
-              >
-                <Icon name="material-symbols:edit-outline" class="size-5" />
-              </button>
-              <button
-                type="button"
-                class="flex size-8 items-center justify-center rounded-full bg-red-500 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
-                title="Verwijderen"
-                @click="removeImage(index)"
-              >
-                <Icon name="material-symbols:close" class="size-5" />
-              </button>
-            </div>
-            <div
-              class="drag-handle absolute left-2 top-2 flex cursor-move items-center rounded-full bg-black/60 px-2 py-1 text-white"
+          <div class="mb-6 flex items-center justify-between">
+            <DialogTitle class="text-xl font-bold">
+              Fotocarrousel ({{ modalImages.length }})
+            </DialogTitle>
+            <button
+              class="flex items-center justify-center rounded-full p-2 hover:bg-gray-100"
+              title="Close"
+              @click="isModalOpen = false"
             >
-              <Icon name="material-symbols:drag-indicator" class="size-4" />
-            </div>
+              <Icon name="material-symbols:close" class="size-5" />
+            </button>
           </div>
-          <textarea
-            v-model="image.caption"
-            rows="3"
-            placeholder="Caption (optioneel)"
-            class="mt-1 w-full resize-none rounded border border-gray-300 px-2 py-1 text-xs text-gray-700"
-            @input="updateImageCaption(image.id, image.caption)"
-          />
-        </div>
-      </Draggable>
 
-      <template #footer>
-        <div class="flex justify-end">
-          <button
-            type="button"
-            class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            @click="isModalOpen = false"
+          <div class="mb-4 flex items-center justify-between">
+            <p class="text-sm text-gray-600">
+              Beheer de foto's in de carrousel
+            </p>
+            <button
+              type="button"
+              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              @click="handleManageImages"
+            >
+              <Icon
+                name="material-symbols:add"
+                class="mr-1.5 inline-block size-4"
+              />
+              Foto's toevoegen
+            </button>
+          </div>
+
+          <Draggable
+            v-model="modalImages"
+            :animation="200"
+            handle=".drag-handle"
+            class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
+            @end="handleReorder"
           >
-            Sluiten
-          </button>
-        </div>
-      </template>
-    </Modal>
+            <div
+              v-for="(image, index) in modalImages"
+              :key="image.id"
+              class="group relative rounded-lg"
+            >
+              <div class="relative aspect-video">
+                <img
+                  :src="image.url"
+                  alt=""
+                  class="h-full w-full rounded bg-gray-100 object-contain"
+                />
+                <div class="absolute right-2 top-2 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    class="flex size-8 items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
+                    title="Bewerken"
+                    @click="handleEditImage(index)"
+                  >
+                    <Icon
+                      name="material-symbols:edit-outline"
+                      class="size-5"
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    class="flex size-8 items-center justify-center rounded-full bg-red-500 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
+                    title="Verwijderen"
+                    @click="removeImage(index)"
+                  >
+                    <Icon name="material-symbols:close" class="size-5" />
+                  </button>
+                </div>
+                <div
+                  class="drag-handle absolute left-2 top-2 flex cursor-move items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs font-semibold text-white"
+                >
+                  <Icon
+                    name="material-symbols:drag-indicator"
+                    class="size-4"
+                  />
+                </div>
+              </div>
+              <textarea
+                v-model="image.caption"
+                rows="3"
+                placeholder="Caption (optioneel)"
+                class="mt-1 w-full resize-none rounded border border-gray-300 px-2 py-1 text-xs text-gray-700"
+                @input="updateImageCaption(image.id, image.caption)"
+              />
+            </div>
+          </Draggable>
+
+          <div class="mt-6 flex justify-end">
+            <button
+              type="button"
+              class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              @click="isModalOpen = false"
+            >
+              Sluiten
+            </button>
+          </div>
+        </DialogPanel>
+      </div>
+    </Dialog>
   </NodeViewWrapper>
 </template>
