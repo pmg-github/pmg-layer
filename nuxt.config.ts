@@ -1,3 +1,7 @@
+import { createResolver } from "@nuxt/kit";
+
+const { resolve } = createResolver(import.meta.url);
+
 export default defineNuxtConfig({
   // Modules shared by every project that extends this layer
   modules: [
@@ -6,6 +10,18 @@ export default defineNuxtConfig({
     "@vueuse/nuxt",
     "@nuxtjs/tailwindcss",
     "reka-ui/nuxt",
+    "@nuxt/icon",
+  ],
+
+  // Resolve against this layer's own srcDir so components are found
+  // regardless of which project ends up extending this layer.
+  components: [
+    {
+      path: resolve("./app/components"),
+      prefix: "PMG",
+      pathPrefix: false,
+      ignore: ["**/tiptap/**"],
+    },
   ],
 
   i18n: {

@@ -16,6 +16,9 @@ export default {
           ink: "#04140c",
         },
       },
+      fontFamily: {
+        sans: ["Poppins", "sans-serif"],
+      },
     },
   },
 } satisfies Config;

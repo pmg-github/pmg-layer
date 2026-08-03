@@ -14,6 +14,14 @@
     "./utils/extensions/gallery": {
       "types": "./app/utils/extensions/gallery.ts",
       "import": "./app/utils/extensions/gallery.ts"
+    },
+    "./utils/extensions/carousel": {
+      "types": "./app/utils/extensions/carousel.ts",
+      "import": "./app/utils/extensions/carousel.ts"
+    },
+    "./composables/useImagePicker": {
+      "types": "./app/composables/useImagePicker.ts",
+      "import": "./app/composables/useImagePicker.ts"
     }
   },
   "types": "./index.d.ts",
@@ -34,23 +42,26 @@
     "typecheck": "nuxi typecheck"
   },
   "dependencies": {
+    "@nuxt/icon": "^2.3.1",
     "@nuxtjs/i18n": "^9.1.5",
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@pinia/nuxt": "^0.11.2",
     "@vueuse/nuxt": "^14.0.0",
     "models": "github:pmg-github/models",
     "reka-ui": "^2.6.0",
-    "tailwindcss": "^3.4.19"
+    "tailwindcss": "^3.4.19",
+    "vee-validate": "^4.15.1"
   },
   "devDependencies": {
-    "nuxt": "^4.0.0",
     "@tiptap/core": "^3.27.4",
     "@tiptap/vue-3": "^3.27.4",
-    "vue-tsc": "^3.3.7"
+    "nuxt": "^4.0.0",
+    "vue-tsc": "^3.3.7",
+    "yup": "^1.7.1"
   },
   "peerDependencies": {
-    "nuxt": "^4.0.0",
     "@tiptap/core": ">=3.26.0 <4",
-    "@tiptap/vue-3": ">=3.26.0 <4"
+    "@tiptap/vue-3": ">=3.26.0 <4",
+    "nuxt": "^4.0.0"
   }
 }

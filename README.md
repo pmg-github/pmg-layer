@@ -9,7 +9,7 @@ boilerplate between them.
 ```
 nuxt-layer-starter/
 ├── app/
-│   ├── components/       # auto-imported components (BaseButton.vue)
+│   ├── components/       # auto-imported components (Button.vue)
 │   ├── composables/      # auto-imported composables (useLayerCounter)
 │   ├── utils/             # auto-imported plain utils (formatDate)
 │   ├── plugins/           # auto-registered Nuxt plugins (layer-info)
@@ -78,7 +78,10 @@ it automatically.
 
 Once extended, the consuming project automatically gets:
 
-- `<BaseButton />` component
+- `<PMGButton />` component
+- `<PMGSelect />` universal select/combobox component (see [Select.md](./app/components/inputs/Select.md))
+- `<PMGInput />` universal text input component (see [Input.md](./app/components/inputs/Input.md))
+- `<PMGTextarea />`, `<PMGSwitch />`, `<PMGCheckbox />`, `<PMGRadioGroup />` form controls (see [FormControls.md](./app/components/inputs/FormControls.md))
 - `useLayerCounter()` composable
 - `formatDate()` util
 - `useLayerPreferencesStore()` Pinia store
@@ -90,8 +93,8 @@ Once extended, the consuming project automatically gets:
 - the `@vueuse/nuxt`, `@pinia/nuxt`, and `@nuxtjs/i18n` modules plus any other
   modules/config declared in this layer's `nuxt.config.ts`
 - Tailwind CSS support via `@nuxtjs/tailwindcss` with this layer's shared config
-- TipTap building blocks: `<TiptapGallery />`, `<TiptapVideo />`,
-  `GalleryExtension`, and `VideoExtension`
+- TipTap building blocks: `<TiptapCarousel />`, `<TiptapGallery />`,
+  `<TiptapVideo />`, `CarouselExtension`, `GalleryExtension`, and `VideoExtension`
 
 The consuming project's own files always win if there's a naming collision
 (project > layer).
@@ -120,20 +123,50 @@ The consuming project's own files always win if there's a naming collision
   `future: { compatibilityVersion: 4 }` in its `nuxt.config.ts` so it resolves
   this layer's `app/` structure correctly.
 
+## Image Picker Implementation Guide
+
+The layer provides a deliberately unimplemented `useImagePicker()` composable.
+Create `app/composables/useImagePicker.ts` in the consuming application to
+override it. Nuxt gives the consuming app precedence over the layer.
+
+```ts
+import type { ImagePickerOptions } from "pmg-layer/composables/useImagePicker";
+
+export const useImagePicker = () => {
+  const pickImages = async (options?: ImagePickerOptions) => {
+    // Open your application's picker and resolve with the selected images.
+    // Each image must contain at least `id` and `url`.
+    return openImagePicker(options);
+  };
+
+  return { pickImages };
+};
+```
+
+`pickImages()` receives optional `folderId`, `maxSelected`, `jobCode`,
+`aspectRatio`, and `currentSelection` values and must resolve to an image array.
+It may reject when the user cancels. The layer stub throws a descriptive error
+so missing integration is detected immediately.
+
 ## TipTap Extensions Usage
 
 ```ts
 import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import {
+  CarouselExtension,
   GalleryExtension,
   VideoExtension,
 } from "@yourscope/nuxt-layer-starter/app/utils/extensions";
 
 const editor = new Editor({
   editable: true,
-  extensions: [StarterKit, GalleryExtension, VideoExtension],
+  extensions: [StarterKit, CarouselExtension, GalleryExtension, VideoExtension],
 });
+
+editor.commands.setCarousel([
+  { id: 1, url: "https://example.com/image.jpg", caption: "Hero" },
+]);
 
 editor.commands.setGallery([
   { id: 1, url: "https://example.com/image.jpg", caption: "Hero" },
