@@ -109,7 +109,9 @@ const onImagesSelected = async (selectedImages: FileButtonViewModel[]) => {
   }
 
   const withCaptions = await articleStore.fetchImageCaptions(brandNewImages);
-  const captionMap = new Map(withCaptions.map((image) => [image.id, image]));
+  const captionMap = new Map(
+    withCaptions.map((image: { id: any }) => [image.id, image]),
+  );
   props.updateAttributes({
     images: newImages.map((image) => ({
       ...(captionMap.get(image.id) ?? currentMap.get(image.id) ?? image),
