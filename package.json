@@ -6,7 +6,19 @@
   "main": "./nuxt.config.ts",
   "exports": {
     ".": "./nuxt.config.ts",
-    "./nuxt.config": "./nuxt.config.ts"
+    "./nuxt.config": "./nuxt.config.ts",
+    "./utils/extensions/video": {
+      "types": "./app/utils/extensions/video.ts",
+      "import": "./app/utils/extensions/video.ts"
+    },
+    "./utils/extensions/gallery": {
+      "types": "./app/utils/extensions/gallery.ts",
+      "import": "./app/utils/extensions/gallery.ts"
+    },
+    "./utils/extensions/carousel": {
+      "types": "./app/utils/extensions/carousel.ts",
+      "import": "./app/utils/extensions/carousel.ts"
+    }
   },
   "types": "./index.d.ts",
   "files": [
