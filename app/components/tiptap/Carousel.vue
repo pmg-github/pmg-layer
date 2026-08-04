@@ -7,13 +7,11 @@ import "swiper/swiper-bundle.css";
 import { Navigation } from "swiper/modules";
 import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
-import { useArticleStore, useImageEditorModal, useImagePicker } from "#imports";
+import { useArticleStore, useImagePicker } from "#imports";
 
 // Nuxt resolves the consuming app's store before the layer fallback.
 const articleStore = useArticleStore();
 const { pickImages, editImage } = useImagePicker();
-const { modalState: pickerModalState } = useImagePickerModal();
-const { editorModalState } = useImageEditorModal();
 
 const props = defineProps<NodeViewProps>();
 
@@ -85,7 +83,6 @@ const handleOpenManageModal = () => {
 };
 
 const handleCarouselDialogClose = () => {
-  if (pickerModalState.isOpen || editorModalState.isOpen) return;
   isModalOpen.value = false;
 };
 
