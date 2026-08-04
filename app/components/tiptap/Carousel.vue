@@ -82,10 +82,6 @@ const handleOpenManageModal = () => {
   isModalOpen.value = true;
 };
 
-const handleCarouselDialogClose = () => {
-  isModalOpen.value = false;
-};
-
 const toBoImageModel = (
   image: FileButtonViewModel | BoArticleImageModel,
 ): BoArticleImageModel => ({
@@ -378,11 +374,7 @@ watch(isModalOpen, (isOpen) => {
       </small>
     </div>
 
-    <Dialog
-      class="relative z-50"
-      :open="isModalOpen"
-      @close="handleCarouselDialogClose"
-    >
+    <Dialog class="relative z-50" :open="isModalOpen">
       <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
       <div
         ref="container"
