@@ -4,10 +4,10 @@ import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
 import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
-import { useArticleStore, useImagePicker } from "#imports";
+import { useArticleStore, useImageLibrary } from "#imports";
 
 const articleStore = useArticleStore();
-const { pickImages, editImage } = useImagePicker();
+const { pickImages, editImage } = useImageLibrary();
 
 const props = defineProps<NodeViewProps>();
 

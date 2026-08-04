@@ -7,11 +7,11 @@ import "swiper/swiper-bundle.css";
 import { Navigation } from "swiper/modules";
 import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
-import { useArticleStore, useImagePicker } from "#imports";
+import { useArticleStore, useImageLibrary } from "#imports";
 
 // Nuxt resolves the consuming app's store before the layer fallback.
 const articleStore = useArticleStore();
-const { pickImages, editImage } = useImagePicker();
+const { pickImages, editImage } = useImageLibrary();
 
 const props = defineProps<NodeViewProps>();
 
