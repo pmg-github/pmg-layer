@@ -9,6 +9,21 @@ interface VideoAttrs {
   muted?: boolean;
 }
 
+interface VideoResponse {
+  bunnyVideoId?: string;
+  sources?: Array<{ src?: string; type?: string }>;
+  poster?: string;
+  tracks?: Array<{
+    kind?: string;
+    src?: string;
+    label?: string;
+    srclang?: string;
+    default?: boolean;
+  }>;
+  title?: string;
+  jobCode?: string;
+}
+
 const props = defineProps<NodeViewProps>();
 
 const BUNNY_LIBRARY_ID = "698074";
@@ -28,10 +43,7 @@ const draftVideoId = ref("");
 const draftAutoplay = ref(false);
 const draftMuted = ref(false);
 
-const resolvedVideo = ref<{
-  bunnyVideoId?: string;
-  sources?: Array<{ url?: string }>;
-} | null>(null);
+const resolvedVideo = ref<VideoResponse | null>(null);
 
 const appendQuery = (baseUrl: string, params: URLSearchParams) => {
   if (!baseUrl) {
@@ -74,7 +86,7 @@ const embedUrl = computed(() => {
     return `https://player.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${resolvedVideo.value.bunnyVideoId}?${params.toString()}`;
   }
 
-  const fallbackSource = resolvedVideo.value?.sources?.[0]?.url;
+  const fallbackSource = resolvedVideo.value?.sources?.[0]?.src; // Changed 'url' to 'src'
   if (fallbackSource) {
     return appendQuery(fallbackSource, params);
   }
