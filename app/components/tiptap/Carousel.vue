@@ -20,7 +20,7 @@ const isDragOver = ref(false);
 const currentSlide = ref(0);
 const prevButtonRef = ref<HTMLElement | null>(null);
 const nextButtonRef = ref<HTMLElement | null>(null);
-const modalScrollContainer = ref<HTMLElement | null>(null);
+const container = ref<HTMLElement | null>(null);
 
 const images = computed<BoArticleImageModel[]>(
   () => (props.node.attrs.images as BoArticleImageModel[] | undefined) ?? [],
@@ -204,8 +204,11 @@ let modalDragScrollRaf: number | null = null;
 let modalDragScrollClientY: number | null = null;
 
 const modalDragScrollStep = () => {
-  const container = modalScrollContainer.value;
-  if (!container || modalDragScrollClientY === null || !isModalOpen.value) {
+  if (
+    !container.value ||
+    modalDragScrollClientY === null ||
+    !isModalOpen.value
+  ) {
     modalDragScrollRaf = null;
     return;
   }
@@ -222,7 +225,7 @@ const modalDragScrollStep = () => {
     speed = intensity * DRAG_SCROLL_MAX_SPEED;
   }
 
-  if (speed !== 0) container.scrollTop += speed;
+  if (speed !== 0 && container.value) container.value.scrollTop += speed;
   modalDragScrollRaf = requestAnimationFrame(modalDragScrollStep);
 };
 
@@ -382,7 +385,7 @@ watch(isModalOpen, (isOpen) => {
     >
       <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
       <div
-        ref="modalScrollContainer"
+        ref="container"
         class="fixed inset-0 flex items-start justify-center overflow-y-auto p-4"
         @dragover="onModalDragOver"
         @drop="stopModalDragScroll"
