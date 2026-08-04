@@ -167,7 +167,7 @@ function preventClose(event: Event) {
               </div>
 
               <div
-                class="flex-1 overflow-y-auto p-6"
+                class="flex flex-1 flex-col overflow-hidden p-6"
                 :class="hasVisibleHeader ? 'pt-4' : 'pt-6'"
               >
                 <slot />
