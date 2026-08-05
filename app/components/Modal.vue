@@ -19,6 +19,7 @@ interface Props {
   backdrop?: "light" | "dark" | "blur";
   showCloseButton?: boolean;
   persistent?: boolean;
+  zIndex?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -28,6 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
   backdrop: "dark",
   showCloseButton: true,
   persistent: false,
+  zIndex: 100,
 });
 
 defineOptions({ inheritAttrs: false });
@@ -78,18 +80,31 @@ const backdropClasses = computed(() => {
   return backdrops[props.backdrop];
 });
 
-const handleClose = () => {
-  if (props.persistent) return;
-  if (!props.closable && !props.showCloseButton) return;
+const closeModal = () => {
   emit("close");
   emit("update:open", false);
+};
+
+// Called by Headless UI's Dialog on outside click / Escape.
+const handleDialogClose = () => {
+  if (props.persistent) return;
+  closeModal();
+};
+
+// Called by the explicit close button.
+const handleCloseButtonClick = () => {
+  closeModal();
 };
 </script>
 
 <template>
   <Teleport to="body">
     <TransitionRoot appear :show="open" as="template">
-      <Dialog as="div" class="relative z-[999]" @close="handleClose">
+      <Dialog
+        as="div"
+        :class="`relative z-[${zIndex || 100}]`"
+        @close="handleDialogClose"
+      >
         <!-- Backdrop -->
         <TransitionChild
           v-if="overlay"
@@ -120,7 +135,7 @@ const handleClose = () => {
             >
               <DialogPanel
                 :class="[
-                  'flex max-h-[90vh] w-full transform flex-col rounded-xl bg-white shadow-xl transition-all',
+                  'flex w-full transform flex-col rounded-xl bg-white shadow-xl transition-all',
                   sizeClasses,
                 ]"
               >
@@ -142,7 +157,7 @@ const handleClose = () => {
 
                   <button
                     v-if="showCloseButton && closable"
-                    @click="handleClose"
+                    @click="handleCloseButtonClick"
                     class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500"
                     aria-label="Close modal"
                   >
