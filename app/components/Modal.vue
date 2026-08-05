@@ -1,4 +1,8 @@
 <script setup lang="ts">
+// Local override of pmg-layer's PMGModal: adds Teleport + aligns z-index with
+// the rest of the app's modals (see components/shared/Modal.vue) so it stacks
+// correctly above/alongside other open modals instead of being trapped in a
+// local stacking context.
 import { computed, useSlots } from "vue";
 import {
   Dialog,
@@ -18,8 +22,6 @@ interface Props {
   backdrop?: "light" | "dark" | "blur";
   showCloseButton?: boolean;
   persistent?: boolean;
-  /** Overrides the default body padding classes. */
-  bodyClass?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,18 +31,16 @@ const props = withDefaults(defineProps<Props>(), {
   backdrop: "dark",
   showCloseButton: true,
   persistent: false,
-  bodyClass: undefined,
 });
+
+defineOptions({ inheritAttrs: false });
 
 const slots = useSlots();
 
-const bodyClasses = computed(() => {
-  if (props.bodyClass) return props.bodyClass;
-  return [
-    "flex-1 overflow-y-auto p-6",
-    props.title || props.showCloseButton || slots.header ? "pt-4" : "pt-6",
-  ];
-});
+const bodyClasses = computed(() => [
+  "flex-1 overflow-y-auto p-6",
+  props.title || props.showCloseButton || slots.header ? "pt-4" : "pt-6",
+]);
 
 const emit = defineEmits<{
   close: [];
@@ -80,96 +80,98 @@ const handleClose = () => {
 </script>
 
 <template>
-  <TransitionRoot appear :show="open" as="template">
-    <Dialog as="div" class="relative z-50" @close="handleClose">
-      <!-- Backdrop -->
-      <TransitionChild
-        v-if="overlay"
-        as="template"
-        enter="ease-out duration-300"
-        enter-from="opacity-0"
-        enter-to="opacity-100"
-        leave="ease-in duration-200"
-        leave-from="opacity-100"
-        leave-to="opacity-0"
-      >
-        <DialogOverlay
-          :class="['fixed inset-0 transition-opacity', backdropClasses]"
-        />
-      </TransitionChild>
+  <Teleport to="body">
+    <TransitionRoot appear :show="open" as="template">
+      <Dialog as="div" class="relative z-[999]" @close="handleClose">
+        <!-- Backdrop -->
+        <TransitionChild
+          v-if="overlay"
+          as="template"
+          enter="ease-out duration-300"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="ease-in duration-200"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <DialogOverlay
+            :class="['fixed inset-0 transition-opacity', backdropClasses]"
+          />
+        </TransitionChild>
 
-      <!-- Modal Content -->
-      <div class="fixed inset-0 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4">
-          <TransitionChild
-            as="template"
-            enter="ease-out duration-300"
-            enter-from="opacity-0 scale-95"
-            enter-to="opacity-100 scale-100"
-            leave="ease-in duration-200"
-            leave-from="opacity-100 scale-100"
-            leave-to="opacity-0 scale-95"
-          >
-            <DialogPanel
-              :class="[
-                'flex max-h-[90vh] w-full transform flex-col rounded-xl bg-white shadow-xl transition-all',
-                sizeClasses,
-              ]"
+        <!-- Modal Content -->
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="ease-out duration-300"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
             >
-              <!-- Fixed Header -->
-              <div
-                v-if="title || showCloseButton || $slots.header"
-                class="flex flex-shrink-0 items-center justify-between p-6 pb-0"
+              <DialogPanel
+                :class="[
+                  'flex max-h-[90vh] w-full transform flex-col rounded-xl bg-white shadow-xl transition-all',
+                  sizeClasses,
+                ]"
               >
-                <slot name="header">
-                  <DialogTitle
-                    v-if="title"
-                    as="h3"
-                    class="text-sm font-medium leading-6 text-gray-500"
-                  >
-                    {{ title }}
-                  </DialogTitle>
-                  <div v-else></div>
-                </slot>
-
-                <button
-                  v-if="showCloseButton && closable"
-                  @click="handleClose"
-                  class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500"
-                  aria-label="Close modal"
+                <!-- Fixed Header -->
+                <div
+                  v-if="title || showCloseButton || $slots.header"
+                  class="flex flex-shrink-0 items-center justify-between p-6 pb-0"
                 >
-                  <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  <slot name="header">
+                    <DialogTitle
+                      v-if="title"
+                      as="h3"
+                      class="text-sm font-medium leading-6 text-gray-500"
+                    >
+                      {{ title }}
+                    </DialogTitle>
+                    <div v-else></div>
+                  </slot>
+
+                  <button
+                    v-if="showCloseButton && closable"
+                    @click="handleClose"
+                    class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500"
+                    aria-label="Close modal"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
+                    <svg
+                      class="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
 
-              <!-- Scrollable Content -->
-              <div :class="bodyClasses">
-                <slot />
-              </div>
+                <!-- Scrollable Content -->
+                <div :class="bodyClasses" v-bind="$attrs">
+                  <slot />
+                </div>
 
-              <!-- Fixed Footer -->
-              <div
-                v-if="$slots.footer"
-                class="flex-shrink-0 border-t border-gray-200 p-6"
-              >
-                <slot name="footer" />
-              </div>
-            </DialogPanel>
-          </TransitionChild>
+                <!-- Fixed Footer -->
+                <div
+                  v-if="$slots.footer"
+                  class="flex-shrink-0 border-t border-gray-200 p-6"
+                >
+                  <slot name="footer" />
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
         </div>
-      </div>
-    </Dialog>
-  </TransitionRoot>
+      </Dialog>
+    </TransitionRoot>
+  </Teleport>
 </template>
