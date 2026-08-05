@@ -43,7 +43,7 @@ const bodyAttrs = computed(() => {
 
 const bodyClasses = computed(() =>
   twMerge(
-    "flex-1 overflow-y-auto p-6",
+    "flex-1 p-6",
     props.title || props.showCloseButton || slots.header ? "pt-4" : "pt-6",
     attrs.class as string | undefined,
   ),

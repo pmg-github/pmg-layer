@@ -385,7 +385,6 @@ watch(isModalOpen, (isOpen) => {
     >
       <div
         ref="container"
-        class="max-h-[65vh] overflow-y-auto"
         @dragover="onModalDragOver"
         @drop="stopModalDragScroll"
         @dragend="stopModalDragScroll"
