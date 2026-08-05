@@ -435,9 +435,11 @@ onUnmounted(() => {
       :title="`Fotogallerij (${modalImages.length})`"
       size="5xl"
       @update:open="isManageOpen = $event"
+      persistent
     >
       <div
         ref="container"
+        class="max-h-[65vh] overflow-y-auto"
         @dragover="onModalDragOver"
         @drop="stopModalDragScroll"
         @dragend="stopModalDragScroll"
@@ -509,18 +511,6 @@ onUnmounted(() => {
           </div>
         </Draggable>
       </div>
-
-      <template #footer>
-        <div class="flex justify-end">
-          <button
-            type="button"
-            class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            @click="isManageOpen = false"
-          >
-            Sluiten
-          </button>
-        </div>
-      </template>
     </Modal>
 
     <!-- Lightbox (readonly mode only) -->
