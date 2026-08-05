@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useAttrs, useSlots } from "vue";
+import { computed, ref, useAttrs, useSlots } from "vue";
 import { twMerge } from "tailwind-merge";
 import {
   Dialog,
@@ -37,6 +37,9 @@ defineOptions({ inheritAttrs: false });
 
 const slots = useSlots();
 const attrs = useAttrs();
+const scrollContainer = ref<HTMLElement | null>(null);
+
+defineExpose({ scrollContainer });
 
 // Split out class so conflicting utilities (e.g. p-6 vs p-0) resolve via twMerge instead of concatenating.
 const bodyAttrs = computed(() => {
@@ -125,7 +128,7 @@ const handleCloseButtonClick = () => {
         </TransitionChild>
 
         <!-- Modal Content -->
-        <div class="fixed inset-0 overflow-y-auto">
+        <div ref="scrollContainer" class="fixed inset-0 overflow-y-auto">
           <div class="flex min-h-full items-center justify-center p-4">
             <TransitionChild
               as="template"

@@ -1,29 +1,17 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import "swiper/swiper-bundle.css";
 import { Navigation } from "swiper/modules";
 import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
-import {
-  useArticleStore,
-  useImageLibrary,
-  useImageLibraryModal,
-  useImageEditorModal,
-} from "#imports";
+import { useArticleStore, useImageLibrary } from "#imports";
 import Modal from "../Modal.vue";
 
 // Nuxt resolves the consuming app's store before the layer fallback.
 const articleStore = useArticleStore();
 const { pickImages, editImage } = useImageLibrary();
-const { modalState: pickerModalState } = useImageLibraryModal();
-const { editorModalState } = useImageEditorModal();
-
-// True while the globally-mounted picker or editor dialog sits on top of this modal.
-const isNestedModalOpen = computed(
-  () => pickerModalState.isOpen || editorModalState.isOpen,
-);
 
 const props = defineProps<NodeViewProps>();
 
@@ -32,7 +20,7 @@ const isDragOver = ref(false);
 const currentSlide = ref(0);
 const prevButtonRef = ref<HTMLElement | null>(null);
 const nextButtonRef = ref<HTMLElement | null>(null);
-const container = ref<HTMLElement | null>(null);
+const container = ref<{ scrollContainer: HTMLElement | null } | null>(null);
 
 const images = computed<BoArticleImageModel[]>(
   () => (props.node.attrs.images as BoArticleImageModel[] | undefined) ?? [],
@@ -72,15 +60,19 @@ const handleSelectImages = async () => {
 
 const handleManageImages = async () => {
   try {
-    const selectedImages = (await pickImages({
-      folderId: 74,
-      maxSelected: Infinity,
-      jobCode: articleStore.metaData.jobCode,
-      currentSelection: images.value,
-    })) as FileButtonViewModel[];
+    await withManageModalSuspended(async () => {
+      const selectedImages = (await pickImages({
+        folderId: 74,
+        maxSelected: Infinity,
+        jobCode: articleStore.metaData.jobCode,
+        currentSelection: images.value,
+      })) as FileButtonViewModel[] | null;
 
-    await onImagesSelected(selectedImages);
-    modalImages.value = [...images.value];
+      if (!selectedImages) return;
+      await onImagesSelected(selectedImages);
+      await nextTick();
+      modalImages.value = [...images.value];
+    });
   } catch {
     // User cancelled - keep carousel modal open.
   }
@@ -92,6 +84,26 @@ const handleReorder = () => {
 
 const handleOpenManageModal = () => {
   isModalOpen.value = true;
+};
+
+const withManageModalSuspended = async <T,>(operation: () => Promise<T>) => {
+  const shouldReopen = isModalOpen.value;
+
+  if (shouldReopen) {
+    isModalOpen.value = false;
+    // Let Headless UI release its focus and pointer lock before mounting the
+    // globally-rendered image picker/editor dialog.
+    await nextTick();
+  }
+
+  try {
+    return await operation();
+  } finally {
+    if (shouldReopen) {
+      await nextTick();
+      isModalOpen.value = true;
+    }
+  }
 };
 
 const toBoImageModel = (
@@ -151,18 +163,19 @@ const handleEditImage = async (index: number) => {
   if (!currentImage) return;
 
   try {
-    const editedImage = (await editImage({
-      image: currentImage,
-      folderId: 74,
-    })) as FileButtonViewModel | BoArticleImageModel | null;
+    await withManageModalSuspended(async () => {
+      const editedImage = (await editImage({
+        image: currentImage,
+        folderId: 74,
+      })) as FileButtonViewModel | BoArticleImageModel | null;
 
-    if (editedImage) {
+      if (!editedImage) return;
       modalImages.value[index] = {
         ...modalImages.value[index],
         ...toBoImageModel(editedImage),
       };
       props.updateAttributes({ images: [...modalImages.value] });
-    }
+    });
   } catch {
     // User cancelled editing.
   }
@@ -214,8 +227,10 @@ let modalDragScrollRaf: number | null = null;
 let modalDragScrollClientY: number | null = null;
 
 const modalDragScrollStep = () => {
+  const scrollContainer = container.value?.scrollContainer;
+
   if (
-    !container.value ||
+    !scrollContainer ||
     modalDragScrollClientY === null ||
     !isModalOpen.value
   ) {
@@ -235,14 +250,13 @@ const modalDragScrollStep = () => {
     speed = intensity * DRAG_SCROLL_MAX_SPEED;
   }
 
-  if (speed !== 0 && container.value) container.value.scrollTop += speed;
+  if (speed !== 0) scrollContainer.scrollTop += speed;
   modalDragScrollRaf = requestAnimationFrame(modalDragScrollStep);
 };
 
 const onModalDragOver = (event: DragEvent) => {
   if (!isModalOpen.value) return;
   event.preventDefault();
-  event.stopPropagation();
 
   modalDragScrollClientY = event.clientY;
   if (modalDragScrollRaf === null) {
@@ -258,10 +272,29 @@ const stopModalDragScroll = () => {
   }
 };
 
+const addFullScreenDragListeners = () => {
+  window.addEventListener("dragover", onModalDragOver, true);
+  window.addEventListener("drop", stopModalDragScroll, true);
+  window.addEventListener("dragend", stopModalDragScroll, true);
+};
+
+const removeFullScreenDragListeners = () => {
+  window.removeEventListener("dragover", onModalDragOver, true);
+  window.removeEventListener("drop", stopModalDragScroll, true);
+  window.removeEventListener("dragend", stopModalDragScroll, true);
+};
+
 watch(isModalOpen, (isOpen) => {
-  if (isOpen) modalImages.value = [...images.value];
-  else stopModalDragScroll();
+  if (isOpen) {
+    modalImages.value = [...images.value];
+    addFullScreenDragListeners();
+  } else {
+    stopModalDragScroll();
+    removeFullScreenDragListeners();
+  }
 });
+
+onBeforeUnmount(removeFullScreenDragListeners);
 </script>
 
 <template>
@@ -395,10 +428,6 @@ watch(isModalOpen, (isOpen) => {
       @update:open="isModalOpen = $event"
       persistent
       ref="container"
-      :inert="isNestedModalOpen"
-      @dragover="onModalDragOver"
-      @drop="stopModalDragScroll"
-      @dragend="stopModalDragScroll"
     >
       <div>
         <div class="mb-4 flex items-center justify-between">
@@ -421,7 +450,6 @@ watch(isModalOpen, (isOpen) => {
           handle=".drag-handle"
           class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
           @end="handleReorder"
-          @dragover.native="onModalDragOver"
         >
           <div
             v-for="(image, index) in modalImages"
