@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed, useSlots } from "vue";
 import {
-  DialogClose,
-  DialogContent,
-  DialogOverlay,
-  DialogPortal,
-  DialogRoot,
+  Dialog,
+  DialogPanel,
   DialogTitle,
-  VisuallyHidden,
-} from "reka-ui";
+  DialogOverlay,
+  TransitionRoot,
+  TransitionChild,
+} from "@headlessui/vue";
 
 interface Props {
   open: boolean;
@@ -19,16 +18,28 @@ interface Props {
   backdrop?: "light" | "dark" | "blur";
   showCloseButton?: boolean;
   persistent?: boolean;
+  /** Overrides the default body padding classes. */
+  bodyClass?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: undefined,
   size: "md",
   closable: true,
   overlay: true,
   backdrop: "dark",
   showCloseButton: true,
   persistent: false,
+  bodyClass: undefined,
+});
+
+const slots = useSlots();
+
+const bodyClasses = computed(() => {
+  if (props.bodyClass) return props.bodyClass;
+  return [
+    "flex-1 overflow-y-auto p-6",
+    props.title || props.showCloseButton || slots.header ? "pt-4" : "pt-6",
+  ];
 });
 
 const emit = defineEmits<{
@@ -36,20 +47,8 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
 }>();
 
-const slots = useSlots();
-
-const canClose = computed(() => props.closable && !props.persistent);
-
-const hasVisibleHeader = computed(() => {
-  return (
-    Boolean(props.title) ||
-    Boolean(slots.header) ||
-    (props.showCloseButton && canClose.value)
-  );
-});
-
 const sizeClasses = computed(() => {
-  const sizes: Record<NonNullable<Props["size"]>, string> = {
+  const sizes = {
     sm: "max-w-sm",
     md: "max-w-md",
     lg: "max-w-lg",
@@ -58,77 +57,69 @@ const sizeClasses = computed(() => {
     "3xl": "max-w-3xl",
     "4xl": "max-w-4xl",
     "5xl": "max-w-5xl",
-    full: "mx-4 max-w-full",
+    full: "max-w-full mx-4",
   };
-
   return sizes[props.size];
 });
 
 const backdropClasses = computed(() => {
-  const backdrops: Record<NonNullable<Props["backdrop"]>, string> = {
+  const backdrops = {
     light: "bg-white/80",
     dark: "bg-black/40",
     blur: "bg-black/40 backdrop-blur-sm",
   };
-
   return backdrops[props.backdrop];
 });
 
-const modelOpen = computed({
-  get: () => props.open,
-  set: (value: boolean) => {
-    if (!value && !canClose.value) {
-      return;
-    }
-
-    if (!value) {
-      emit("close");
-    }
-
-    emit("update:open", value);
-  },
-});
-
-function preventClose(event: Event) {
-  if (!canClose.value) {
-    event.preventDefault();
-  }
-}
+const handleClose = () => {
+  if (props.persistent) return;
+  if (!props.closable && !props.showCloseButton) return;
+  emit("close");
+  emit("update:open", false);
+};
 </script>
 
 <template>
-  <DialogRoot v-model:open="modelOpen">
-    <DialogPortal>
-      <template v-if="open">
+  <TransitionRoot appear :show="open" as="template">
+    <Dialog as="div" class="relative z-50" @close="handleClose">
+      <!-- Backdrop -->
+      <TransitionChild
+        v-if="overlay"
+        as="template"
+        enter="ease-out duration-300"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="ease-in duration-200"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+      >
         <DialogOverlay
-          v-if="overlay"
-          :class="[
-            'fixed inset-0 z-50 transition-opacity',
-            'data-[state=open]:animate-overlayShow',
-            backdropClasses,
-          ]"
+          :class="['fixed inset-0 transition-opacity', backdropClasses]"
         />
+      </TransitionChild>
 
-        <div class="fixed inset-0 z-50 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <DialogContent
-              :aria-describedby="undefined"
+      <!-- Modal Content -->
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <TransitionChild
+            as="template"
+            enter="ease-out duration-300"
+            enter-from="opacity-0 scale-95"
+            enter-to="opacity-100 scale-100"
+            leave="ease-in duration-200"
+            leave-from="opacity-100 scale-100"
+            leave-to="opacity-0 scale-95"
+          >
+            <DialogPanel
               :class="[
-                'flex max-h-[90vh] w-full flex-col rounded-xl bg-white shadow-xl outline-none',
-                'data-[state=open]:animate-contentShow',
+                'flex max-h-[90vh] w-full transform flex-col rounded-xl bg-white shadow-xl transition-all',
                 sizeClasses,
               ]"
-              @escape-key-down="preventClose"
-              @interact-outside="preventClose"
             >
-              <!-- Accessible fallback title when no visible title is provided. -->
-              <VisuallyHidden v-if="!title && !$slots.header">
-                <DialogTitle>Dialog</DialogTitle>
-              </VisuallyHidden>
-
+              <!-- Fixed Header -->
               <div
-                v-if="hasVisibleHeader"
-                class="flex flex-shrink-0 items-center justify-between gap-4 p-6 pb-0"
+                v-if="title || showCloseButton || $slots.header"
+                class="flex flex-shrink-0 items-center justify-between p-6 pb-0"
               >
                 <slot name="header">
                   <DialogTitle
@@ -138,51 +129,47 @@ function preventClose(event: Event) {
                   >
                     {{ title }}
                   </DialogTitle>
-
-                  <div v-else />
+                  <div v-else></div>
                 </slot>
 
-                <DialogClose v-if="showCloseButton && canClose" as-child>
-                  <button
-                    type="button"
-                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
-                    aria-label="Close modal"
+                <button
+                  v-if="showCloseButton && closable"
+                  @click="handleClose"
+                  class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500"
+                  aria-label="Close modal"
+                >
+                  <svg
+                    class="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      class="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18 18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </DialogClose>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               </div>
 
-              <div
-                class="flex flex-1 flex-col overflow-hidden p-6"
-                :class="hasVisibleHeader ? 'pt-4' : 'pt-6'"
-              >
+              <!-- Scrollable Content -->
+              <div :class="bodyClasses">
                 <slot />
               </div>
 
+              <!-- Fixed Footer -->
               <div
                 v-if="$slots.footer"
                 class="flex-shrink-0 border-t border-gray-200 p-6"
               >
                 <slot name="footer" />
               </div>
-            </DialogContent>
-          </div>
+            </DialogPanel>
+          </TransitionChild>
         </div>
-      </template>
-    </DialogPortal>
-  </DialogRoot>
+      </div>
+    </Dialog>
+  </TransitionRoot>
 </template>
