@@ -3,11 +3,24 @@ import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
 import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
-import { useArticleStore, useImageLibrary } from "#imports";
+import {
+  useArticleStore,
+  useImageLibrary,
+  useImageLibraryModal,
+  useImageEditorModal,
+} from "#imports";
 import Modal from "../Modal.vue";
 
+// Nuxt resolves the consuming app's store before the layer fallback.
 const articleStore = useArticleStore();
 const { pickImages, editImage } = useImageLibrary();
+const { modalState: pickerModalState } = useImageLibraryModal();
+const { editorModalState } = useImageEditorModal();
+
+// True while the globally-mounted picker or editor dialog sits on top of this modal.
+const isNestedModalOpen = computed(
+  () => pickerModalState.isOpen || editorModalState.isOpen,
+);
 
 const props = defineProps<NodeViewProps>();
 
@@ -436,13 +449,13 @@ onUnmounted(() => {
       size="5xl"
       @update:open="isManageOpen = $event"
       persistent
+      :inert="isNestedModalOpen"
+      ref="container"
+      @dragover="onModalDragOver"
+      @drop="stopModalDragScroll"
+      @dragend="stopModalDragScroll"
     >
-      <div
-        ref="container"
-        @dragover="onModalDragOver"
-        @drop="stopModalDragScroll"
-        @dragend="stopModalDragScroll"
-      >
+      <div>
         <div class="mb-4 flex items-center justify-between">
           <p class="text-sm text-gray-600">Beheer de foto's in de gallerij</p>
           <button

@@ -20,6 +20,7 @@ interface Props {
   showCloseButton?: boolean;
   persistent?: boolean;
   zIndex?: number;
+  inert?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -105,6 +106,7 @@ const handleCloseButtonClick = () => {
         class="relative"
         @close="handleDialogClose"
         :style="{ zIndex }"
+        :inert="inert"
       >
         <!-- Backdrop -->
         <TransitionChild
