@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import "swiper/swiper-bundle.css";
 import { Navigation } from "swiper/modules";
 import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
 import { useArticleStore, useImageLibrary } from "#imports";
+import Modal from "../Modal.vue";
 
 // Nuxt resolves the consuming app's store before the layer fallback.
 const articleStore = useArticleStore();
@@ -376,119 +376,97 @@ watch(isModalOpen, (isOpen) => {
       </small>
     </div>
 
-    <Dialog class="relative z-50" :open="isModalOpen">
-      <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
+    <Modal
+      :open="isModalOpen"
+      :title="`Fotocarrousel (${modalImages.length})`"
+      size="5xl"
+      @update:open="isModalOpen = $event"
+    >
       <div
         ref="container"
-        class="fixed inset-0 flex items-start justify-center overflow-y-auto p-4"
         @dragover="onModalDragOver"
         @drop="stopModalDragScroll"
         @dragend="stopModalDragScroll"
       >
-        <DialogPanel class="mt-16 w-full max-w-5xl rounded-lg bg-white p-6">
-          <div @dragover="onModalDragOver">
-            <div class="mb-6 flex items-center justify-between">
-              <DialogTitle class="text-xl font-bold">
-                Fotocarrousel ({{ modalImages.length }})
-              </DialogTitle>
-              <button
-                class="flex items-center justify-center rounded-full p-2 hover:bg-gray-100"
-                title="Close"
-                @click="isModalOpen = false"
-              >
-                <Icon name="material-symbols:close" class="size-5" />
-              </button>
-            </div>
+        <div class="mb-4 flex items-center justify-between">
+          <p class="text-sm text-gray-600">Beheer de foto's in de carrousel</p>
+          <button
+            type="button"
+            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            @click="handleManageImages"
+          >
+            <Icon
+              name="material-symbols:add"
+              class="mr-1.5 inline-block size-4"
+            />
+            Foto's toevoegen
+          </button>
+        </div>
 
-            <div class="mb-4 flex items-center justify-between">
-              <p class="text-sm text-gray-600">
-                Beheer de foto's in de carrousel
-              </p>
-              <button
-                type="button"
-                class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                @click="handleManageImages"
-              >
-                <Icon
-                  name="material-symbols:add"
-                  class="mr-1.5 inline-block size-4"
-                />
-                Foto's toevoegen
-              </button>
-            </div>
-
-            <div>
-              <Draggable
-                v-model="modalImages"
-                handle=".drag-handle"
-                class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
-                @end="handleReorder"
-                @dragover.native="onModalDragOver"
-              >
-                <div
-                  v-for="(image, index) in modalImages"
-                  :key="image.id"
-                  class="group relative rounded-lg"
+        <Draggable
+          v-model="modalImages"
+          handle=".drag-handle"
+          class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
+          @end="handleReorder"
+          @dragover.native="onModalDragOver"
+        >
+          <div
+            v-for="(image, index) in modalImages"
+            :key="image.id"
+            class="group relative rounded-lg"
+          >
+            <div class="relative aspect-video">
+              <img
+                :src="image.url"
+                alt=""
+                class="h-full w-full rounded bg-gray-100 object-contain"
+              />
+              <div class="absolute right-2 top-2 flex gap-1">
+                <button
+                  type="button"
+                  class="flex size-8 items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
+                  title="Bewerken"
+                  @click="handleEditImage(index)"
                 >
-                  <div class="relative aspect-video">
-                    <img
-                      :src="image.url"
-                      alt=""
-                      class="h-full w-full rounded bg-gray-100 object-contain"
-                    />
-                    <div class="absolute right-2 top-2 flex gap-1">
-                      <button
-                        type="button"
-                        class="flex size-8 items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600"
-                        title="Bewerken"
-                        @click="handleEditImage(index)"
-                      >
-                        <Icon
-                          name="material-symbols:edit-outline"
-                          class="size-5"
-                        />
-                      </button>
-                      <button
-                        type="button"
-                        class="flex size-8 items-center justify-center rounded-full bg-gray-500 text-white group-hover:bg-red-500"
-                        title="Verwijderen"
-                        @click="removeImage(index)"
-                      >
-                        <Icon name="material-symbols:delete" class="size-5" />
-                      </button>
-                    </div>
-                    <div
-                      class="drag-handle absolute left-2 top-2 flex cursor-move items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs font-semibold text-white"
-                    >
-                      <Icon
-                        name="material-symbols:drag-indicator"
-                        class="size-4"
-                      />
-                    </div>
-                  </div>
-                  <textarea
-                    v-model="image.caption"
-                    rows="3"
-                    placeholder="Caption (optioneel)"
-                    class="mt-1 w-full resize-none rounded border border-gray-300 px-2 py-1 text-xs text-gray-700"
-                    @input="updateImageCaption(image.id, image.caption)"
-                  />
-                </div>
-              </Draggable>
-            </div>
-
-            <div class="mt-6 flex justify-end">
-              <button
-                type="button"
-                class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                @click="isModalOpen = false"
+                  <Icon name="material-symbols:edit-outline" class="size-5" />
+                </button>
+                <button
+                  type="button"
+                  class="flex size-8 items-center justify-center rounded-full bg-gray-500 text-white group-hover:bg-red-500"
+                  title="Verwijderen"
+                  @click="removeImage(index)"
+                >
+                  <Icon name="material-symbols:delete" class="size-5" />
+                </button>
+              </div>
+              <div
+                class="drag-handle absolute left-2 top-2 flex cursor-move items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs font-semibold text-white"
               >
-                Sluiten
-              </button>
+                <Icon name="material-symbols:drag-indicator" class="size-4" />
+              </div>
             </div>
+            <textarea
+              v-model="image.caption"
+              rows="3"
+              placeholder="Caption (optioneel)"
+              class="mt-1 w-full resize-none rounded border border-gray-300 px-2 py-1 text-xs text-gray-700"
+              @input="updateImageCaption(image.id, image.caption)"
+            />
           </div>
-        </DialogPanel>
+        </Draggable>
       </div>
-    </Dialog>
+
+      <template #footer>
+        <div class="flex justify-end">
+          <button
+            type="button"
+            class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="isModalOpen = false"
+          >
+            Sluiten
+          </button>
+        </div>
+      </template>
+    </Modal>
   </NodeViewWrapper>
 </template>

@@ -89,7 +89,7 @@ const handleClose = () => {
 <template>
   <Teleport to="body">
     <TransitionRoot appear :show="open" as="template">
-      <Dialog as="div" class="relative" @close="handleClose">
+      <Dialog as="div" class="relative z-100" @close="handleClose">
         <!-- Backdrop -->
         <TransitionChild
           v-if="overlay"
