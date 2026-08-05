@@ -102,8 +102,9 @@ const handleCloseButtonClick = () => {
     <TransitionRoot appear :show="open" as="template">
       <Dialog
         as="div"
-        :class="`relative z-[${zIndex || 100}]`"
+        class="relative"
         @close="handleDialogClose"
+        :style="{ zIndex }"
       >
         <!-- Backdrop -->
         <TransitionChild
