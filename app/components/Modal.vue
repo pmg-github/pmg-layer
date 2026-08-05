@@ -1,9 +1,6 @@
 <script setup lang="ts">
-// Local override of pmg-layer's PMGModal: adds Teleport + aligns z-index with
-// the rest of the app's modals (see components/shared/Modal.vue) so it stacks
-// correctly above/alongside other open modals instead of being trapped in a
-// local stacking context.
-import { computed, useSlots } from "vue";
+import { computed, useAttrs, useSlots } from "vue";
+import { twMerge } from "tailwind-merge";
 import {
   Dialog,
   DialogPanel,
@@ -36,11 +33,21 @@ const props = withDefaults(defineProps<Props>(), {
 defineOptions({ inheritAttrs: false });
 
 const slots = useSlots();
+const attrs = useAttrs();
 
-const bodyClasses = computed(() => [
-  "flex-1 overflow-y-auto p-6",
-  props.title || props.showCloseButton || slots.header ? "pt-4" : "pt-6",
-]);
+// Split out class so conflicting utilities (e.g. p-6 vs p-0) resolve via twMerge instead of concatenating.
+const bodyAttrs = computed(() => {
+  const { class: _class, ...rest } = attrs;
+  return rest;
+});
+
+const bodyClasses = computed(() =>
+  twMerge(
+    "flex-1 overflow-y-auto p-6",
+    props.title || props.showCloseButton || slots.header ? "pt-4" : "pt-6",
+    attrs.class as string | undefined,
+  ),
+);
 
 const emit = defineEmits<{
   close: [];
@@ -156,7 +163,7 @@ const handleClose = () => {
                 </div>
 
                 <!-- Scrollable Content -->
-                <div :class="bodyClasses" v-bind="$attrs">
+                <div :class="bodyClasses" v-bind="bodyAttrs">
                   <slot />
                 </div>
 
