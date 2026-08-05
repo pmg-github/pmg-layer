@@ -2,13 +2,12 @@
 import { computed, ref, useAttrs, useSlots } from "vue";
 import { twMerge } from "tailwind-merge";
 import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
+  DialogContent,
   DialogOverlay,
-  TransitionRoot,
-  TransitionChild,
-} from "@headlessui/vue";
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from "reka-ui";
 
 interface Props {
   open: boolean;
@@ -20,6 +19,7 @@ interface Props {
   showCloseButton?: boolean;
   persistent?: boolean;
   zIndex?: number;
+  /** @deprecated Reka UI handles nested dialog interaction automatically. */
   inert?: boolean;
 }
 
@@ -89,10 +89,17 @@ const closeModal = () => {
   emit("update:open", false);
 };
 
-// Called by Headless UI's Dialog on outside click / Escape.
-const handleDialogClose = () => {
-  if (props.persistent) return;
-  closeModal();
+const handleOpenChange = (value: boolean) => {
+  if (value) {
+    emit("update:open", true);
+    return;
+  }
+
+  if (!props.persistent) closeModal();
+};
+
+const handleDismiss = (event: Event) => {
+  if (props.persistent) event.preventDefault();
 };
 
 // Called by the explicit close button.
@@ -102,104 +109,113 @@ const handleCloseButtonClick = () => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <TransitionRoot appear :show="open" as="template">
-      <Dialog
-        as="div"
-        class="relative"
-        @close="handleDialogClose"
-        :style="{ zIndex }"
-        :inert="inert"
+  <DialogRoot :open="open" :modal="true" @update:open="handleOpenChange">
+    <DialogPortal>
+      <!-- Backdrop -->
+      <Transition
+        appear
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
       >
-        <!-- Backdrop -->
-        <TransitionChild
-          v-if="overlay"
-          as="template"
-          enter="ease-out duration-300"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="ease-in duration-200"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
+        <DialogOverlay
+          v-if="open && overlay"
+          :class="['fixed inset-0 transition-opacity', backdropClasses]"
+          :style="{ zIndex }"
+        />
+      </Transition>
+
+      <!-- Modal Content -->
+      <Transition
+        appear
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95"
+      >
+        <div
+          v-if="open"
+          ref="scrollContainer"
+          class="fixed inset-0 overflow-y-auto"
+          :style="{ zIndex }"
         >
-          <DialogOverlay
-            :class="['fixed inset-0 transition-opacity', backdropClasses]"
-          />
-        </TransitionChild>
-
-        <!-- Modal Content -->
-        <div ref="scrollContainer" class="fixed inset-0 overflow-y-auto">
           <div class="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              as="template"
-              enter="ease-out duration-300"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
+            <DialogContent
+              :class="[
+                'flex w-full transform flex-col rounded-xl bg-white shadow-xl transition-all',
+                sizeClasses,
+              ]"
+              @escape-key-down="handleDismiss"
+              @pointer-down-outside="handleDismiss"
+              @interact-outside="handleDismiss"
             >
-              <DialogPanel
-                :class="[
-                  'flex w-full transform flex-col rounded-xl bg-white shadow-xl transition-all',
-                  sizeClasses,
-                ]"
+              <DialogTitle
+                v-if="!title || $slots.header"
+                class="sr-only"
               >
-                <!-- Fixed Header -->
-                <div
-                  v-if="title || showCloseButton || $slots.header"
-                  class="flex flex-shrink-0 items-center justify-between p-6 pb-0"
-                >
-                  <slot name="header">
-                    <DialogTitle
-                      v-if="title"
-                      as="h3"
-                      class="text-sm font-medium leading-6 text-gray-500"
-                    >
-                      {{ title }}
-                    </DialogTitle>
-                    <div v-else></div>
-                  </slot>
+                {{ title || "Dialog" }}
+              </DialogTitle>
 
-                  <button
-                    v-if="showCloseButton && closable"
-                    @click="handleCloseButtonClick"
-                    class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500"
-                    aria-label="Close modal"
+              <!-- Fixed Header -->
+              <div
+                v-if="title || showCloseButton || $slots.header"
+                class="flex flex-shrink-0 items-center justify-between p-6 pb-0"
+              >
+                <slot name="header">
+                  <DialogTitle
+                    v-if="title"
+                    as="h3"
+                    class="text-sm font-medium leading-6 text-gray-500"
                   >
-                    <svg
-                      class="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
+                    {{ title }}
+                  </DialogTitle>
+                  <div v-else></div>
+                </slot>
 
-                <!-- Scrollable Content -->
-                <div :class="bodyClasses" v-bind="bodyAttrs">
-                  <slot />
-                </div>
-
-                <!-- Fixed Footer -->
-                <div
-                  v-if="$slots.footer"
-                  class="flex-shrink-0 border-t border-gray-200 p-6"
+                <button
+                  v-if="showCloseButton && closable"
+                  type="button"
+                  class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-500"
+                  aria-label="Close modal"
+                  @click="handleCloseButtonClick"
                 >
-                  <slot name="footer" />
-                </div>
-              </DialogPanel>
-            </TransitionChild>
+                  <svg
+                    class="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Scrollable Content -->
+              <div :class="bodyClasses" v-bind="bodyAttrs">
+                <slot />
+              </div>
+
+              <!-- Fixed Footer -->
+              <div
+                v-if="$slots.footer"
+                class="flex-shrink-0 border-t border-gray-200 p-6"
+              >
+                <slot name="footer" />
+              </div>
+            </DialogContent>
           </div>
         </div>
-      </Dialog>
-    </TransitionRoot>
-  </Teleport>
+      </Transition>
+    </DialogPortal>
+  </DialogRoot>
 </template>

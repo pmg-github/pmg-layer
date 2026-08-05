@@ -60,21 +60,19 @@ const handleSelectImages = async () => {
 
 const handleManageImages = async () => {
   try {
-    await withManageModalSuspended(async () => {
-      const selectedImages = (await pickImages({
-        folderId: 74,
-        maxSelected: Infinity,
-        jobCode: articleStore.metaData.jobCode,
-        currentSelection: images.value,
-      })) as FileButtonViewModel[] | null;
+    const selectedImages = (await pickImages({
+      folderId: 74,
+      maxSelected: Infinity,
+      jobCode: articleStore.metaData.jobCode,
+      currentSelection: images.value,
+    })) as FileButtonViewModel[] | null;
 
-      if (!selectedImages) return;
-      await onImagesSelected(selectedImages);
-      await nextTick();
-      modalImages.value = [...images.value];
-    });
+    if (!selectedImages) return;
+    await onImagesSelected(selectedImages);
+    await nextTick();
+    modalImages.value = [...images.value];
   } catch {
-    // User cancelled - keep carousel modal open.
+    // User cancelled - do nothing.
   }
 };
 
@@ -84,26 +82,6 @@ const handleReorder = () => {
 
 const handleOpenManageModal = () => {
   isModalOpen.value = true;
-};
-
-const withManageModalSuspended = async <T,>(operation: () => Promise<T>) => {
-  const shouldReopen = isModalOpen.value;
-
-  if (shouldReopen) {
-    isModalOpen.value = false;
-    // Let Headless UI release its focus and pointer lock before mounting the
-    // globally-rendered image picker/editor dialog.
-    await nextTick();
-  }
-
-  try {
-    return await operation();
-  } finally {
-    if (shouldReopen) {
-      await nextTick();
-      isModalOpen.value = true;
-    }
-  }
 };
 
 const toBoImageModel = (
@@ -163,19 +141,17 @@ const handleEditImage = async (index: number) => {
   if (!currentImage) return;
 
   try {
-    await withManageModalSuspended(async () => {
-      const editedImage = (await editImage({
-        image: currentImage,
-        folderId: 74,
-      })) as FileButtonViewModel | BoArticleImageModel | null;
+    const editedImage = (await editImage({
+      image: currentImage,
+      folderId: 74,
+    })) as FileButtonViewModel | BoArticleImageModel | null;
 
-      if (!editedImage) return;
-      modalImages.value[index] = {
-        ...modalImages.value[index],
-        ...toBoImageModel(editedImage),
-      };
-      props.updateAttributes({ images: [...modalImages.value] });
-    });
+    if (!editedImage) return;
+    modalImages.value[index] = {
+      ...modalImages.value[index],
+      ...toBoImageModel(editedImage),
+    };
+    props.updateAttributes({ images: [...modalImages.value] });
   } catch {
     // User cancelled editing.
   }
@@ -274,27 +250,43 @@ const stopModalDragScroll = () => {
 
 const addFullScreenDragListeners = () => {
   window.addEventListener("dragover", onModalDragOver, true);
-  window.addEventListener("drop", stopModalDragScroll, true);
-  window.addEventListener("dragend", stopModalDragScroll, true);
+  window.addEventListener("drop", cleanupFullScreenDrag, true);
+  window.addEventListener("dragend", cleanupFullScreenDrag, true);
 };
 
 const removeFullScreenDragListeners = () => {
   window.removeEventListener("dragover", onModalDragOver, true);
-  window.removeEventListener("drop", stopModalDragScroll, true);
-  window.removeEventListener("dragend", stopModalDragScroll, true);
+  window.removeEventListener("drop", cleanupFullScreenDrag, true);
+  window.removeEventListener("dragend", cleanupFullScreenDrag, true);
+};
+
+function cleanupFullScreenDrag() {
+  stopModalDragScroll();
+  removeFullScreenDragListeners();
+}
+
+const handleModalDragStart = () => {
+  addFullScreenDragListeners();
+};
+
+const handleModalDragEnd = () => {
+  handleReorder();
+  cleanupFullScreenDrag();
 };
 
 watch(isModalOpen, (isOpen) => {
   if (isOpen) {
     modalImages.value = [...images.value];
-    addFullScreenDragListeners();
   } else {
     stopModalDragScroll();
     removeFullScreenDragListeners();
   }
 });
 
-onBeforeUnmount(removeFullScreenDragListeners);
+onBeforeUnmount(() => {
+  stopModalDragScroll();
+  removeFullScreenDragListeners();
+});
 </script>
 
 <template>
@@ -449,7 +441,8 @@ onBeforeUnmount(removeFullScreenDragListeners);
           v-model="modalImages"
           handle=".drag-handle"
           class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
-          @end="handleReorder"
+          @start="handleModalDragStart"
+          @end="handleModalDragEnd"
         >
           <div
             v-for="(image, index) in modalImages"
