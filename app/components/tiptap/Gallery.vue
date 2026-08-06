@@ -3,10 +3,7 @@ import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
 import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
-import {
-  useArticleStore,
-  useImageLibrary,
-} from "#imports";
+import { useArticleStore, useImageLibrary } from "#imports";
 import Modal from "../Modal.vue";
 
 // Nuxt resolves the consuming app's store before the layer fallback.

@@ -19,8 +19,6 @@ interface Props {
   showCloseButton?: boolean;
   persistent?: boolean;
   zIndex?: number;
-  /** @deprecated Reka UI handles nested dialog interaction automatically. */
-  inert?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -154,10 +152,7 @@ const handleCloseButtonClick = () => {
               @pointer-down-outside="handleDismiss"
               @interact-outside="handleDismiss"
             >
-              <DialogTitle
-                v-if="!title || $slots.header"
-                class="sr-only"
-              >
+              <DialogTitle v-if="!title || $slots.header" class="sr-only">
                 {{ title || "Dialog" }}
               </DialogTitle>
 

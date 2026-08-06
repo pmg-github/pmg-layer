@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
-import { Swiper, SwiperSlide } from "swiper/vue";
-import "swiper/swiper-bundle.css";
-import { Navigation } from "swiper/modules";
+import {
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from "reka-ui";
 import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
 import { useArticleStore, useImageLibrary } from "#imports";
@@ -16,38 +22,30 @@ const { pickImages, editImage } = useImageLibrary();
 const props = defineProps<NodeViewProps>();
 
 const isEditable = computed(() => props.editor.isEditable ?? false);
-const isModalOpen = ref(false);
+const isManageOpen = ref(false);
+const isLightboxOpen = ref(false);
+const lightboxIndex = ref(0);
 const isDragOver = ref(false);
-const currentSlide = ref(0);
-const prevButtonRef = ref<HTMLElement | null>(null);
-const nextButtonRef = ref<HTMLElement | null>(null);
-const container = ref<{ scrollContainer: HTMLElement | null } | null>(null);
+const container = ref<HTMLElement | null>(null);
+const modalImages = ref<BoArticleImageModel[]>([]);
 
 const images = computed<BoArticleImageModel[]>(
   () => (props.node.attrs.images as BoArticleImageModel[] | undefined) ?? [],
 );
 
-const imagesKey = computed(() =>
-  images.value.map((image) => image.id).join("-"),
-);
-const modalImages = ref<BoArticleImageModel[]>([]);
 const hasImages = computed(() => images.value.length > 0);
+const hasMoreImages = computed(() => images.value.length > 3);
+const remainingCount = computed(() => images.value.length - 3);
+const activeLightboxImage = computed(() => images.value[lightboxIndex.value]);
 
-watch(
-  () => images.value.length,
-  (length) => {
-    if (!length) {
-      currentSlide.value = 0;
-      return;
-    }
-
-    if (currentSlide.value >= length) currentSlide.value = length - 1;
-  },
-);
+const gridClass = computed(() => {
+  const count = images.value.length;
+  if (count === 1) return "grid-cols-1";
+  if (count === 2) return "grid-cols-2";
+  return "grid grid-cols-[2fr_1fr]";
+});
 
 const handleSelectImages = async () => {
-  if (!isEditable.value) return;
-
   try {
     const selectedImages = (await pickImages({
       folderId: 74,
@@ -57,37 +55,28 @@ const handleSelectImages = async () => {
 
     await onImagesSelected(selectedImages);
   } catch {
-    // User cancelled - do nothing.
+    // User cancelled
   }
 };
 
 const handleManageImages = async () => {
-  if (!isEditable.value) return;
-
   try {
     const selectedImages = (await pickImages({
       folderId: 74,
       maxSelected: Infinity,
       jobCode: articleStore.metaData.jobCode,
       currentSelection: images.value,
-    })) as FileButtonViewModel[] | null;
+    })) as FileButtonViewModel[];
 
-    if (!selectedImages) return;
     await onImagesSelected(selectedImages);
-    await nextTick();
     modalImages.value = [...images.value];
   } catch {
-    // User cancelled - do nothing.
+    // User cancelled - keep modal open
   }
 };
 
 const handleReorder = () => {
   props.updateAttributes({ images: [...modalImages.value] });
-};
-
-const handleOpenManageModal = () => {
-  if (!isEditable.value) return;
-  isModalOpen.value = true;
 };
 
 const toBoImageModel = (
@@ -152,14 +141,15 @@ const handleEditImage = async (index: number) => {
       folderId: 74,
     })) as FileButtonViewModel | BoArticleImageModel | null;
 
-    if (!editedImage) return;
-    modalImages.value[index] = {
-      ...modalImages.value[index],
-      ...toBoImageModel(editedImage),
-    };
-    props.updateAttributes({ images: [...modalImages.value] });
+    if (editedImage) {
+      modalImages.value[index] = {
+        ...modalImages.value[index],
+        ...toBoImageModel(editedImage),
+      };
+      props.updateAttributes({ images: [...modalImages.value] });
+    }
   } catch {
-    // User cancelled editing.
+    // User cancelled editing
   }
 };
 
@@ -179,7 +169,6 @@ const onDragLeave = () => {
 
 const onDrop = async (event: DragEvent) => {
   isDragOver.value = false;
-  if (!isEditable.value) return;
   const raw = event.dataTransfer?.getData(TILE_IMAGE_DRAG_TYPE);
   if (!raw) return;
 
@@ -204,6 +193,27 @@ const onDrop = async (event: DragEvent) => {
   });
 };
 
+const openLightbox = (index: number) => {
+  if (isEditable.value) return;
+  lightboxIndex.value = index;
+  isLightboxOpen.value = true;
+};
+
+const closeLightbox = () => {
+  isLightboxOpen.value = false;
+};
+
+const nextImage = () => {
+  if (!images.value.length) return;
+  lightboxIndex.value = (lightboxIndex.value + 1) % images.value.length;
+};
+
+const prevImage = () => {
+  if (!images.value.length) return;
+  lightboxIndex.value =
+    (lightboxIndex.value - 1 + images.value.length) % images.value.length;
+};
+
 const DRAG_SCROLL_ZONE = 200;
 const DRAG_SCROLL_MAX_SPEED = 25;
 
@@ -211,12 +221,10 @@ let modalDragScrollRaf: number | null = null;
 let modalDragScrollClientY: number | null = null;
 
 const modalDragScrollStep = () => {
-  const scrollContainer = container.value?.scrollContainer;
-
   if (
-    !scrollContainer ||
+    !container.value ||
     modalDragScrollClientY === null ||
-    !isModalOpen.value
+    !isManageOpen.value
   ) {
     modalDragScrollRaf = null;
     return;
@@ -234,13 +242,14 @@ const modalDragScrollStep = () => {
     speed = intensity * DRAG_SCROLL_MAX_SPEED;
   }
 
-  if (speed !== 0) scrollContainer.scrollTop += speed;
+  if (speed !== 0 && container.value) container.value.scrollTop += speed;
   modalDragScrollRaf = requestAnimationFrame(modalDragScrollStep);
 };
 
 const onModalDragOver = (event: DragEvent) => {
-  if (!isModalOpen.value) return;
+  if (!isManageOpen.value) return;
   event.preventDefault();
+  event.stopPropagation();
 
   modalDragScrollClientY = event.clientY;
   if (modalDragScrollRaf === null) {
@@ -256,50 +265,41 @@ const stopModalDragScroll = () => {
   }
 };
 
-const addFullScreenDragListeners = () => {
-  window.addEventListener("dragover", onModalDragOver, true);
-  window.addEventListener("drop", cleanupFullScreenDrag, true);
-  window.addEventListener("dragend", cleanupFullScreenDrag, true);
-};
+const handleKeydown = (event: KeyboardEvent) => {
+  if (!isLightboxOpen.value || isEditable.value) return;
 
-const removeFullScreenDragListeners = () => {
-  window.removeEventListener("dragover", onModalDragOver, true);
-  window.removeEventListener("drop", cleanupFullScreenDrag, true);
-  window.removeEventListener("dragend", cleanupFullScreenDrag, true);
-};
-
-function cleanupFullScreenDrag() {
-  stopModalDragScroll();
-  removeFullScreenDragListeners();
-}
-
-const handleModalDragStart = () => {
-  addFullScreenDragListeners();
-};
-
-const handleModalDragEnd = () => {
-  handleReorder();
-  cleanupFullScreenDrag();
-};
-
-watch(isModalOpen, (isOpen) => {
-  if (isOpen) {
-    modalImages.value = [...images.value];
-  } else {
-    stopModalDragScroll();
-    removeFullScreenDragListeners();
+  if (event.key === "Escape") {
+    closeLightbox();
+    return;
   }
+
+  if (event.key === "ArrowRight") {
+    nextImage();
+    return;
+  }
+
+  if (event.key === "ArrowLeft") {
+    prevImage();
+  }
+};
+
+watch(isManageOpen, (isOpen) => {
+  if (isOpen) modalImages.value = [...images.value];
+  else stopModalDragScroll();
 });
 
-onBeforeUnmount(() => {
-  stopModalDragScroll();
-  removeFullScreenDragListeners();
+onMounted(() => {
+  window.addEventListener("keydown", handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeydown);
 });
 </script>
 
 <template>
   <NodeViewWrapper
-    class="my-4 box-border w-full max-w-full"
+    class="mt-4 box-border w-full max-w-full"
     :class="{
       'rounded-lg ring-2 ring-blue-400 ring-offset-2': isDragOver && isEditable,
     }"
@@ -321,7 +321,7 @@ onBeforeUnmount(() => {
           <span
             class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
           >
-            Fotocarrousel
+            Fotogallerij
           </span>
         </div>
         <Icon
@@ -342,7 +342,7 @@ onBeforeUnmount(() => {
           <span
             class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
           >
-            Fotocarrousel
+            Fotogallerij
           </span>
         </div>
         <h3 class="text-lg font-medium text-gray-700">
@@ -353,101 +353,107 @@ onBeforeUnmount(() => {
 
     <div v-else class="w-full">
       <div class="relative aspect-video w-full overflow-hidden rounded-lg">
-        <div v-if="isEditable" class="absolute inset-0 z-[2]" />
-        <Swiper
-          :key="imagesKey"
-          :modules="[Navigation]"
-          :space-between="16"
-          :slides-per-view="1"
-          :navigation="{ nextEl: nextButtonRef, prevEl: prevButtonRef }"
-          :loop="true"
-          :prevent-clicks-propagation="true"
-          class="h-full w-full"
-          @slide-change-transition-end="
-            (swiper) => (currentSlide = swiper.realIndex)
-          "
-        >
-          <SwiperSlide
-            v-for="(image, index) in images"
-            :key="image.id"
-            class="flex h-full items-center justify-center bg-slate-50"
+        <div class="grid h-full w-full gap-1" :class="gridClass">
+          <div
+            v-if="images.length >= 1"
+            class="relative h-full w-full overflow-hidden rounded-lg"
+            :class="{ 'cursor-pointer': !isEditable }"
+            @click="openLightbox(0)"
           >
             <img
-              :src="image.url"
-              :alt="image.altText || `Image ${index + 1}`"
-              class="h-full w-full object-contain"
+              :src="images[0]?.url"
+              :alt="images[0]?.altText || 'Image 1'"
+              class="h-full w-full bg-slate-100"
+              :class="images.length === 1 ? 'object-contain' : 'object-cover'"
             />
-          </SwiperSlide>
-        </Swiper>
+          </div>
 
-        <div
-          v-if="images.length > 1"
-          class="absolute inset-y-0 left-0 z-[3] flex items-center"
-        >
-          <button
-            ref="prevButtonRef"
-            type="button"
-            class="ml-2 flex items-center justify-center rounded-full bg-black bg-opacity-50 p-2 text-white transition-opacity hover:bg-opacity-70 focus:outline-none"
-            aria-label="Previous slide"
-            @click.stop
+          <div
+            v-if="images.length >= 2"
+            class="flex h-full min-h-0 w-full flex-col gap-1"
           >
-            <Icon name="material-symbols:chevron-left" class="size-8" />
-          </button>
+            <div
+              v-if="images.length === 2"
+              class="relative h-full w-full overflow-hidden rounded-lg"
+              :class="{ 'cursor-pointer': !isEditable }"
+              @click="openLightbox(1)"
+            >
+              <img
+                :src="images[1]?.url"
+                :alt="images[1]?.altText || 'Image 2'"
+                class="h-full w-full object-cover"
+              />
+            </div>
+
+            <template v-else>
+              <div
+                class="relative min-h-0 w-full flex-1 overflow-hidden rounded-lg"
+                :class="{ 'cursor-pointer': !isEditable }"
+                @click="openLightbox(1)"
+              >
+                <img
+                  :src="images[1]?.url"
+                  :alt="images[1]?.altText || 'Image 2'"
+                  class="h-full w-full object-cover"
+                />
+              </div>
+              <div
+                class="relative min-h-0 w-full flex-1 overflow-hidden rounded-lg"
+                :class="{ 'cursor-pointer': !isEditable }"
+                @click="openLightbox(2)"
+              >
+                <img
+                  :src="images[2]?.url"
+                  :alt="images[2]?.altText || 'Image 3'"
+                  class="h-full w-full object-cover"
+                />
+                <div
+                  v-if="hasMoreImages"
+                  class="absolute inset-0 flex items-center justify-center bg-black/50 text-2xl font-bold text-white"
+                >
+                  +{{ remainingCount }}
+                </div>
+              </div>
+            </template>
+          </div>
         </div>
-        <div
-          v-if="images.length > 1"
-          class="absolute inset-y-0 right-0 z-[3] flex items-center"
+
+        <button
+          v-if="isEditable"
+          type="button"
+          class="absolute right-2 top-2 z-[1] flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+          title="Manage images"
+          @click="isManageOpen = true"
         >
-          <button
-            ref="nextButtonRef"
-            type="button"
-            class="mr-2 flex items-center justify-center rounded-full bg-black bg-opacity-50 p-2 text-white transition-opacity hover:bg-opacity-70 focus:outline-none"
-            aria-label="Next slide"
-            @click.stop
-          >
-            <Icon name="material-symbols:chevron-right" class="size-8" />
-          </button>
-        </div>
-        <div
-          v-if="images.length > 1"
-          class="absolute bottom-2 left-2 z-[3] rounded-full bg-black/50 px-2.5 py-1 text-xs font-semibold tabular-nums text-white"
-        >
-          {{ currentSlide + 1 }} / {{ images.length }}
-        </div>
-        <div class="absolute right-2 top-2 z-[3] flex gap-2">
-          <button
-            v-if="isEditable"
-            type="button"
-            class="flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-            title="Manage images"
-            @click.stop="handleOpenManageModal"
-          >
-            <Icon name="material-symbols:edit-outline" class="size-5" />
-          </button>
-        </div>
+          <Icon name="material-symbols:edit-outline" class="size-5" />
+        </button>
       </div>
 
       <small>
-        {{ images[currentSlide]?.caption || "\u00A0" }}
+        {{ images.length === 1 ? images[0]?.caption : "\u00A0" }}
         {{
-          images[currentSlide]?.copyRight
-            ? `© ${images[currentSlide]?.copyRight}`
+          images.length === 1 && images[0]?.copyRight
+            ? `© ${images[0].copyRight}`
             : ""
         }}
       </small>
     </div>
 
+    <!-- Management Modal -->
     <Modal
-      :open="isModalOpen && isEditable"
-      :title="`Fotocarrousel (${modalImages.length})`"
+      :open="isManageOpen && isEditable"
+      :title="`Fotogallerij (${modalImages.length})`"
       size="5xl"
-      @update:open="isModalOpen = $event"
+      @update:open="isManageOpen = $event"
       persistent
       ref="container"
+      @dragover="onModalDragOver"
+      @drop="stopModalDragScroll"
+      @dragend="stopModalDragScroll"
     >
       <div>
         <div class="mb-4 flex items-center justify-between">
-          <p class="text-sm text-gray-600">Beheer de foto's in de carrousel</p>
+          <p class="text-sm text-gray-600">Beheer de foto's in de gallerij</p>
           <button
             type="button"
             class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -465,8 +471,8 @@ onBeforeUnmount(() => {
           v-model="modalImages"
           handle=".drag-handle"
           class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
-          @start="handleModalDragStart"
-          @end="handleModalDragEnd"
+          @end="handleReorder"
+          @dragover.native="onModalDragOver"
         >
           <div
             v-for="(image, index) in modalImages"
@@ -514,5 +520,74 @@ onBeforeUnmount(() => {
         </Draggable>
       </div>
     </Modal>
+
+    <!-- Lightbox (readonly mode only) -->
+    <DialogRoot
+      v-if="!isEditable"
+      :open="isLightboxOpen"
+      @update:open="isLightboxOpen = $event"
+    >
+      <DialogPortal>
+        <DialogOverlay
+          class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in"
+        />
+
+        <DialogContent
+          class="fixed left-1/2 top-1/2 z-50 flex max-h-[95vh] w-[calc(100vw-2rem)] max-w-6xl -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-3 p-4 outline-none"
+          @open-auto-focus.prevent
+        >
+          <DialogTitle class="sr-only">Afbeelding bekijken</DialogTitle>
+          <DialogDescription class="sr-only">
+            Afbeelding {{ lightboxIndex + 1 }} van {{ images.length }}
+          </DialogDescription>
+
+          <DialogClose
+            class="absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
+            aria-label="Sluiten"
+          >
+            <Icon name="material-symbols:close" class="size-6" />
+          </DialogClose>
+
+          <button
+            v-if="images.length > 1"
+            type="button"
+            class="absolute left-4 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
+            aria-label="Vorige afbeelding"
+            @click="prevImage"
+          >
+            <Icon name="material-symbols:chevron-left" class="size-7" />
+          </button>
+
+          <span class="rounded bg-black/40 px-3 py-1 text-sm text-white">
+            {{ lightboxIndex + 1 }} / {{ images.length }}
+          </span>
+
+          <img
+            :src="activeLightboxImage?.url"
+            :alt="activeLightboxImage?.altText || activeLightboxImage?.caption"
+            class="max-h-[75vh] max-w-full object-contain"
+          />
+
+          <p class="max-w-xl text-center text-sm text-white">
+            {{ activeLightboxImage?.caption || activeLightboxImage?.altText }}
+            {{
+              activeLightboxImage?.copyRight
+                ? ` © ${activeLightboxImage.copyRight}`
+                : ""
+            }}
+          </p>
+
+          <button
+            v-if="images.length > 1"
+            type="button"
+            class="absolute right-4 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
+            aria-label="Volgende afbeelding"
+            @click="nextImage"
+          >
+            <Icon name="material-symbols:chevron-right" class="size-7" />
+          </button>
+        </DialogContent>
+      </DialogPortal>
+    </DialogRoot>
   </NodeViewWrapper>
 </template>
