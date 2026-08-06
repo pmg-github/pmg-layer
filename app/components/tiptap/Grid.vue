@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
 import {
   DialogClose,
@@ -34,16 +34,16 @@ const images = computed<BoArticleImageModel[]>(
 );
 
 const hasImages = computed(() => images.value.length > 0);
-const hasMoreImages = computed(() => images.value.length > 3);
-const remainingCount = computed(() => images.value.length - 3);
+const MAX_VISIBLE = 6;
+const visibleImages = computed(() =>
+  images.value
+    .map((image, originalIndex) => ({ ...image, originalIndex }))
+    .slice(0, MAX_VISIBLE),
+);
+const remainingCount = computed(() =>
+  Math.max(0, images.value.length - MAX_VISIBLE),
+);
 const activeLightboxImage = computed(() => images.value[lightboxIndex.value]);
-
-const gridClass = computed(() => {
-  const count = images.value.length;
-  if (count === 1) return "grid-cols-1";
-  if (count === 2) return "grid-cols-2";
-  return "grid grid-cols-[2fr_1fr]";
-});
 
 const handleSelectImages = async () => {
   try {
@@ -55,7 +55,7 @@ const handleSelectImages = async () => {
 
     await onImagesSelected(selectedImages);
   } catch {
-    // User cancelled
+    // User cancelled.
   }
 };
 
@@ -71,7 +71,7 @@ const handleManageImages = async () => {
     await onImagesSelected(selectedImages);
     modalImages.value = [...images.value];
   } catch {
-    // User cancelled - keep modal open
+    // User cancelled - keep modal open.
   }
 };
 
@@ -107,8 +107,9 @@ const onImagesSelected = async (selectedImages: FileButtonViewModel[]) => {
 
   const withCaptions = await articleStore.fetchImageCaptions(brandNewImages);
   const captionMap = new Map(
-    withCaptions.map((image: { id: any }) => [image.id, image]),
+    withCaptions.map((image: { id: number }) => [image.id, image]),
   );
+
   props.updateAttributes({
     images: newImages.map((image) => ({
       ...(captionMap.get(image.id) ?? currentMap.get(image.id) ?? image),
@@ -122,6 +123,7 @@ const updateImageCaption = (id: number, caption: string) => {
 
   const image = modalImages.value[index];
   if (!image) return;
+
   image.caption = caption;
   props.updateAttributes({ images: [...modalImages.value] });
 };
@@ -141,15 +143,15 @@ const handleEditImage = async (index: number) => {
       folderId: 74,
     })) as FileButtonViewModel | BoArticleImageModel | null;
 
-    if (editedImage) {
-      modalImages.value[index] = {
-        ...modalImages.value[index],
-        ...toBoImageModel(editedImage),
-      };
-      props.updateAttributes({ images: [...modalImages.value] });
-    }
+    if (!editedImage) return;
+
+    modalImages.value[index] = {
+      ...modalImages.value[index],
+      ...toBoImageModel(editedImage),
+    };
+    props.updateAttributes({ images: [...modalImages.value] });
   } catch {
-    // User cancelled editing
+    // User cancelled editing.
   }
 };
 
@@ -158,6 +160,7 @@ const TILE_IMAGE_DRAG_TYPE = "application/x-tile-image";
 const onDragOver = (event: DragEvent) => {
   if (!isEditable.value) return;
   if (!event.dataTransfer?.types.includes(TILE_IMAGE_DRAG_TYPE)) return;
+
   event.preventDefault();
   event.stopPropagation();
   isDragOver.value = true;
@@ -168,6 +171,8 @@ const onDragLeave = () => {
 };
 
 const onDrop = async (event: DragEvent) => {
+  if (!isEditable.value) return;
+
   isDragOver.value = false;
   const raw = event.dataTransfer?.getData(TILE_IMAGE_DRAG_TYPE);
   if (!raw) return;
@@ -242,16 +247,17 @@ const modalDragScrollStep = () => {
     speed = intensity * DRAG_SCROLL_MAX_SPEED;
   }
 
-  if (speed !== 0 && container.value) container.value.scrollTop += speed;
+  if (speed !== 0) container.value.scrollTop += speed;
   modalDragScrollRaf = requestAnimationFrame(modalDragScrollStep);
 };
 
 const onModalDragOver = (event: DragEvent) => {
   if (!isManageOpen.value) return;
+
   event.preventDefault();
   event.stopPropagation();
-
   modalDragScrollClientY = event.clientY;
+
   if (modalDragScrollRaf === null) {
     modalDragScrollRaf = requestAnimationFrame(modalDragScrollStep);
   }
@@ -268,19 +274,9 @@ const stopModalDragScroll = () => {
 const handleKeydown = (event: KeyboardEvent) => {
   if (!isLightboxOpen.value || isEditable.value) return;
 
-  if (event.key === "Escape") {
-    closeLightbox();
-    return;
-  }
-
-  if (event.key === "ArrowRight") {
-    nextImage();
-    return;
-  }
-
-  if (event.key === "ArrowLeft") {
-    prevImage();
-  }
+  if (event.key === "Escape") closeLightbox();
+  else if (event.key === "ArrowRight") nextImage();
+  else if (event.key === "ArrowLeft") prevImage();
 };
 
 watch(isManageOpen, (isOpen) => {
@@ -294,12 +290,13 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
+  stopModalDragScroll();
 });
 </script>
 
 <template>
   <NodeViewWrapper
-    class="mt-4 box-border w-full max-w-full"
+    class="relative my-4 box-border w-full max-w-full @container"
     :class="{
       'rounded-lg ring-2 ring-blue-400 ring-offset-2': isDragOver && isEditable,
     }"
@@ -321,7 +318,7 @@ onUnmounted(() => {
           <span
             class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
           >
-            Fotogallerij
+            Fotomozaïek
           </span>
         </div>
         <Icon
@@ -337,12 +334,13 @@ onUnmounted(() => {
           Selecteer foto's
         </span>
       </button>
+
       <div v-else class="flex flex-col items-center justify-center">
         <div class="absolute left-3 top-3">
           <span
             class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
           >
-            Fotogallerij
+            Fotomozaïek
           </span>
         </div>
         <h3 class="text-lg font-medium text-gray-700">
@@ -351,109 +349,53 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div v-else class="w-full">
-      <div class="relative aspect-video w-full overflow-hidden rounded-lg">
-        <div class="grid h-full w-full gap-1" :class="gridClass">
-          <div
-            v-if="images.length >= 1"
-            class="relative h-full w-full overflow-hidden rounded-lg"
-            :class="{ 'cursor-pointer': !isEditable }"
-            @click="openLightbox(0)"
-          >
-            <img
-              :src="images[0]?.url"
-              :alt="images[0]?.altText || 'Image 1'"
-              class="h-full w-full bg-slate-100"
-              :class="images.length === 1 ? 'object-contain' : 'object-cover'"
-            />
-          </div>
+    <div v-else class="relative grid gap-1 @md:grid-cols-2 @xl:grid-cols-3">
+      <button
+        v-if="isEditable"
+        type="button"
+        class="absolute right-2 top-2 z-[20] flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+        title="Manage images"
+        @click.stop="isManageOpen = true"
+      >
+        <Icon name="material-symbols:edit-outline" class="size-5" />
+      </button>
 
-          <div
-            v-if="images.length >= 2"
-            class="flex h-full min-h-0 w-full flex-col gap-1"
-          >
-            <div
-              v-if="images.length === 2"
-              class="relative h-full w-full overflow-hidden rounded-lg"
-              :class="{ 'cursor-pointer': !isEditable }"
-              @click="openLightbox(1)"
-            >
-              <img
-                :src="images[1]?.url"
-                :alt="images[1]?.altText || 'Image 2'"
-                class="h-full w-full object-cover"
-              />
-            </div>
+      <div
+        v-for="(image, index) in visibleImages"
+        :key="image.id"
+        class="relative aspect-video overflow-hidden rounded-lg border border-gray-200 bg-white transition-all duration-300 hover:border-blue-300"
+        :class="{ 'cursor-pointer': !isEditable }"
+        @click="openLightbox(image.originalIndex)"
+      >
+        <img
+          :src="image.url"
+          :alt="image.altText || `Image ${image.originalIndex + 1}`"
+          class="h-full w-full object-cover"
+        />
 
-            <template v-else>
-              <div
-                class="relative min-h-0 w-full flex-1 overflow-hidden rounded-lg"
-                :class="{ 'cursor-pointer': !isEditable }"
-                @click="openLightbox(1)"
-              >
-                <img
-                  :src="images[1]?.url"
-                  :alt="images[1]?.altText || 'Image 2'"
-                  class="h-full w-full object-cover"
-                />
-              </div>
-              <div
-                class="relative min-h-0 w-full flex-1 overflow-hidden rounded-lg"
-                :class="{ 'cursor-pointer': !isEditable }"
-                @click="openLightbox(2)"
-              >
-                <img
-                  :src="images[2]?.url"
-                  :alt="images[2]?.altText || 'Image 3'"
-                  class="h-full w-full object-cover"
-                />
-                <div
-                  v-if="hasMoreImages"
-                  class="absolute inset-0 flex items-center justify-center bg-black/50 text-2xl font-bold text-white"
-                >
-                  +{{ remainingCount }}
-                </div>
-              </div>
-            </template>
-          </div>
-        </div>
-
-        <button
-          v-if="isEditable"
-          type="button"
-          class="absolute right-2 top-2 z-[1] flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-          title="Manage images"
-          @click="isManageOpen = true"
+        <div
+          v-if="index === visibleImages.length - 1 && remainingCount > 0"
+          class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/50 text-white"
         >
-          <Icon name="material-symbols:edit-outline" class="size-5" />
-        </button>
+          <span class="text-2xl font-semibold">+{{ remainingCount }}</span>
+        </div>
       </div>
-
-      <small>
-        {{ images.length === 1 ? images[0]?.caption : "\u00A0" }}
-        {{
-          images.length === 1 && images[0]?.copyRight
-            ? `© ${images[0].copyRight}`
-            : ""
-        }}
-      </small>
     </div>
 
-    <!-- Management Modal -->
     <Modal
       :open="isManageOpen && isEditable"
-      :title="`Fotogallerij (${modalImages.length})`"
+      :title="`Fotomozaïek (${modalImages.length})`"
       size="5xl"
-      @update:open="isManageOpen = $event"
       persistent
       ref="container"
+      @update:open="isManageOpen = $event"
       @dragover="onModalDragOver"
       @drop="stopModalDragScroll"
       @dragend="stopModalDragScroll"
     >
       <div>
         <div class="mb-4 flex items-center justify-between">
-          <p class="text-sm text-gray-600">Beheer de foto's in de gallerij</p>
+          <p class="text-sm text-gray-600">Beheer de foto's in het mozaïek</p>
           <button
             type="button"
             class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -485,6 +427,7 @@ onUnmounted(() => {
                 alt=""
                 class="h-full w-full rounded bg-gray-100 object-contain"
               />
+
               <div class="absolute right-2 top-2 flex gap-1">
                 <button
                   type="button"
@@ -503,12 +446,14 @@ onUnmounted(() => {
                   <Icon name="material-symbols:delete" class="size-5" />
                 </button>
               </div>
+
               <div
                 class="drag-handle absolute left-2 top-2 flex cursor-move items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs font-semibold text-white"
               >
                 <Icon name="material-symbols:drag-indicator" class="size-4" />
               </div>
             </div>
+
             <textarea
               v-model="image.caption"
               rows="3"
@@ -521,7 +466,6 @@ onUnmounted(() => {
       </div>
     </Modal>
 
-    <!-- Lightbox (readonly mode only) -->
     <DialogRoot
       v-if="!isEditable"
       :open="isLightboxOpen"

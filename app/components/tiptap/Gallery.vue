@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
+import {
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from "reka-ui";
 import type { BoArticleImageModel, FileButtonViewModel } from "models";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
 import { useArticleStore, useImageLibrary } from "#imports";
@@ -513,53 +522,72 @@ onUnmounted(() => {
     </Modal>
 
     <!-- Lightbox (readonly mode only) -->
-    <div
-      v-if="!isEditable && isLightboxOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-      @click.self="closeLightbox"
+    <DialogRoot
+      v-if="!isEditable"
+      :open="isLightboxOpen"
+      @update:open="isLightboxOpen = $event"
     >
-      <button
-        type="button"
-        class="absolute right-4 top-4 rounded-full bg-black/50 px-3 py-2 text-sm text-white hover:bg-black/70"
-        @click="closeLightbox"
-      >
-        Close
-      </button>
-
-      <button
-        type="button"
-        class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-white hover:bg-black/70"
-        @click.stop="prevImage"
-      >
-        Prev
-      </button>
-
-      <div class="flex max-w-5xl flex-col items-center gap-3">
-        <span class="rounded bg-black/40 px-3 py-1 text-sm text-white">
-          {{ lightboxIndex + 1 }} / {{ images.length }}
-        </span>
-        <img
-          :src="activeLightboxImage?.url"
-          :alt="activeLightboxImage?.altText || activeLightboxImage?.caption"
-          class="max-h-[75vh] max-w-full object-contain"
+      <DialogPortal>
+        <DialogOverlay
+          class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in"
         />
-        <p class="max-w-xl text-center text-sm text-white">
-          {{ activeLightboxImage?.caption || activeLightboxImage?.altText }}
-          {{
-            activeLightboxImage?.copyRight
-              ? ` © ${activeLightboxImage.copyRight}`
-              : ""
-          }}
-        </p>
-      </div>
 
-      <button
-        type="button"
-        class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-2 text-white hover:bg-black/70"
-        @click.stop="nextImage"
-      >
-        Next
-      </button>
-    </div>
+        <DialogContent
+          class="fixed left-1/2 top-1/2 z-50 flex max-h-[95vh] w-[calc(100vw-2rem)] max-w-6xl -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-3 p-4 outline-none"
+          @open-auto-focus.prevent
+        >
+          <DialogTitle class="sr-only">Afbeelding bekijken</DialogTitle>
+          <DialogDescription class="sr-only">
+            Afbeelding {{ lightboxIndex + 1 }} van {{ images.length }}
+          </DialogDescription>
+
+          <DialogClose
+            class="absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
+            aria-label="Sluiten"
+          >
+            <Icon name="material-symbols:close" class="size-6" />
+          </DialogClose>
+
+          <button
+            v-if="images.length > 1"
+            type="button"
+            class="absolute left-4 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
+            aria-label="Vorige afbeelding"
+            @click="prevImage"
+          >
+            <Icon name="material-symbols:chevron-left" class="size-7" />
+          </button>
+
+          <span class="rounded bg-black/40 px-3 py-1 text-sm text-white">
+            {{ lightboxIndex + 1 }} / {{ images.length }}
+          </span>
+
+          <img
+            :src="activeLightboxImage?.url"
+            :alt="activeLightboxImage?.altText || activeLightboxImage?.caption"
+            class="max-h-[75vh] max-w-full object-contain"
+          />
+
+          <p class="max-w-xl text-center text-sm text-white">
+            {{ activeLightboxImage?.caption || activeLightboxImage?.altText }}
+            {{
+              activeLightboxImage?.copyRight
+                ? ` © ${activeLightboxImage.copyRight}`
+                : ""
+            }}
+          </p>
+
+          <button
+            v-if="images.length > 1"
+            type="button"
+            class="absolute right-4 top-1/2 z-10 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
+            aria-label="Volgende afbeelding"
+            @click="nextImage"
+          >
+            <Icon name="material-symbols:chevron-right" class="size-7" />
+          </button>
+        </DialogContent>
+      </DialogPortal>
+    </DialogRoot>
   </NodeViewWrapper>
 </template>
