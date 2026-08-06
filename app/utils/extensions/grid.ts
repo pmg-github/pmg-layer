@@ -1,59 +1,83 @@
-import { Node } from '@tiptap/core';
-import { VueNodeViewRenderer, type NodeViewProps } from '@tiptap/vue-3';
-import Grid from '~/components/tiptap/Grid.vue';
+import { mergeAttributes, Node } from "@tiptap/core";
+import { VueNodeViewRenderer } from "@tiptap/vue-3";
+import Grid from "../../components/tiptap/Grid.vue";
+import type { BoArticleImageModel } from "models";
 
-export default Node.create({
-  name: 'grid',
-  group: 'media block',
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    grid: {
+      setGrid: (images: BoArticleImageModel[]) => ReturnType;
+      updateGrid: (images: BoArticleImageModel[]) => ReturnType;
+    };
+  }
+}
+
+const parseImages = (value: string | null): BoArticleImageModel[] => {
+  if (!value) return [];
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+export const GridExtension = Node.create({
+  name: "grid",
+  group: "block",
   atom: true,
-  selectable: true,
   draggable: true,
+  selectable: true,
 
   addAttributes() {
     return {
       images: {
         default: [],
+        parseHTML: (element) =>
+          parseImages(element.getAttribute("data-images")),
+        renderHTML: (attributes) => ({
+          "data-images": JSON.stringify(attributes.images ?? []),
+        }),
       },
     };
   },
 
   parseHTML() {
-    return [
-      {
-        tag: 'div[data-grid]',
-        getAttrs: (node) => {
-          if (typeof node === 'string') return false;
-          const element = node as HTMLElement;
-          const dataImages = element.getAttribute('data-images');
-          if (!dataImages) return {};
-
-          try {
-            const images = JSON.parse(dataImages);
-            return Array.isArray(images) ? { images } : {};
-          } catch (e) {
-            return {};
-          }
-        },
-      },
-    ];
+    return [{ tag: "div[data-grid]" }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    const { images, ...rest } = HTMLAttributes as {
-      images?: unknown;
-      [key: string]: unknown;
-    };
-    const dataImages = Array.isArray(images) ? JSON.stringify(images) : '';
     return [
-      'div',
-      {
-        'data-grid': 'true',
-        ...(dataImages ? { 'data-images': dataImages } : {}),
-        ...rest,
-      },
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-grid": "true",
+      }),
     ];
   },
+
+  addCommands() {
+    return {
+      setGrid:
+        (images) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: { images },
+          });
+        },
+
+      updateGrid:
+        (images) =>
+        ({ commands }) => {
+          return commands.updateAttributes(this.name, { images });
+        },
+    };
+  },
+
   addNodeView() {
-    return VueNodeViewRenderer(Grid as Component<NodeViewProps>);
+    return VueNodeViewRenderer(Grid);
   },
 });
+
+export default GridExtension;
