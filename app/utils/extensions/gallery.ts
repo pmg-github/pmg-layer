@@ -23,7 +23,7 @@ const parseImages = (value: string | null): BoArticleImageModel[] => {
   }
 };
 
-export const GalleryExtension = Node.create({
+export default Node.create({
   name: "gallery",
   group: "media block",
   atom: true,
