@@ -19,7 +19,7 @@ declare module "@tiptap/core" {
 
 export const VideoExtension = Node.create({
   name: "video",
-  group: "block",
+  group: "media block",
   atom: true,
   draggable: true,
   selectable: true,

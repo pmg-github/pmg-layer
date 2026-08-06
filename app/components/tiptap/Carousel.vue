@@ -209,6 +209,27 @@ const DRAG_SCROLL_MAX_SPEED = 25;
 
 let modalDragScrollRaf: number | null = null;
 let modalDragScrollClientY: number | null = null;
+let isPageScrollLocked = false;
+let previousHtmlOverflow = "";
+let previousBodyOverflow = "";
+
+const lockPageScroll = () => {
+  if (isPageScrollLocked) return;
+
+  previousHtmlOverflow = document.documentElement.style.overflow;
+  previousBodyOverflow = document.body.style.overflow;
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+  isPageScrollLocked = true;
+};
+
+const unlockPageScroll = () => {
+  if (!isPageScrollLocked) return;
+
+  document.documentElement.style.overflow = previousHtmlOverflow;
+  document.body.style.overflow = previousBodyOverflow;
+  isPageScrollLocked = false;
+};
 
 const modalDragScrollStep = () => {
   const scrollContainer = container.value?.scrollContainer;
@@ -240,8 +261,9 @@ const modalDragScrollStep = () => {
 
 const onModalDragOver = (event: DragEvent) => {
   if (!isModalOpen.value) return;
-  event.preventDefault();
 
+  event.preventDefault();
+  event.stopPropagation();
   modalDragScrollClientY = event.clientY;
   if (modalDragScrollRaf === null) {
     modalDragScrollRaf = requestAnimationFrame(modalDragScrollStep);
@@ -271,9 +293,11 @@ const removeFullScreenDragListeners = () => {
 function cleanupFullScreenDrag() {
   stopModalDragScroll();
   removeFullScreenDragListeners();
+  unlockPageScroll();
 }
 
 const handleModalDragStart = () => {
+  lockPageScroll();
   addFullScreenDragListeners();
 };
 
@@ -286,14 +310,12 @@ watch(isModalOpen, (isOpen) => {
   if (isOpen) {
     modalImages.value = [...images.value];
   } else {
-    stopModalDragScroll();
-    removeFullScreenDragListeners();
+    cleanupFullScreenDrag();
   }
 });
 
 onBeforeUnmount(() => {
-  stopModalDragScroll();
-  removeFullScreenDragListeners();
+  cleanupFullScreenDrag();
 });
 </script>
 

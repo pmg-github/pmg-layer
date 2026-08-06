@@ -25,7 +25,7 @@ const parseImages = (value: string | null): BoArticleImageModel[] => {
 
 export const GalleryExtension = Node.create({
   name: "gallery",
-  group: "block",
+  group: "media block",
   atom: true,
   draggable: true,
   selectable: true,

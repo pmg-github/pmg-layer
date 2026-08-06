@@ -22,7 +22,7 @@ const { pickImages, editImage } = useImageLibrary();
 const props = defineProps<NodeViewProps>();
 
 const isEditable = computed(() => props.editor.isEditable ?? false);
-const isManageOpen = ref(false);
+const isModalOpen = ref(false);
 const isLightboxOpen = ref(false);
 const lightboxIndex = ref(0);
 const isDragOver = ref(false);
@@ -224,12 +224,33 @@ const DRAG_SCROLL_MAX_SPEED = 25;
 
 let modalDragScrollRaf: number | null = null;
 let modalDragScrollClientY: number | null = null;
+let isPageScrollLocked = false;
+let previousHtmlOverflow = "";
+let previousBodyOverflow = "";
+
+const lockPageScroll = () => {
+  if (isPageScrollLocked) return;
+
+  previousHtmlOverflow = document.documentElement.style.overflow;
+  previousBodyOverflow = document.body.style.overflow;
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+  isPageScrollLocked = true;
+};
+
+const unlockPageScroll = () => {
+  if (!isPageScrollLocked) return;
+
+  document.documentElement.style.overflow = previousHtmlOverflow;
+  document.body.style.overflow = previousBodyOverflow;
+  isPageScrollLocked = false;
+};
 
 const modalDragScrollStep = () => {
   if (
     !container.value ||
     modalDragScrollClientY === null ||
-    !isManageOpen.value
+    !isModalOpen.value
   ) {
     modalDragScrollRaf = null;
     return;
@@ -252,7 +273,7 @@ const modalDragScrollStep = () => {
 };
 
 const onModalDragOver = (event: DragEvent) => {
-  if (!isManageOpen.value) return;
+  if (!isModalOpen.value) return;
 
   event.preventDefault();
   event.stopPropagation();
@@ -271,6 +292,34 @@ const stopModalDragScroll = () => {
   }
 };
 
+const addFullScreenDragListeners = () => {
+  window.addEventListener("dragover", onModalDragOver, true);
+  window.addEventListener("drop", cleanupFullScreenDrag, true);
+  window.addEventListener("dragend", cleanupFullScreenDrag, true);
+};
+
+const removeFullScreenDragListeners = () => {
+  window.removeEventListener("dragover", onModalDragOver, true);
+  window.removeEventListener("drop", cleanupFullScreenDrag, true);
+  window.removeEventListener("dragend", cleanupFullScreenDrag, true);
+};
+
+function cleanupFullScreenDrag() {
+  stopModalDragScroll();
+  removeFullScreenDragListeners();
+  unlockPageScroll();
+}
+
+const handleModalDragStart = () => {
+  lockPageScroll();
+  addFullScreenDragListeners();
+};
+
+const handleModalDragEnd = () => {
+  handleReorder();
+  cleanupFullScreenDrag();
+};
+
 const handleKeydown = (event: KeyboardEvent) => {
   if (!isLightboxOpen.value || isEditable.value) return;
 
@@ -279,9 +328,12 @@ const handleKeydown = (event: KeyboardEvent) => {
   else if (event.key === "ArrowLeft") prevImage();
 };
 
-watch(isManageOpen, (isOpen) => {
-  if (isOpen) modalImages.value = [...images.value];
-  else stopModalDragScroll();
+watch(isModalOpen, (isOpen) => {
+  if (isOpen) {
+    modalImages.value = [...images.value];
+  } else {
+    cleanupFullScreenDrag();
+  }
 });
 
 onMounted(() => {
@@ -290,7 +342,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
-  stopModalDragScroll();
+  cleanupFullScreenDrag();
 });
 </script>
 
@@ -355,7 +407,7 @@ onUnmounted(() => {
         type="button"
         class="absolute right-2 top-2 z-[20] flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
         title="Manage images"
-        @click.stop="isManageOpen = true"
+        @click.stop="isModalOpen = true"
       >
         <Icon name="material-symbols:edit-outline" class="size-5" />
       </button>
@@ -383,19 +435,16 @@ onUnmounted(() => {
     </div>
 
     <Modal
-      :open="isManageOpen && isEditable"
-      :title="`Fotomozaïek (${modalImages.length})`"
+      :open="isModalOpen && isEditable"
+      :title="`Fotocarrousel (${modalImages.length})`"
       size="5xl"
+      @update:open="isModalOpen = $event"
       persistent
       ref="container"
-      @update:open="isManageOpen = $event"
-      @dragover="onModalDragOver"
-      @drop="stopModalDragScroll"
-      @dragend="stopModalDragScroll"
     >
       <div>
         <div class="mb-4 flex items-center justify-between">
-          <p class="text-sm text-gray-600">Beheer de foto's in het mozaïek</p>
+          <p class="text-sm text-gray-600">Beheer de foto's in de carrousel</p>
           <button
             type="button"
             class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -413,8 +462,8 @@ onUnmounted(() => {
           v-model="modalImages"
           handle=".drag-handle"
           class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
-          @end="handleReorder"
-          @dragover.native="onModalDragOver"
+          @start="handleModalDragStart"
+          @end="handleModalDragEnd"
         >
           <div
             v-for="(image, index) in modalImages"
@@ -427,7 +476,6 @@ onUnmounted(() => {
                 alt=""
                 class="h-full w-full rounded bg-gray-100 object-contain"
               />
-
               <div class="absolute right-2 top-2 flex gap-1">
                 <button
                   type="button"
@@ -446,14 +494,12 @@ onUnmounted(() => {
                   <Icon name="material-symbols:delete" class="size-5" />
                 </button>
               </div>
-
               <div
                 class="drag-handle absolute left-2 top-2 flex cursor-move items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs font-semibold text-white"
               >
                 <Icon name="material-symbols:drag-indicator" class="size-4" />
               </div>
             </div>
-
             <textarea
               v-model="image.caption"
               rows="3"
