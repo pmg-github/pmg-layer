@@ -24,7 +24,7 @@ const parseImages = (value: string | null): BoArticleImageModel[] => {
 
 export const CarouselExtension = Node.create({
   name: "carousel",
-  group: "block",
+  group: "media block",
   atom: true,
   draggable: true,
   selectable: true,

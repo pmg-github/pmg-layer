@@ -25,7 +25,7 @@ const parseImages = (value: string | null): BoArticleImageModel[] => {
 
 export const GridExtension = Node.create({
   name: "grid",
-  group: "block",
+  group: "media block",
   atom: true,
   draggable: true,
   selectable: true,
