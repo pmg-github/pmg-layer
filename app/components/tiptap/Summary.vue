@@ -1,0 +1,221 @@
+<script setup lang="ts">
+import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/vue';
+
+const props = defineProps<{
+  node: { attrs: { color?: string } };
+  editor: any;
+  getPos: () => number;
+  updateAttributes: (attrs: { color?: string }) => void;
+}>();
+
+const { postPrompt } = useFetchOpenAI();
+
+const isModalOpen = ref(false);
+const isGenerating = ref(false);
+const errorMessage = ref('');
+
+const summaryColors = [
+  {
+    name: 'Gray',
+    value: 'gray',
+    wrapper: 'border-gray-200 bg-gray-50',
+    content: 'text-gray-700',
+  },
+  {
+    name: 'Blue',
+    value: 'blue',
+    wrapper: 'border-blue-200 bg-blue-50',
+    content: 'text-gray-700',
+  },
+  {
+    name: 'Green',
+    value: 'green',
+    wrapper: 'border-green-200 bg-green-50',
+    content: 'text-gray-700',
+  },
+  {
+    name: 'Yellow',
+    value: 'yellow',
+    wrapper: 'border-yellow-200 bg-yellow-50',
+    content: 'text-gray-700',
+  },
+  {
+    name: 'Orange',
+    value: 'orange',
+    wrapper: 'border-orange-200 bg-orange-50',
+    content: 'text-gray-700',
+  },
+];
+
+const selectedColor = computed({
+  get: () => props.node.attrs.color ?? 'gray',
+  set: (value: string) => props.updateAttributes({ color: value }),
+});
+
+const activeColor = computed(
+  () =>
+    summaryColors.find((c) => c.value === selectedColor.value) ??
+    summaryColors[0]!,
+);
+
+const openSettings = () => {
+  errorMessage.value = '';
+  isModalOpen.value = true;
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+};
+
+const generateWithAi = async () => {
+  if (isGenerating.value) return;
+
+  const articleText = props.editor.state.doc.textContent.trim();
+
+  if (!articleText) {
+    errorMessage.value = 'Er is geen artikeltekst gevonden om samen te vatten.';
+    return;
+  }
+
+  isGenerating.value = true;
+  errorMessage.value = '';
+
+  try {
+    const prompt = [
+      'Vat onderstaand artikel samen als HTML.',
+      'Geef enkel HTML terug, zonder uitleg of markdown.',
+      'Structuur: <h2>Samenvatting</h2> <ul> <li>...</li> </ul>',
+      'Richt je uitsluitend op de belangrijkste inzichten, feiten en conclusies.',
+      'Vermijd details, voorbeelden en herhalingen.',
+      'Gebruik maximaal 5 bullet points.',
+      'Schrijf elke bullet in één duidelijke zin van maximaal 20 woorden.',
+      'Wees objectief en voeg geen eigen interpretaties toe.',
+      '',
+      'ARTIKEL:',
+      articleText,
+    ].join('\n');
+
+    const result = await postPrompt(prompt, 'gpt-5');
+    const summary = result.response
+      ?.trim()
+      .replace(/^```[\w]*\n?|\n?```$/g, '')
+      .trim();
+
+    if (!summary) return;
+
+    props.editor
+      .chain()
+      .focus()
+      .insertContentAt(props.getPos() + 1, summary)
+      .run();
+
+    closeModal();
+  } catch {
+    errorMessage.value = 'Het genereren van de samenvatting is mislukt.';
+  } finally {
+    isGenerating.value = false;
+  }
+};
+</script>
+
+<template>
+  <NodeViewWrapper
+    as="section"
+    class="mt-4 box-border w-full max-w-full rounded-lg border"
+    :class="activeColor.wrapper"
+  >
+    <div class="relative">
+      <div class="absolute right-2 top-2 z-[1]">
+        <button
+          type="button"
+          class="flex items-center justify-center rounded-full bg-gray-800/70 p-2 text-white transition hover:bg-gray-800/90"
+          title="Samenvatting instellingen"
+          @click.stop="openSettings"
+        >
+          <Icon name="material-symbols:edit-outline" class="size-5" />
+        </button>
+      </div>
+
+      <NodeViewContent
+        class="summary-content min-h-24 p-8 text-sm leading-relaxed focus:outline-none"
+        :class="activeColor.content"
+      />
+    </div>
+
+    <Dialog class="relative z-50" :open="isModalOpen" @close="closeModal">
+      <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
+
+      <div
+        class="fixed inset-0 flex items-start justify-center overflow-y-auto p-4"
+      >
+        <DialogPanel class="mt-16 w-full max-w-2xl rounded-lg bg-white p-6">
+          <div class="mb-6 flex items-center justify-between">
+            <DialogTitle class="text-xl font-bold">
+              Uitgelicht (kader)
+            </DialogTitle>
+
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                :disabled="isGenerating"
+                @click="generateWithAi"
+              >
+                {{
+                  isGenerating
+                    ? 'Samenvatting genereren...'
+                    : 'Genereer samenvatting (AI)'
+                }}
+              </button>
+              <button
+                type="button"
+                class="flex items-center justify-center rounded-full p-2 hover:bg-gray-100"
+                :disabled="isGenerating"
+                @click="closeModal"
+              >
+                <Icon name="material-symbols:close" class="size-5" />
+              </button>
+            </div>
+          </div>
+
+          <div
+            v-if="errorMessage"
+            class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700"
+          >
+            {{ errorMessage }}
+          </div>
+
+          <div class="space-y-6">
+            <div>
+              <p class="mb-3 text-sm font-medium text-gray-700">
+                Kies een kleur
+              </p>
+
+              <div class="flex flex-wrap gap-3">
+                <button
+                  v-for="color in summaryColors"
+                  :key="color.value"
+                  type="button"
+                  class="h-10 w-10 rounded-full border-2 transition"
+                  :class="
+                    selectedColor === color.value
+                      ? 'border-gray-900 ring-2 ring-gray-900/20'
+                      : 'border-gray-200'
+                  "
+                  :title="color.name"
+                  @click="selectedColor = color.value"
+                >
+                  <span
+                    class="block h-full w-full rounded-full"
+                    :class="color.wrapper"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </DialogPanel>
+      </div>
+    </Dialog>
+  </NodeViewWrapper>
+</template>

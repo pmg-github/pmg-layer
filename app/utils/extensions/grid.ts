@@ -23,7 +23,7 @@ const parseImages = (value: string | null): BoArticleImageModel[] => {
   }
 };
 
-export const GridExtension = Node.create({
+export default Node.create({
   name: "grid",
   group: "media block",
   atom: true,
@@ -79,5 +79,3 @@ export const GridExtension = Node.create({
     return VueNodeViewRenderer(Grid);
   },
 });
-
-export default GridExtension;

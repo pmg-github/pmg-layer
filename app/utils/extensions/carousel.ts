@@ -22,7 +22,7 @@ const parseImages = (value: string | null): BoArticleImageModel[] => {
   }
 };
 
-export const CarouselExtension = Node.create({
+export default Node.create({
   name: "carousel",
   group: "media block",
   atom: true,

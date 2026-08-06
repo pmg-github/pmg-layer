@@ -17,7 +17,7 @@ declare module "@tiptap/core" {
   }
 }
 
-export const VideoExtension = Node.create({
+export default Node.create({
   name: "video",
   group: "media block",
   atom: true,
