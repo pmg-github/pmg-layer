@@ -3,6 +3,18 @@ import { VueNodeViewRenderer, type NodeViewProps } from '@tiptap/vue-3';
 import type { Component } from 'vue';
 import Summary from '~/components/tiptap/Summary.vue';
 
+export interface SummaryAttributes {
+  color?: string;
+}
+
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    summary: {
+      insertSummary: (attributes?: SummaryAttributes) => ReturnType;
+    };
+  }
+}
+
 export default Node.create({
   name: 'summary',
   group: 'block',
@@ -28,6 +40,22 @@ export default Node.create({
 
   renderHTML({ HTMLAttributes }) {
     return ['div', { 'data-summary': 'true', ...HTMLAttributes }, 0];
+  },
+
+  addCommands() {
+    return {
+      insertSummary:
+        (attributes = {}) =>
+        ({ commands }) =>
+          commands.insertContent([
+            {
+              type: this.name,
+              attrs: { color: 'gray', ...attributes },
+              content: [{ type: 'paragraph' }],
+            },
+            { type: 'paragraph' },
+          ]),
+    };
   },
 
   addNodeView() {
