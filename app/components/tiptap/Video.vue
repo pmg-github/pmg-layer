@@ -45,6 +45,25 @@ const draftMuted = ref(false);
 
 const resolvedVideo = ref<VideoResponse | null>(null);
 
+const normalizeVideoReference = (reference: string) => {
+  const trimmedReference = reference.trim();
+  const match = trimmedReference.match(/^(.*?)[_-]([a-z]{2})$/i);
+
+  const jobCode = match?.[1]?.trim();
+  const language = match?.[2]?.toLowerCase();
+
+  if (!jobCode || !language) {
+    return {
+      jobCode: trimmedReference,
+    };
+  }
+
+  return {
+    jobCode,
+    language,
+  };
+};
+
 const appendQuery = (baseUrl: string, params: URLSearchParams) => {
   if (!baseUrl) {
     return "";
@@ -60,8 +79,11 @@ const loadVideo = async () => {
     return;
   }
 
+  const { jobCode, language } = normalizeVideoReference(videoId.value);
+  resolvedVideo.value = null;
+
   try {
-    resolvedVideo.value = await getVideo(videoId.value);
+    resolvedVideo.value = await getVideo(jobCode, language);
   } catch {
     resolvedVideo.value = null;
   }
