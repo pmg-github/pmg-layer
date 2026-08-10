@@ -75,6 +75,12 @@ watch(
   { immediate: true },
 );
 
+const useBunnyPlayer = computed(() => {
+  return !!(
+    resolvedVideo.value?.bunnyVideoId || !resolvedVideo.value?.sources?.length
+  );
+});
+
 const embedUrl = computed(() => {
   if (!videoId.value) return "";
 
@@ -84,11 +90,6 @@ const embedUrl = computed(() => {
 
   if (resolvedVideo.value?.bunnyVideoId) {
     return `https://player.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${resolvedVideo.value.bunnyVideoId}?${params.toString()}`;
-  }
-
-  const fallbackSource = resolvedVideo.value?.sources?.[0]?.src; // Changed 'url' to 'src'
-  if (fallbackSource) {
-    return appendQuery(fallbackSource, params);
   }
 
   return `https://player.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${videoId.value}?${params.toString()}`;
@@ -171,6 +172,7 @@ const clearVideo = () => {
       class="relative aspect-video w-full overflow-hidden rounded-lg bg-black"
     >
       <iframe
+        v-if="useBunnyPlayer"
         :src="embedUrl"
         class="absolute inset-0 h-full w-full border-0"
         loading="lazy"
@@ -183,6 +185,32 @@ const clearVideo = () => {
         "
         allowfullscreen
       />
+
+      <video
+        v-else
+        :autoplay="autoplay"
+        :muted="muted"
+        :poster="resolvedVideo?.poster"
+        controls
+        class="absolute inset-0 h-full w-full"
+      >
+        <source
+          v-for="(source, index) in resolvedVideo?.sources"
+          :key="index"
+          :src="source.src"
+          :type="source.type"
+        />
+        <track
+          v-for="(track, index) in resolvedVideo?.tracks"
+          :key="index"
+          :kind="track.kind"
+          :src="track.src"
+          :label="track.label"
+          :srclang="track.srclang"
+          :default="track.default"
+        />
+        Your browser does not support the video tag.
+      </video>
 
       <button
         v-if="isEditable"
