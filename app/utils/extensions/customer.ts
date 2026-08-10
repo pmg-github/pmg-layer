@@ -7,22 +7,27 @@ export interface SupplierInfoOptions {
   HTMLAttributes: Record<string, any>;
 }
 
+export interface CustomerAttributes {
+  klnr?: string;
+  name?: string;
+  address?: string;
+  city?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  logo?: string;
+}
+
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
+    customer: {
+      insertCustomer: (attrs?: CustomerAttributes) => ReturnType;
+    };
     supplierInfo: {
       /**
        * Insert a supplier info block
        */
-      setSupplierInfo: (attrs?: {
-        klnr?: string;
-        name?: string;
-        address?: string;
-        city?: string;
-        phone?: string;
-        email?: string;
-        website?: string;
-        logo?: string;
-      }) => ReturnType;
+      setSupplierInfo: (attrs?: CustomerAttributes) => ReturnType;
     };
   }
 }
@@ -196,6 +201,13 @@ export default Node.create<SupplierInfoOptions>({
 
   addCommands() {
     return {
+      insertCustomer:
+        (attrs = {}) =>
+        ({ commands }) =>
+          commands.insertContent([
+            { type: this.name, attrs },
+            { type: 'paragraph' },
+          ]),
       setSupplierInfo:
         (attrs = {}) =>
         ({ commands }) => {

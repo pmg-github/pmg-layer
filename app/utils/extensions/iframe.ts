@@ -13,6 +13,7 @@ export interface IframeOptions {
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     iframe: {
+      insertIframe: (options?: { src?: string }) => ReturnType;
       /**
        * Add an iframe
        */
@@ -81,6 +82,13 @@ export default Node.create<IframeOptions>({
 
   addCommands() {
     return {
+      insertIframe:
+        (options = {}) =>
+        ({ commands }) =>
+          commands.insertContent([
+            { type: this.name, attrs: { src: '', ...options } },
+            { type: 'paragraph' },
+          ]),
       setIframe:
         (options: { src: string }) =>
         ({ tr, dispatch }) => {

@@ -6,6 +6,7 @@ import Carousel from "../../components/tiptap/Carousel.vue";
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     carousel: {
+      insertCarousel: (images?: BoArticleImageModel[]) => ReturnType;
       setCarousel: (images: BoArticleImageModel[]) => ReturnType;
       updateCarousel: (images: BoArticleImageModel[]) => ReturnType;
     };
@@ -55,6 +56,13 @@ export default Node.create({
 
   addCommands() {
     return {
+      insertCarousel:
+        (images = []) =>
+        ({ commands }) =>
+          commands.insertContent([
+            { type: this.name, attrs: { images } },
+            { type: 'paragraph' },
+          ]),
       setCarousel:
         (images) =>
         ({ commands }) =>

@@ -11,6 +11,7 @@ export interface VideoAttrs {
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     video: {
+      insertVideo: (attrs?: VideoAttrs) => ReturnType;
       setVideo: (attrs: VideoAttrs) => ReturnType;
       updateVideo: (attrs: Partial<VideoAttrs>) => ReturnType;
     };
@@ -53,6 +54,13 @@ export default Node.create({
 
   addCommands() {
     return {
+      insertVideo:
+        (attrs = {}) =>
+        ({ commands }) =>
+          commands.insertContent([
+            { type: this.name, attrs },
+            { type: 'paragraph' },
+          ]),
       setVideo:
         (attrs) =>
         ({ commands }) => {

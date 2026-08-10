@@ -6,6 +6,7 @@ import type { BoArticleImageModel } from "models";
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     gallery: {
+      insertGallery: (images?: BoArticleImageModel[]) => ReturnType;
       setGallery: (images: BoArticleImageModel[]) => ReturnType;
       updateGallery: (images: BoArticleImageModel[]) => ReturnType;
     };
@@ -58,6 +59,13 @@ export default Node.create({
 
   addCommands() {
     return {
+      insertGallery:
+        (images = []) =>
+        ({ commands }) =>
+          commands.insertContent([
+            { type: this.name, attrs: { images } },
+            { type: 'paragraph' },
+          ]),
       setGallery:
         (images) =>
         ({ commands }) => {
