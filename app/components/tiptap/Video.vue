@@ -75,24 +75,22 @@ watch(
   { immediate: true },
 );
 
+const hasNativeSources = computed(() => {
+  return Boolean(resolvedVideo.value?.sources?.length);
+});
+
 const useBunnyPlayer = computed(() => {
-  return !!(
-    resolvedVideo.value?.bunnyVideoId || !resolvedVideo.value?.sources?.length
-  );
+  return Boolean(resolvedVideo.value?.bunnyVideoId);
 });
 
 const embedUrl = computed(() => {
-  if (!videoId.value) return "";
+  if (!resolvedVideo.value?.bunnyVideoId) return "";
 
   const params = new URLSearchParams();
   if (autoplay.value) params.set("autoplay", "true");
   if (muted.value) params.set("muted", "true");
 
-  if (resolvedVideo.value?.bunnyVideoId) {
-    return `https://player.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${resolvedVideo.value.bunnyVideoId}?${params.toString()}`;
-  }
-
-  return `https://player.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${videoId.value}?${params.toString()}`;
+  return `https://player.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${resolvedVideo.value.bunnyVideoId}?${params.toString()}`;
 });
 
 const openEditor = () => {
@@ -187,7 +185,7 @@ const clearVideo = () => {
       />
 
       <video
-        v-else
+        v-else-if="hasNativeSources"
         :autoplay="autoplay"
         :muted="muted"
         :poster="resolvedVideo?.poster"
