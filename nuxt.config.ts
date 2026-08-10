@@ -38,5 +38,30 @@ export default defineNuxtConfig({
     },
   },
 
+  // Extensions in this layer import ProseMirror through @tiptap/pm. Keep
+  // those imports in the same Vite module graph as the consuming editor so
+  // DecorationSet instanceof checks don't cross module instances.
+  vite: {
+    optimizeDeps: {
+      include: [
+        "@tiptap/core",
+        "@tiptap/vue-3",
+        "@tiptap/pm/state",
+        "@tiptap/pm/view",
+      ],
+    },
+    resolve: {
+      dedupe: [
+        "@tiptap/core",
+        "@tiptap/pm",
+        "@tiptap/vue-3",
+        "prosemirror-model",
+        "prosemirror-state",
+        "prosemirror-transform",
+        "prosemirror-view",
+      ],
+    },
+  },
+
   compatibilityDate: "2024-11-01",
 });
