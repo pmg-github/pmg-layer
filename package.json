@@ -9,7 +9,8 @@
     "./utils/extensions/*": {
       "types": "./app/utils/extensions/*.ts",
       "import": "./app/utils/extensions/*.ts"
-    }
+    },
+    "./app/components/tiptap/*": "./app/components/tiptap/*"
   },
   "types": "./index.d.ts",
   "files": [
