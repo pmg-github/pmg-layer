@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { NodeViewWrapper } from "@tiptap/vue-3";
+import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
 
