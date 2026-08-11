@@ -11,6 +11,8 @@ const props = defineProps({
   deleteNode: { type: Function, required: true },
 });
 
+const isEditable = computed(() => props.editor.isEditable ?? false);
+
 const { getPolls, getPoll, getPollsData } = useFetchPolls();
 
 const isModalOpen = ref(false);
@@ -53,6 +55,7 @@ watch(
 );
 
 const openModal = () => {
+  if (!isEditable.value) return;
   searchQuery.value = "";
   searchResults.value = [];
   isModalOpen.value = true;
@@ -77,16 +80,19 @@ const onSearchInput = () => {
 };
 
 const selectPoll = (poll: BoPollViewListModel) => {
+  if (!isEditable.value) return;
   selectedPoll.value = poll;
 };
 
 const applyPoll = () => {
+  if (!isEditable.value) return;
   if (!selectedPoll.value) return;
   props.updateAttributes({ pollRef: selectedPoll.value.reference });
   isModalOpen.value = false;
 };
 
 const removePoll = () => {
+  if (!isEditable.value) return;
   props.updateAttributes({ pollRef: null });
   pollDetail.value = null;
 };
@@ -110,6 +116,7 @@ const removePoll = () => {
         Nog geen poll geselecteerd
       </h3>
       <button
+        v-if="isEditable"
         type="button"
         class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         @click.stop="openModal"
@@ -182,7 +189,7 @@ const removePoll = () => {
       </div>
 
       <!-- Edit / delete buttons (top-right overlay, same as Gallery/Carousel) -->
-      <div class="absolute right-2 top-2 z-[1] flex gap-2">
+      <div v-if="isEditable" class="absolute right-2 top-2 z-[1] flex gap-2">
         <button
           type="button"
           class="flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3';
-import { Dialog, DialogPanel, DialogTitle } from '@headlessui/vue';
+import { NodeViewContent, NodeViewWrapper } from "@tiptap/vue-3";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
 
 const props = defineProps<{
   node: { attrs: { color?: string } };
@@ -9,47 +9,49 @@ const props = defineProps<{
   updateAttributes: (attrs: { color?: string }) => void;
 }>();
 
+const isEditable = computed(() => props.editor.isEditable ?? false);
+
 const { postPrompt } = useFetchOpenAI();
 
 const isModalOpen = ref(false);
 const isGenerating = ref(false);
-const errorMessage = ref('');
+const errorMessage = ref("");
 
 const summaryColors = [
   {
-    name: 'Gray',
-    value: 'gray',
-    wrapper: 'border-gray-200 bg-gray-50',
-    content: 'text-gray-700',
+    name: "Gray",
+    value: "gray",
+    wrapper: "border-gray-200 bg-gray-50",
+    content: "text-gray-700",
   },
   {
-    name: 'Blue',
-    value: 'blue',
-    wrapper: 'border-blue-200 bg-blue-50',
-    content: 'text-gray-700',
+    name: "Blue",
+    value: "blue",
+    wrapper: "border-blue-200 bg-blue-50",
+    content: "text-gray-700",
   },
   {
-    name: 'Green',
-    value: 'green',
-    wrapper: 'border-green-200 bg-green-50',
-    content: 'text-gray-700',
+    name: "Green",
+    value: "green",
+    wrapper: "border-green-200 bg-green-50",
+    content: "text-gray-700",
   },
   {
-    name: 'Yellow',
-    value: 'yellow',
-    wrapper: 'border-yellow-200 bg-yellow-50',
-    content: 'text-gray-700',
+    name: "Yellow",
+    value: "yellow",
+    wrapper: "border-yellow-200 bg-yellow-50",
+    content: "text-gray-700",
   },
   {
-    name: 'Orange',
-    value: 'orange',
-    wrapper: 'border-orange-200 bg-orange-50',
-    content: 'text-gray-700',
+    name: "Orange",
+    value: "orange",
+    wrapper: "border-orange-200 bg-orange-50",
+    content: "text-gray-700",
   },
 ];
 
 const selectedColor = computed({
-  get: () => props.node.attrs.color ?? 'gray',
+  get: () => props.node.attrs.color ?? "gray",
   set: (value: string) => props.updateAttributes({ color: value }),
 });
 
@@ -60,7 +62,8 @@ const activeColor = computed(
 );
 
 const openSettings = () => {
-  errorMessage.value = '';
+  if (!isEditable.value) return;
+  errorMessage.value = "";
   isModalOpen.value = true;
 };
 
@@ -69,37 +72,38 @@ const closeModal = () => {
 };
 
 const generateWithAi = async () => {
+  if (!isEditable.value) return;
   if (isGenerating.value) return;
 
   const articleText = props.editor.state.doc.textContent.trim();
 
   if (!articleText) {
-    errorMessage.value = 'Er is geen artikeltekst gevonden om samen te vatten.';
+    errorMessage.value = "Er is geen artikeltekst gevonden om samen te vatten.";
     return;
   }
 
   isGenerating.value = true;
-  errorMessage.value = '';
+  errorMessage.value = "";
 
   try {
     const prompt = [
-      'Vat onderstaand artikel samen als HTML.',
-      'Geef enkel HTML terug, zonder uitleg of markdown.',
-      'Structuur: <h2>Samenvatting</h2> <ul> <li>...</li> </ul>',
-      'Richt je uitsluitend op de belangrijkste inzichten, feiten en conclusies.',
-      'Vermijd details, voorbeelden en herhalingen.',
-      'Gebruik maximaal 5 bullet points.',
-      'Schrijf elke bullet in één duidelijke zin van maximaal 20 woorden.',
-      'Wees objectief en voeg geen eigen interpretaties toe.',
-      '',
-      'ARTIKEL:',
+      "Vat onderstaand artikel samen als HTML.",
+      "Geef enkel HTML terug, zonder uitleg of markdown.",
+      "Structuur: <h2>Samenvatting</h2> <ul> <li>...</li> </ul>",
+      "Richt je uitsluitend op de belangrijkste inzichten, feiten en conclusies.",
+      "Vermijd details, voorbeelden en herhalingen.",
+      "Gebruik maximaal 5 bullet points.",
+      "Schrijf elke bullet in één duidelijke zin van maximaal 20 woorden.",
+      "Wees objectief en voeg geen eigen interpretaties toe.",
+      "",
+      "ARTIKEL:",
       articleText,
-    ].join('\n');
+    ].join("\n");
 
-    const result = await postPrompt(prompt, 'gpt-5');
+    const result = await postPrompt(prompt, "gpt-5");
     const summary = result.response
       ?.trim()
-      .replace(/^```[\w]*\n?|\n?```$/g, '')
+      .replace(/^```[\w]*\n?|\n?```$/g, "")
       .trim();
 
     if (!summary) return;
@@ -112,7 +116,7 @@ const generateWithAi = async () => {
 
     closeModal();
   } catch {
-    errorMessage.value = 'Het genereren van de samenvatting is mislukt.';
+    errorMessage.value = "Het genereren van de samenvatting is mislukt.";
   } finally {
     isGenerating.value = false;
   }
@@ -126,7 +130,7 @@ const generateWithAi = async () => {
     :class="activeColor.wrapper"
   >
     <div class="relative">
-      <div class="absolute right-2 top-2 z-[1]">
+      <div v-if="isEditable" class="absolute right-2 top-2 z-[1]">
         <button
           type="button"
           class="flex items-center justify-center rounded-full bg-gray-800/70 p-2 text-white transition hover:bg-gray-800/90"
@@ -164,8 +168,8 @@ const generateWithAi = async () => {
               >
                 {{
                   isGenerating
-                    ? 'Samenvatting genereren...'
-                    : 'Genereer samenvatting (AI)'
+                    ? "Samenvatting genereren..."
+                    : "Genereer samenvatting (AI)"
                 }}
               </button>
               <button

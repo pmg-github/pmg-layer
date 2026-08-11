@@ -109,8 +109,9 @@ const embedUrl = computed(() => {
   if (!resolvedVideo.value?.bunnyVideoId) return "";
 
   const params = new URLSearchParams();
-  if (autoplay.value) params.set("autoplay", "true");
-  if (muted.value) params.set("muted", "true");
+
+  params.set("autoplay", String(autoplay.value));
+  params.set("muted", String(muted.value));
 
   return `https://player.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${resolvedVideo.value.bunnyVideoId}?${params.toString()}`;
 });

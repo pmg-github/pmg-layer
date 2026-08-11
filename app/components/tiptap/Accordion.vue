@@ -15,6 +15,8 @@ const props = defineProps({
   updateAttributes: { type: Function, required: true },
 });
 
+const isEditable = computed(() => props.editor.isEditable ?? false);
+
 const { postPrompt } = useFetchOpenAI();
 
 const isModalOpen = ref(false);
@@ -54,14 +56,17 @@ onMounted(() => {
 });
 
 const handleOpenManageModal = () => {
+  if (!isEditable.value) return;
   isModalOpen.value = true;
 };
 
 const addItem = () => {
+  if (!isEditable.value) return;
   items.value = [...items.value, { question: "", answer: "" }];
 };
 
 const removeItem = (index: number) => {
+  if (!isEditable.value) return;
   items.value = items.value.filter((_, i) => i !== index);
 };
 
@@ -70,12 +75,14 @@ const updateItem = (
   field: keyof AccordionItem,
   value: string,
 ) => {
+  if (!isEditable.value) return;
   items.value = items.value.map((item, i) =>
     i === index ? { ...item, [field]: value } : item,
   );
 };
 
 const generateWithAi = async () => {
+  if (!isEditable.value) return;
   if (isGenerating.value) return;
   isGenerating.value = true;
 
@@ -130,7 +137,7 @@ const generateWithAi = async () => {
         Voeg vragen &amp; antwoorden toe of genereer ze automatisch met AI.
       </p>
 
-      <div class="flex gap-2">
+      <div v-if="isEditable" class="flex gap-2">
         <button
           type="button"
           class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-blue-700 disabled:opacity-60"
@@ -167,7 +174,7 @@ const generateWithAi = async () => {
       data-accordion="collapse"
       class="relative overflow-hidden rounded-lg border border-gray-200 bg-white"
     >
-      <div class="absolute right-2 top-2 z-[1]">
+      <div v-if="isEditable" class="absolute right-2 top-2 z-[1]">
         <button
           type="button"
           class="flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-white transition-all hover:bg-opacity-90"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { NodeViewWrapper } from '@tiptap/vue-3';
-import { Dialog, DialogPanel, DialogTitle } from '@headlessui/vue';
+import { NodeViewWrapper } from "@tiptap/vue-3";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
 
 const props = defineProps({
   node: { type: Object, required: true },
@@ -9,8 +9,10 @@ const props = defineProps({
   deleteNode: { type: Function, required: true },
 });
 
+const isEditable = computed(() => props.editor.isEditable ?? false);
+
 const isModalOpen = ref(false);
-const draftInput = ref('');
+const draftInput = ref("");
 
 const hasValidSrc = computed(() => {
   const value = props.node.attrs.src?.trim();
@@ -18,7 +20,8 @@ const hasValidSrc = computed(() => {
 });
 
 const openModal = () => {
-  draftInput.value = props.node.attrs.src || '';
+  if (!isEditable.value) return;
+  draftInput.value = props.node.attrs.src || "";
   isModalOpen.value = true;
 };
 
@@ -26,12 +29,13 @@ const resolveSrc = (raw: string): string | null => {
   const trimmed = raw.trim();
   if (!trimmed) return null;
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  const parsed = new DOMParser().parseFromString(trimmed, 'text/html');
-  const s = parsed.querySelector('iframe')?.getAttribute('src')?.trim();
+  const parsed = new DOMParser().parseFromString(trimmed, "text/html");
+  const s = parsed.querySelector("iframe")?.getAttribute("src")?.trim();
   return s && /^https?:\/\//i.test(s) ? s : null;
 };
 
 const applyEmbed = () => {
+  if (!isEditable.value) return;
   const resolved = resolveSrc(draftInput.value);
   if (!resolved) return;
   props.updateAttributes({ src: resolved });
@@ -63,6 +67,7 @@ const applyEmbed = () => {
       </p>
 
       <button
+        v-if="isEditable"
         type="button"
         class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         @click.stop="openModal"
@@ -83,7 +88,7 @@ const applyEmbed = () => {
       />
 
       <!-- Edit button -->
-      <div class="absolute right-2 top-2 z-[1] flex gap-2">
+      <div v-if="isEditable" class="absolute right-2 top-2 z-[1] flex gap-2">
         <button
           @click.stop="openModal"
           class="flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
@@ -126,6 +131,7 @@ const applyEmbed = () => {
 
           <div class="mt-6 flex items-center justify-between">
             <button
+              v-if="isEditable"
               type="button"
               class="rounded p-2 text-red-500 transition hover:bg-red-50"
               title="Embed verwijderen"

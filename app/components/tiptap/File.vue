@@ -9,11 +9,12 @@ const articleStore = useArticleStore();
 
 interface Props {
   node: { attrs: { files?: BoArticleFileModel[] } };
-  editor: Object;
+  editor: { isEditable?: boolean };
   updateAttributes: (attrs: { files: BoArticleFileModel[] }) => void;
 }
 
 const props = defineProps<Props>();
+const isEditable = computed(() => props.editor.isEditable ?? false);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const fileInputAdd = ref<HTMLInputElement | null>(null);
@@ -103,6 +104,7 @@ const getFileSize = (file: BoArticleFileModel): number => {
 };
 
 const handleFileUpload = async (event: Event) => {
+  if (!isEditable.value) return;
   const inputEl = event.target as HTMLInputElement;
   const newFiles = inputEl.files;
   if (!newFiles || newFiles.length === 0) return;
@@ -127,6 +129,7 @@ const handleFileUpload = async (event: Event) => {
 };
 
 const triggerFileInput = (isAddButton: boolean = false) => {
+  if (!isEditable.value) return;
   console.log("🖱️ Triggering file input:", isAddButton ? "add" : "initial");
   const input = isAddButton ? fileInputAdd.value : fileInput.value;
   if (input) {
@@ -138,11 +141,13 @@ const triggerFileInput = (isAddButton: boolean = false) => {
 };
 
 const removeFile = (index: number) => {
+  if (!isEditable.value) return;
   const updatedFiles = files.value.filter((_, i) => i !== index);
   props.updateAttributes({ files: updatedFiles });
 };
 
 const startEditingFileName = (file: BoArticleFileModel) => {
+  if (!isEditable.value) return;
   editingFileId.value = file.fileId;
   editingFileName.value = file.altText ?? "";
 };
@@ -153,6 +158,7 @@ const cancelEditingFileName = () => {
 };
 
 const saveEditingFileName = (index: number) => {
+  if (!isEditable.value) return;
   const nextName = editingFileName.value.trim();
   if (!nextName) {
     toast.error("Bestandsnaam mag niet leeg zijn");
@@ -173,11 +179,13 @@ const saveEditingFileName = (index: number) => {
 };
 
 const handleDragOver = (event: DragEvent) => {
+  if (!isEditable.value) return;
   event.preventDefault();
   event.stopPropagation();
 };
 
 const handleDragEnter = (event: DragEvent) => {
+  if (!isEditable.value) return;
   event.preventDefault();
   event.stopPropagation();
   dragCounter.value++;
@@ -187,6 +195,7 @@ const handleDragEnter = (event: DragEvent) => {
 };
 
 const handleDragLeave = (event: DragEvent) => {
+  if (!isEditable.value) return;
   event.preventDefault();
   event.stopPropagation();
   dragCounter.value--;
@@ -196,6 +205,7 @@ const handleDragLeave = (event: DragEvent) => {
 };
 
 const handleDrop = async (e: DragEvent) => {
+  if (!isEditable.value) return;
   // Check if this is a file drop or a custom drag from the media panel
   const newFiles = e.dataTransfer?.files;
   const hasFiles = newFiles && newFiles.length > 0;
@@ -314,6 +324,7 @@ const handleDrop = async (e: DragEvent) => {
       </h3>
 
       <button
+        v-if="isEditable"
         type="button"
         @click="triggerFileInput(false)"
         class="cursor-pointer rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -365,6 +376,7 @@ const handleDrop = async (e: DragEvent) => {
         </h4>
 
         <button
+          v-if="isEditable"
           type="button"
           @click="triggerFileInput(true)"
           class="flex cursor-pointer items-center justify-center rounded-full bg-gray-800 bg-opacity-70 px-4 py-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
@@ -463,7 +475,7 @@ const handleDrop = async (e: DragEvent) => {
         <div class="flex items-center gap-2">
           <!-- Rename button -->
           <button
-            v-if="editingFileId !== file.fileId"
+            v-if="isEditable && editingFileId !== file.fileId"
             type="button"
             class="flex items-center justify-center rounded-full p-2 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-700"
             :title="`Hernoem ${file.altText}`"
@@ -484,6 +496,7 @@ const handleDrop = async (e: DragEvent) => {
 
           <!-- Remove button -->
           <button
+            v-if="isEditable"
             type="button"
             class="flex items-center justify-center rounded-full p-2 text-gray-400 transition-all hover:bg-red-50 hover:text-red-600"
             :title="`Remove ${file.altText}`"

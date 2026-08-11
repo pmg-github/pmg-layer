@@ -12,6 +12,7 @@ import {
 } from "#imports";
 
 const props = defineProps(nodeViewProps);
+const isEditable = computed(() => props.editor.isEditable ?? false);
 
 const { getCompany } = useFetchCompanies();
 const { getMagJob } = useFetchMagJobs();
@@ -36,6 +37,7 @@ const logo = ref<FileButtonViewModel>(
 );
 
 const openEditModal = () => {
+  if (!isEditable.value) return;
   klnr.value = props.node.attrs.klnr || "";
   name.value = props.node.attrs.name || "";
   address.value = props.node.attrs.address || "";
@@ -48,6 +50,7 @@ const openEditModal = () => {
 };
 
 const loadAndApplyArticleCustomer = async (customerReference?: string) => {
+  if (!isEditable.value) return;
   if (!articleStore.metaData?.jobCode) return;
 
   const ref = customerReference ?? props.node.attrs.klnr;
@@ -101,6 +104,7 @@ const loadAndApplyArticleCustomer = async (customerReference?: string) => {
 };
 
 const updateAttributes = () => {
+  if (!isEditable.value) return;
   props.updateAttributes({
     klnr: klnr.value,
     name: name.value,
@@ -119,6 +123,7 @@ const cancelEdit = () => {
 };
 
 const clearLogo = () => {
+  if (!isEditable.value) return;
   logo.value = { url: "", id: undefined } as any;
 };
 
@@ -137,6 +142,7 @@ const isEmpty = computed(() => {
 
 // Auto-load article customer on mount if available
 onMounted(async () => {
+  if (!isEditable.value) return;
   if (!articleStore.metaData?.jobCode) return;
 
   try {
@@ -187,7 +193,7 @@ onMounted(async () => {
       </h3>
       <div class="flex flex-wrap justify-center gap-2">
         <button
-          v-if="articleStore.metaData?.klnr"
+          v-if="isEditable && articleStore.metaData?.klnr"
           type="button"
           :disabled="isFetching"
           @click="loadLinkedCustomer"
@@ -197,7 +203,7 @@ onMounted(async () => {
           Gekoppelde klant inladen
         </button>
         <button
-          v-if="logo?.url"
+          v-if="isEditable && logo?.url"
           type="button"
           @click="openEditModal"
           class="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -257,7 +263,7 @@ onMounted(async () => {
       </div>
 
       <!-- Edit Button (top-right corner) -->
-      <div class="absolute right-2 top-2 z-[1] flex gap-2">
+      <div v-if="isEditable" class="absolute right-2 top-2 z-[1] flex gap-2">
         <button
           @click.stop="openEditModal"
           class="flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
