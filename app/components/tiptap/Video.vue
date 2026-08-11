@@ -2,7 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
 import Modal from "../Modal.vue";
-
+import { useFetchVideos } from "~/composables/useFetchVideos";
 interface VideoAttrs {
   videoId?: string;
   autoplay?: boolean;
