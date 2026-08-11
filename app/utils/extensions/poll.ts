@@ -1,9 +1,9 @@
-import { Node, mergeAttributes } from '@tiptap/core';
-import { VueNodeViewRenderer, type NodeViewProps } from '@tiptap/vue-3';
-import type { Component } from 'vue';
-import Poll from '~/components/tiptap/Poll.vue';
+import { Node, mergeAttributes } from "@tiptap/core";
+import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
+import type { Component } from "vue";
+import Poll from "../../components/tiptap/Poll.vue";
 
-declare module '@tiptap/core' {
+declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     poll: {
       insertPoll: (attrs?: { pollRef?: string | null }) => ReturnType;
@@ -12,8 +12,8 @@ declare module '@tiptap/core' {
 }
 
 export default Node.create({
-  name: 'poll',
-  group: 'block',
+  name: "poll",
+  group: "block",
   atom: true,
   selectable: true,
   draggable: true,
@@ -29,11 +29,11 @@ export default Node.create({
   parseHTML() {
     return [
       {
-        tag: 'div[data-poll]',
+        tag: "div[data-poll]",
         getAttrs: (node) => {
-          if (typeof node === 'string') return false;
+          if (typeof node === "string") return false;
           const el = node as HTMLElement;
-          const ref = el.getAttribute('data-poll-ref');
+          const ref = el.getAttribute("data-poll-ref");
           return { pollRef: ref ?? null };
         },
       },
@@ -42,10 +42,10 @@ export default Node.create({
 
   renderHTML({ HTMLAttributes }) {
     return [
-      'div',
+      "div",
       mergeAttributes(HTMLAttributes, {
-        'data-poll': 'true',
-        'data-poll-ref': HTMLAttributes.pollRef ?? '',
+        "data-poll": "true",
+        "data-poll-ref": HTMLAttributes.pollRef ?? "",
       }),
     ];
   },
@@ -57,7 +57,7 @@ export default Node.create({
         ({ commands }) => {
           return commands.insertContent([
             { type: this.name, attrs },
-            { type: 'paragraph' },
+            { type: "paragraph" },
           ]);
         },
     };
