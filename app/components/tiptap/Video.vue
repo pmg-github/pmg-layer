@@ -207,6 +207,7 @@ const clearVideo = () => {
       />
 
       <video
+        v-else-if="hasNativeSources"
         :autoplay="autoplay"
         :muted="muted"
         :poster="resolvedVideo?.poster"
