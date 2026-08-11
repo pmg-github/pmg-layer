@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useForm } from "vee-validate";
 import * as yup from "yup";
-
 const counter = ref(0);
 const isModalOpen = ref(false);
 
@@ -164,5 +163,7 @@ const onSubmit = handleSubmit((submittedValues) => {
     </form>
 
     <p>Today: {{ formatDate(new Date()) }}</p>
+
+    <PMGTest video-id="EDBbe2052V05" />
   </div>
 </template>

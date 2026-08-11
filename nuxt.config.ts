@@ -33,8 +33,7 @@ export default defineNuxtConfig({
   // Shared runtime config defaults — override per-project via .env or nuxt.config
   runtimeConfig: {
     public: {
-      appName: "My App",
-      apiBase: "",
+      apiBase: "http://localhost:4000",
     },
   },
 

@@ -1,7 +1,7 @@
-import { Extension, Mark, mergeAttributes } from '@tiptap/core';
-import type { Mark as ProseMirrorMark, Node } from '@tiptap/pm/model';
-import { Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
-import { Decoration, DecorationSet } from '@tiptap/pm/view';
+import { Extension, Mark, mergeAttributes } from "@tiptap/core";
+import type { Mark as ProseMirrorMark, Node } from "@tiptap/pm/model";
+import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 export interface CommentsOptions {
   onCommentClick?: (commentId: string) => void;
@@ -41,10 +41,10 @@ interface CommentHighlightRange {
 }
 
 type CommentHighlightsMeta =
-  | { type: 'set'; ranges: CommentHighlightRange[] }
-  | { type: 'clear' };
+  | { type: "set"; ranges: CommentHighlightRange[] }
+  | { type: "clear" };
 
-declare module '@tiptap/core' {
+declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     comments: {
       captureCommentSelection: () => ReturnType;
@@ -61,8 +61,22 @@ declare module '@tiptap/core' {
 }
 
 const commentHighlightsPluginKey = new PluginKey<DecorationSet>(
-  'commentHighlights',
+  "commentHighlights",
 );
+
+const isDecorationSet = (value: unknown): value is DecorationSet => {
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    "map" in value &&
+    "forChild" in value &&
+    "locals" in value,
+  );
+};
+
+const getSafeDecorationSet = (value: unknown) => {
+  return isDecorationSet(value) ? value : DecorationSet.empty;
+};
 
 export const buildPmCharMap = (doc: Node): PmChar[] => {
   const chars: PmChar[] = [];
@@ -82,10 +96,10 @@ export const buildPmCharMap = (doc: Node): PmChar[] => {
       }
       separated = false;
     } else if (node.isLeaf) {
-      chars.push({ char: ' ', pos: null, marks: [] });
+      chars.push({ char: " ", pos: null, marks: [] });
       separated = false;
     } else if (!separated && node.isBlock) {
-      chars.push({ char: '\n', pos: null, marks: [] });
+      chars.push({ char: "\n", pos: null, marks: [] });
       separated = true;
     }
 
@@ -101,7 +115,7 @@ export const findInCharMap = (
 ): Array<{ from: number; to: number; marks: readonly ProseMirrorMark[] }> => {
   if (!needle) return [];
 
-  const fullText = chars.map(({ char }) => char).join('');
+  const fullText = chars.map(({ char }) => char).join("");
   const ranges: Array<{
     from: number;
     to: number;
@@ -141,8 +155,8 @@ const hasCommentMarkInRange = (doc: Node, from: number, to: number) => {
     if (
       node.marks.some(
         (mark) =>
-          mark.type.name === 'inlineComment' &&
-          String(mark.attrs.commentId ?? '').trim(),
+          mark.type.name === "inlineComment" &&
+          String(mark.attrs.commentId ?? "").trim(),
       )
     ) {
       found = true;
@@ -167,8 +181,8 @@ const findCommentMarkRange = (
 
     const hasMark = node.marks.some(
       (mark) =>
-        mark.type.name === 'inlineComment' &&
-        String(mark.attrs.commentId ?? '') === commentId,
+        mark.type.name === "inlineComment" &&
+        String(mark.attrs.commentId ?? "") === commentId,
     );
 
     if (hasMark) {
@@ -193,8 +207,8 @@ const findCommentMarkRanges = (
 
     const hasMark = node.marks.some(
       (mark) =>
-        mark.type.name === 'inlineComment' &&
-        String(mark.attrs.commentId ?? '') === commentId,
+        mark.type.name === "inlineComment" &&
+        String(mark.attrs.commentId ?? "") === commentId,
     );
 
     if (hasMark) {
@@ -208,8 +222,7 @@ const findCommentMarkRanges = (
 };
 
 export const CommentMark = Mark.create<CommentMarkOptions>({
-  // Kept for compatibility with existing editor JSON and stored documents.
-  name: 'inlineComment',
+  name: "inlineComment",
 
   addOptions() {
     return {
@@ -221,7 +234,7 @@ export const CommentMark = Mark.create<CommentMarkOptions>({
     return {
       commentId: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-inline-comment-id'),
+        parseHTML: (element) => element.getAttribute("data-inline-comment-id"),
       },
       resolved: {
         default: false,
@@ -231,20 +244,20 @@ export const CommentMark = Mark.create<CommentMarkOptions>({
   },
 
   parseHTML() {
-    return [{ tag: 'span.inline-comment-mark' }];
+    return [{ tag: "span.inline-comment-mark" }];
   },
 
   renderHTML({ HTMLAttributes }) {
     const attributes: Record<string, unknown> = {
-      class: 'inline-comment-mark',
+      class: "inline-comment-mark",
     };
 
     if (HTMLAttributes.commentId) {
-      attributes['data-inline-comment-id'] = HTMLAttributes.commentId;
+      attributes["data-inline-comment-id"] = HTMLAttributes.commentId;
     }
 
     return [
-      'span',
+      "span",
       mergeAttributes(this.options.HTMLAttributes, attributes),
       0,
     ];
@@ -252,7 +265,7 @@ export const CommentMark = Mark.create<CommentMarkOptions>({
 });
 
 export const CommentHighlights = Extension.create({
-  name: 'commentHighlights',
+  name: "commentHighlights",
 
   addProseMirrorPlugins() {
     return [
@@ -261,11 +274,12 @@ export const CommentHighlights = Extension.create({
         state: {
           init: () => DecorationSet.empty,
           apply(transaction, decorations) {
+            const currentDecorations = getSafeDecorationSet(decorations);
             const meta = transaction.getMeta(commentHighlightsPluginKey) as
               | CommentHighlightsMeta
               | undefined;
 
-            if (meta?.type === 'set') {
+            if (meta?.type === "set") {
               const ranges = meta.ranges
                 .filter(
                   ({ from, to }) =>
@@ -273,9 +287,9 @@ export const CommentHighlights = Extension.create({
                 )
                 .map(({ from, to, commentId }) =>
                   Decoration.inline(from, to, {
-                    class: 'inline-comment-mark',
+                    class: "inline-comment-mark",
                     ...(commentId !== undefined && commentId !== null
-                      ? { 'data-inline-comment-id': String(commentId) }
+                      ? { "data-inline-comment-id": String(commentId) }
                       : {}),
                   }),
                 );
@@ -283,18 +297,20 @@ export const CommentHighlights = Extension.create({
               return DecorationSet.create(transaction.doc, ranges);
             }
 
-            if (meta?.type === 'clear') {
+            if (meta?.type === "clear") {
               return DecorationSet.empty;
             }
 
             return transaction.docChanged
-              ? decorations.map(transaction.mapping, transaction.doc)
-              : decorations;
+              ? currentDecorations.map(transaction.mapping, transaction.doc)
+              : currentDecorations;
           },
         },
         props: {
           decorations(state) {
-            return commentHighlightsPluginKey.getState(state) ?? null;
+            return getSafeDecorationSet(
+              commentHighlightsPluginKey.getState(state),
+            );
           },
         },
       }),
@@ -303,7 +319,7 @@ export const CommentHighlights = Extension.create({
 });
 
 const Comments = Extension.create<CommentsOptions, CommentsStorage>({
-  name: 'comments',
+  name: "comments",
 
   addOptions() {
     return {
@@ -331,7 +347,7 @@ const Comments = Extension.create<CommentsOptions, CommentsStorage>({
           const { from, to } = state.selection;
           if (from === to) return false;
 
-          const text = state.doc.textBetween(from, to, '\n', ' ');
+          const text = state.doc.textBetween(from, to, "\n", " ");
           if (!text.trim()) return false;
 
           this.storage.capturedSelection = { from, to, text };
@@ -349,7 +365,7 @@ const Comments = Extension.create<CommentsOptions, CommentsStorage>({
           if (!selection || !markType) return false;
           if (selection.to > state.doc.content.size) return false;
 
-          const normalizedCommentId = String(commentId ?? '').trim();
+          const normalizedCommentId = String(commentId ?? "").trim();
           tr.addMark(
             selection.from,
             selection.to,
@@ -364,7 +380,7 @@ const Comments = Extension.create<CommentsOptions, CommentsStorage>({
       selectCommentMark:
         (commentId) =>
         ({ state, tr, dispatch }) => {
-          const id = String(commentId ?? '').trim();
+          const id = String(commentId ?? "").trim();
           if (!id) return false;
 
           const range = findCommentMarkRange(state.doc, id);
@@ -380,7 +396,7 @@ const Comments = Extension.create<CommentsOptions, CommentsStorage>({
         (commentId) =>
         ({ state, tr, dispatch }) => {
           this.storage.removedMarkCount = 0;
-          const id = String(commentId ?? '').trim();
+          const id = String(commentId ?? "").trim();
           const markType = state.schema.marks.inlineComment;
           if (!id || !markType) return false;
 
@@ -404,20 +420,20 @@ const Comments = Extension.create<CommentsOptions, CommentsStorage>({
 
           for (const target of targets) {
             const base =
-              typeof target === 'string'
+              typeof target === "string"
                 ? target.trim()
-                : String(target?.text ?? '').trim();
+                : String(target?.text ?? "").trim();
             const commentId =
-              typeof target === 'string' ? undefined : target?.commentId;
+              typeof target === "string" ? undefined : target?.commentId;
             if (!base) continue;
 
             const candidates = [
               base,
-              base.replace(/\s+/g, ' ').trim(),
+              base.replace(/\s+/g, " ").trim(),
               base
-                .split('\n')
+                .split("\n")
                 .map((part) => part.trim())
-                .find(Boolean) ?? '',
+                .find(Boolean) ?? "",
             ].filter(
               (value, index, values) =>
                 value.length > 0 && values.indexOf(value) === index,
@@ -446,7 +462,7 @@ const Comments = Extension.create<CommentsOptions, CommentsStorage>({
             }
           }
 
-          tr.setMeta(commentHighlightsPluginKey, { type: 'set', ranges });
+          tr.setMeta(commentHighlightsPluginKey, { type: "set", ranges });
           dispatch?.(tr);
           this.storage.highlightCount = ranges.length;
           return true;
@@ -454,7 +470,7 @@ const Comments = Extension.create<CommentsOptions, CommentsStorage>({
       clearCommentHighlights:
         () =>
         ({ tr, dispatch }) => {
-          tr.setMeta(commentHighlightsPluginKey, { type: 'clear' });
+          tr.setMeta(commentHighlightsPluginKey, { type: "clear" });
           dispatch?.(tr);
           this.storage.highlightCount = 0;
           return true;
@@ -469,7 +485,7 @@ const Comments = Extension.create<CommentsOptions, CommentsStorage>({
           handleClick: (_view, _position, event) => {
             const target = event.target as HTMLElement | null;
             const marker = target?.closest?.(
-              '[data-inline-comment-id]',
+              "[data-inline-comment-id]",
             ) as HTMLElement | null;
             const commentId = marker?.dataset.inlineCommentId;
 
