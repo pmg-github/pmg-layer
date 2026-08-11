@@ -77,7 +77,7 @@ const applyEmbed = () => {
     </div>
 
     <!-- Display state -->
-    <div v-else class="relative aspect-video overflow-hidden rounded-lg">
+    <div v-else class="relative w-full aspect-video overflow-hidden rounded-lg">
       <iframe
         :src="props.node.attrs.src"
         class="h-full w-full"
