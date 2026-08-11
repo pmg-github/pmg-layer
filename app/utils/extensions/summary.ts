@@ -1,13 +1,13 @@
-import { Node } from '@tiptap/core';
-import { VueNodeViewRenderer, type NodeViewProps } from '@tiptap/vue-3';
-import type { Component } from 'vue';
-import Summary from '~/components/tiptap/Summary.vue';
+import { Node } from "@tiptap/core";
+import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
+import type { Component } from "vue";
+import Summary from "../../components/tiptap/Summary.vue";
 
 export interface SummaryAttributes {
   color?: string;
 }
 
-declare module '@tiptap/core' {
+declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     summary: {
       insertSummary: (attributes?: SummaryAttributes) => ReturnType;
@@ -16,30 +16,30 @@ declare module '@tiptap/core' {
 }
 
 export default Node.create({
-  name: 'summary',
-  group: 'block',
-  content: '(paragraph|list|heading|gallery|grid|accordion|file|iframe|poll)+',
+  name: "summary",
+  group: "block",
+  content: "(paragraph|list|heading|gallery|grid|accordion|file|iframe|poll)+",
   selectable: true,
   draggable: true,
 
   addAttributes() {
     return {
       color: {
-        default: 'gray',
-        parseHTML: (element) => element.getAttribute('data-color') ?? 'gray',
+        default: "gray",
+        parseHTML: (element) => element.getAttribute("data-color") ?? "gray",
         renderHTML: (attributes) => ({
-          'data-color': attributes.color ?? 'gray',
+          "data-color": attributes.color ?? "gray",
         }),
       },
     };
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-summary]' }];
+    return [{ tag: "div[data-summary]" }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', { 'data-summary': 'true', ...HTMLAttributes }, 0];
+    return ["div", { "data-summary": "true", ...HTMLAttributes }, 0];
   },
 
   addCommands() {
@@ -50,10 +50,10 @@ export default Node.create({
           commands.insertContent([
             {
               type: this.name,
-              attrs: { color: 'gray', ...attributes },
-              content: [{ type: 'paragraph' }],
+              attrs: { color: "gray", ...attributes },
+              content: [{ type: "paragraph" }],
             },
-            { type: 'paragraph' },
+            { type: "paragraph" },
           ]),
     };
   },

@@ -1,12 +1,12 @@
-import { Node } from '@tiptap/core';
-import { VueNodeViewRenderer, type NodeViewProps } from '@tiptap/vue-3';
-import File from '~/components/tiptap/File.vue';
+import { Node } from "@tiptap/core";
+import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
+import File from "../../components/tiptap/File.vue";
 
 export interface FileStorage {
   updatedNodeCount: number;
 }
 
-declare module '@tiptap/core' {
+declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     file: {
       insertFile: (files?: unknown[]) => ReturnType;
@@ -16,8 +16,8 @@ declare module '@tiptap/core' {
 }
 
 export default Node.create<Record<string, never>, FileStorage>({
-  name: 'file',
-  group: 'block',
+  name: "file",
+  group: "block",
   atom: true,
   selectable: true,
   draggable: true,
@@ -27,20 +27,20 @@ export default Node.create<Record<string, never>, FileStorage>({
       files: {
         default: [], // Default to an empty array
         parseHTML: (element) =>
-          JSON.parse(element.getAttribute('data-files') || '[]'),
+          JSON.parse(element.getAttribute("data-files") || "[]"),
         renderHTML: (attributes) => ({
-          'data-files': JSON.stringify(attributes.files),
+          "data-files": JSON.stringify(attributes.files),
         }),
       },
     };
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-file]' }];
+    return [{ tag: "div[data-file]" }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', { 'data-file': 'true', ...HTMLAttributes }];
+    return ["div", { "data-file": "true", ...HTMLAttributes }];
   },
 
   addStorage() {
@@ -56,7 +56,7 @@ export default Node.create<Record<string, never>, FileStorage>({
         ({ commands }) =>
           commands.insertContent([
             { type: this.name, attrs: { files } },
-            { type: 'paragraph' },
+            { type: "paragraph" },
           ]),
       removeFileAttachment:
         (fileId) =>

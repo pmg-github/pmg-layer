@@ -1,7 +1,7 @@
 import { Node } from "@tiptap/core";
 import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
 import type { Component } from "vue";
-import Iframe from "~/components/tiptap/Iframe.vue";
+import Iframe from "../../components/tiptap/Iframe.vue";
 
 export interface IframeOptions {
   allowFullscreen: boolean;
@@ -86,8 +86,8 @@ export default Node.create<IframeOptions>({
         (options = {}) =>
         ({ commands }) =>
           commands.insertContent([
-            { type: this.name, attrs: { src: '', ...options } },
-            { type: 'paragraph' },
+            { type: this.name, attrs: { src: "", ...options } },
+            { type: "paragraph" },
           ]),
       setIframe:
         (options: { src: string }) =>
