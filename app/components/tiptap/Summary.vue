@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/vue-3";
 import { computed, ref } from "vue";
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
+import {
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from "reka-ui";
 
 const props = defineProps<{
   node: { attrs: { color?: string } };
@@ -152,13 +158,12 @@ const generateWithAi = async () => {
       />
     </div>
 
-    <Dialog class="relative z-50" :open="isModalOpen" @close="closeModal">
-      <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
-
-      <div
-        class="fixed inset-0 flex items-start justify-center overflow-y-auto p-4"
-      >
-        <DialogPanel class="mt-16 w-full max-w-2xl rounded-lg bg-white p-6">
+    <DialogRoot :open="isModalOpen" @update:open="isModalOpen = $event">
+      <DialogPortal>
+        <DialogOverlay class="fixed inset-0 z-50 bg-black/60" />
+        <DialogContent
+          class="fixed left-1/2 top-16 z-50 max-h-[calc(100vh-5rem)] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 overflow-y-auto rounded-lg bg-white p-6 shadow-xl focus:outline-none"
+        >
           <div class="mb-6 flex items-center justify-between">
             <DialogTitle class="text-xl font-bold">
               Uitgelicht (kader)
@@ -223,8 +228,8 @@ const generateWithAi = async () => {
               </div>
             </div>
           </div>
-        </DialogPanel>
-      </div>
-    </Dialog>
+        </DialogContent>
+      </DialogPortal>
+    </DialogRoot>
   </NodeViewWrapper>
 </template>

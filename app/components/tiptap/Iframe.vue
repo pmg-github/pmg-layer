@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { NodeViewWrapper } from "@tiptap/vue-3";
 import { computed, ref } from "vue";
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
+import {
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from "reka-ui";
 
 const props = defineProps({
   node: { type: Object, required: true },
@@ -101,14 +107,15 @@ const applyEmbed = () => {
     </div>
 
     <!-- Edit modal -->
-    <Dialog
-      class="relative z-50"
+    <DialogRoot
       :open="isModalOpen"
-      @close="isModalOpen = false"
+      @update:open="isModalOpen = $event"
     >
-      <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
-      <div class="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel class="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+      <DialogPortal>
+        <DialogOverlay class="fixed inset-0 z-50 bg-black/60" />
+        <DialogContent
+          class="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-xl focus:outline-none"
+        >
           <div class="mb-6 flex items-center justify-between">
             <DialogTitle class="text-xl font-bold">Embed</DialogTitle>
             <button
@@ -168,8 +175,8 @@ const applyEmbed = () => {
               </button>
             </div>
           </div>
-        </DialogPanel>
-      </div>
-    </Dialog>
+        </DialogContent>
+      </DialogPortal>
+    </DialogRoot>
   </NodeViewWrapper>
 </template>

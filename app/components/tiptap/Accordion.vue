@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { NodeViewWrapper } from "@tiptap/vue-3";
 import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
+import {
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from "reka-ui";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
 
 type AccordionItem = {
@@ -351,18 +357,19 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <Dialog
-      class="relative z-50"
+    <DialogRoot
       :open="isModalOpen"
-      @close="isModalOpen = false"
+      @update:open="isModalOpen = $event"
     >
-      <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
-
-      <div
-        ref="modalScrollContainer"
-        class="fixed inset-0 flex items-start justify-center overflow-y-auto p-4"
-      >
-        <DialogPanel class="mt-16 w-full max-w-2xl rounded-lg bg-white p-6">
+      <DialogPortal>
+        <DialogOverlay class="fixed inset-0 z-50 bg-black/60" />
+        <DialogContent
+          class="fixed left-1/2 top-16 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 focus:outline-none"
+        >
+          <div
+            ref="modalScrollContainer"
+            class="max-h-[calc(100vh-5rem)] overflow-y-auto rounded-lg bg-white p-6 shadow-xl"
+          >
           <div class="mb-6 flex items-center justify-between">
             <DialogTitle class="text-xl font-bold">
               Vragen & Antwoorden ({{ items.length }})
@@ -479,8 +486,9 @@ onBeforeUnmount(() => {
               Vraag toevoegen
             </button>
           </div>
-        </DialogPanel>
-      </div>
-    </Dialog>
+          </div>
+        </DialogContent>
+      </DialogPortal>
+    </DialogRoot>
   </NodeViewWrapper>
 </template>

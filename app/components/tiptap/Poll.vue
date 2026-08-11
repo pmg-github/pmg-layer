@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
+import {
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from "reka-ui";
 import { NodeViewWrapper } from "@tiptap/vue-3";
 import type { BoPollViewListModel } from "models";
 
@@ -211,15 +217,15 @@ const removePoll = () => {
     </div>
 
     <!-- Search modal -->
-    <Dialog
-      class="relative z-50"
+    <DialogRoot
+      v-if="isEditable && isModalOpen"
       :open="isModalOpen"
-      @close="isModalOpen = false"
+      @update:open="isModalOpen = $event"
     >
-      <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
-      <div class="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel
-          class="flex h-[80vh] w-full max-w-lg flex-col rounded-xl bg-white shadow-2xl"
+      <DialogPortal>
+        <DialogOverlay class="fixed inset-0 z-50 bg-black/60" />
+        <DialogContent
+          class="fixed left-1/2 top-1/2 z-50 flex h-[80vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl bg-white shadow-2xl focus:outline-none"
         >
           <!-- Header -->
           <div
@@ -351,8 +357,8 @@ const removePoll = () => {
               Toevoegen
             </button>
           </div>
-        </DialogPanel>
-      </div>
-    </Dialog>
+        </DialogContent>
+      </DialogPortal>
+    </DialogRoot>
   </NodeViewWrapper>
 </template>

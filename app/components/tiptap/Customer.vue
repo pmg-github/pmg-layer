@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
+import {
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from "reka-ui";
 import { NodeViewWrapper, nodeViewProps } from "@tiptap/vue-3";
 import { ref, computed, onMounted } from "vue";
 import type { FileButtonViewModel } from "models";
@@ -285,10 +291,12 @@ onMounted(async () => {
     </div>
 
     <!-- Edit Modal -->
-    <Dialog class="relative z-50" :open="isEditing" @close="cancelEdit">
-      <div class="fixed inset-0 bg-black/50" aria-hidden="true" />
-      <div class="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel class="w-full max-w-2xl rounded-lg bg-white shadow-xl">
+    <DialogRoot :open="isEditing" @update:open="isEditing = $event">
+      <DialogPortal>
+        <DialogOverlay class="fixed inset-0 z-50 bg-black/50" />
+        <DialogContent
+          class="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white shadow-xl focus:outline-none"
+        >
           <div class="border-b border-gray-200 px-6 py-4">
             <div class="flex items-center justify-between">
               <DialogTitle class="text-lg font-semibold text-gray-900">
@@ -493,8 +501,8 @@ onMounted(async () => {
               </button>
             </div>
           </div>
-        </DialogPanel>
-      </div>
-    </Dialog>
+        </DialogContent>
+      </DialogPortal>
+    </DialogRoot>
   </NodeViewWrapper>
 </template>
