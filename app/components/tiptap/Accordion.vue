@@ -110,6 +110,120 @@ const generateWithAi = async () => {
     isGenerating.value = false;
   }
 };
+
+const DRAG_SCROLL_ZONE = 200;
+const DRAG_SCROLL_MAX_SPEED = 25;
+
+let modalDragScrollRaf: number | null = null;
+let modalDragScrollClientY: number | null = null;
+let isPageScrollLocked = false;
+let previousHtmlOverflow = "";
+let previousBodyOverflow = "";
+
+const modalScrollContainer = ref<HTMLElement | null>(null);
+
+const lockPageScroll = () => {
+  if (isPageScrollLocked) return;
+
+  previousHtmlOverflow = document.documentElement.style.overflow;
+  previousBodyOverflow = document.body.style.overflow;
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+  isPageScrollLocked = true;
+};
+
+const unlockPageScroll = () => {
+  if (!isPageScrollLocked) return;
+
+  document.documentElement.style.overflow = previousHtmlOverflow;
+  document.body.style.overflow = previousBodyOverflow;
+  isPageScrollLocked = false;
+};
+
+const modalDragScrollStep = () => {
+  const scrollContainer = modalScrollContainer.value;
+
+  if (
+    !scrollContainer ||
+    modalDragScrollClientY === null ||
+    !isModalOpen.value
+  ) {
+    modalDragScrollRaf = null;
+    return;
+  }
+
+  const distFromTop = modalDragScrollClientY;
+  const distFromBottom = window.innerHeight - modalDragScrollClientY;
+
+  let speed = 0;
+  if (distFromTop < DRAG_SCROLL_ZONE && distFromTop >= 0) {
+    const intensity = 1 - distFromTop / DRAG_SCROLL_ZONE;
+    speed = -intensity * DRAG_SCROLL_MAX_SPEED;
+  } else if (distFromBottom < DRAG_SCROLL_ZONE && distFromBottom >= 0) {
+    const intensity = 1 - distFromBottom / DRAG_SCROLL_ZONE;
+    speed = intensity * DRAG_SCROLL_MAX_SPEED;
+  }
+
+  if (speed !== 0) scrollContainer.scrollTop += speed;
+  modalDragScrollRaf = requestAnimationFrame(modalDragScrollStep);
+};
+
+const onModalDragOver = (event: DragEvent) => {
+  if (!isModalOpen.value) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  modalDragScrollClientY = event.clientY;
+  if (modalDragScrollRaf === null) {
+    modalDragScrollRaf = requestAnimationFrame(modalDragScrollStep);
+  }
+};
+
+const stopModalDragScroll = () => {
+  modalDragScrollClientY = null;
+  if (modalDragScrollRaf !== null) {
+    cancelAnimationFrame(modalDragScrollRaf);
+    modalDragScrollRaf = null;
+  }
+};
+
+const addFullScreenDragListeners = () => {
+  window.addEventListener("dragover", onModalDragOver, true);
+  window.addEventListener("drop", cleanupFullScreenDrag, true);
+  window.addEventListener("dragend", cleanupFullScreenDrag, true);
+};
+
+const removeFullScreenDragListeners = () => {
+  window.removeEventListener("dragover", onModalDragOver, true);
+  window.removeEventListener("drop", cleanupFullScreenDrag, true);
+  window.removeEventListener("dragend", cleanupFullScreenDrag, true);
+};
+
+function cleanupFullScreenDrag() {
+  stopModalDragScroll();
+  removeFullScreenDragListeners();
+  unlockPageScroll();
+}
+
+const handleModalDragStart = () => {
+  if (!isEditable.value) return;
+  lockPageScroll();
+  addFullScreenDragListeners();
+};
+
+const handleModalDragEnd = () => {
+  cleanupFullScreenDrag();
+};
+
+watch(isModalOpen, (isOpen) => {
+  if (!isOpen) {
+    cleanupFullScreenDrag();
+  }
+});
+
+onBeforeUnmount(() => {
+  cleanupFullScreenDrag();
+});
 </script>
 
 <template>
@@ -241,6 +355,7 @@ const generateWithAi = async () => {
       <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
 
       <div
+        ref="modalScrollContainer"
         class="fixed inset-0 flex items-start justify-center overflow-y-auto p-4"
       >
         <DialogPanel class="mt-16 w-full max-w-2xl rounded-lg bg-white p-6">
@@ -283,7 +398,13 @@ const generateWithAi = async () => {
           </div>
 
           <div>
-            <Draggable v-model="items" handle=".drag-handle" class="space-y-3">
+            <Draggable
+              v-model="items"
+              handle=".drag-handle"
+              class="space-y-3"
+              @start="handleModalDragStart"
+              @end="handleModalDragEnd"
+            >
               <div
                 v-for="(item, index) in items"
                 :key="index"
