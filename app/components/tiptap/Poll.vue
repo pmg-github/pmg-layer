@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from "vue";
+import { computed, ref, watch } from "vue";
 import { NodeViewWrapper } from "@tiptap/vue-3";
 
 const PollEditorModal = defineAsyncComponent(
