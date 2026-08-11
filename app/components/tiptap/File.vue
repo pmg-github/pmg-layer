@@ -2,10 +2,6 @@
 import { ref, computed } from "vue";
 import { NodeViewWrapper } from "@tiptap/vue-3";
 import type { BoArticleFileModel } from "models";
-import { useToast, useArticleStore } from "#imports";
-
-const toast = useToast();
-const articleStore = useArticleStore();
 
 interface Props {
   node: { attrs: { files?: BoArticleFileModel[] } };
@@ -112,11 +108,14 @@ const handleFileUpload = async (event: Event) => {
   // Check if adding these files would exceed the limit
   const remainingSlots = 8 - files.value.length;
   if (remainingSlots <= 0) {
-    toast.error("Maximum van 8 bestanden bereikt");
+    const imports = (await import("#imports")) as any;
+    imports.useToast?.()?.error?.("Maximum van 8 bestanden bereikt");
     return;
   }
 
-  const uploadedFiles = await articleStore.addFiles(newFiles);
+  const imports = (await import("#imports")) as any;
+  const uploadedFiles =
+    (await imports.useArticleStore?.()?.addFiles?.(newFiles)) ?? [];
   props.updateAttributes({
     files: mergeUniqueFiles(files.value, uploadedFiles),
   });
@@ -161,7 +160,9 @@ const saveEditingFileName = (index: number) => {
   if (!isEditable.value) return;
   const nextName = editingFileName.value.trim();
   if (!nextName) {
-    toast.error("Bestandsnaam mag niet leeg zijn");
+    void import("#imports").then((imports: any) => {
+      imports.useToast?.()?.error?.("Bestandsnaam mag niet leeg zijn");
+    });
     return;
   }
 
@@ -244,22 +245,28 @@ const handleDrop = async (e: DragEvent) => {
     );
 
     if (validFiles.length === 0) {
-      toast.error(
-        "Alleen toegestane bestandstypes zijn toegestaan (JPG, PNG, GIF, PDF, DOCX, XLSX, CSV, ZIP)",
-      );
+      const imports = (await import("#imports")) as any;
+      imports
+        .useToast?.()
+        ?.error?.(
+          "Alleen toegestane bestandstypes zijn toegestaan (JPG, PNG, GIF, PDF, DOCX, XLSX, CSV, ZIP)",
+        );
       return;
     }
 
     // Check if adding these files would exceed the limit
     const remainingSlots = 8 - files.value.length;
     if (remainingSlots <= 0) {
-      toast.error("Maximum van 8 afbeeldingen bereikt");
+      const imports = (await import("#imports")) as any;
+      imports.useToast?.()?.error?.("Maximum van 8 afbeeldingen bereikt");
       return;
     }
 
     const filesToProcess = Math.min(validFiles.length, remainingSlots);
 
-    const uploadedFiles = await articleStore.addFiles(validFiles);
+    const imports = (await import("#imports")) as any;
+    const uploadedFiles =
+      (await imports.useArticleStore?.()?.addFiles?.(validFiles)) ?? [];
 
     props.updateAttributes({
       files: mergeUniqueFiles(files.value, uploadedFiles),
@@ -267,9 +274,11 @@ const handleDrop = async (e: DragEvent) => {
 
     // Show warning if some files were not added due to limit
     if (newFiles.length > filesToProcess) {
-      toast.warning(
-        `${filesToProcess} afbeeldingen toegevoegd. Maximum van 8 bereikt.`,
-      );
+      imports
+        .useToast?.()
+        ?.warning?.(
+          `${filesToProcess} afbeeldingen toegevoegd. Maximum van 8 bereikt.`,
+        );
     }
     return;
   }

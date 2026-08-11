@@ -2,7 +2,6 @@
 import { NodeViewWrapper } from "@tiptap/vue-3";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
-import { useFetchOpenAI } from "#imports";
 
 type AccordionItem = {
   question: string;
@@ -16,8 +15,6 @@ const props = defineProps({
 });
 
 const isEditable = computed(() => props.editor.isEditable ?? false);
-
-const { postPrompt } = useFetchOpenAI();
 
 const isModalOpen = ref(false);
 const isGenerating = ref(false);
@@ -96,7 +93,13 @@ const generateWithAi = async () => {
       `Formaat: [{"question":"...","answer":"..."}]. ` +
       `\n\nTEKST:\n${text}`;
 
+    const imports = (await import("#imports")) as any;
+    const postPrompt = imports.useFetchOpenAI?.()?.postPrompt;
+    if (!postPrompt) return;
+
     const result = await postPrompt(prompt, "gpt-4o");
+    if (!result?.response) return;
+
     const raw = result.response.replace(/^```[\w]*\n?|\n?```$/g, "").trim();
     const parsed = JSON.parse(raw);
 

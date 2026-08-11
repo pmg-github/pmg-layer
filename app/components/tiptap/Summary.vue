@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { computed, defineAsyncComponent, ref } from "vue";
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/vue-3";
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
+
+const SummaryEditorModal = defineAsyncComponent(
+  () => import("./SummaryEditorModal.vue"),
+);
 
 const props = defineProps<{
   node: { attrs: { color?: string } };
@@ -11,11 +15,7 @@ const props = defineProps<{
 
 const isEditable = computed(() => props.editor.isEditable ?? false);
 
-const { postPrompt } = useFetchOpenAI();
-
 const isModalOpen = ref(false);
-const isGenerating = ref(false);
-const errorMessage = ref("");
 
 const summaryColors = [
   {
@@ -63,63 +63,7 @@ const activeColor = computed(
 
 const openSettings = () => {
   if (!isEditable.value) return;
-  errorMessage.value = "";
   isModalOpen.value = true;
-};
-
-const closeModal = () => {
-  isModalOpen.value = false;
-};
-
-const generateWithAi = async () => {
-  if (!isEditable.value) return;
-  if (isGenerating.value) return;
-
-  const articleText = props.editor.state.doc.textContent.trim();
-
-  if (!articleText) {
-    errorMessage.value = "Er is geen artikeltekst gevonden om samen te vatten.";
-    return;
-  }
-
-  isGenerating.value = true;
-  errorMessage.value = "";
-
-  try {
-    const prompt = [
-      "Vat onderstaand artikel samen als HTML.",
-      "Geef enkel HTML terug, zonder uitleg of markdown.",
-      "Structuur: <h2>Samenvatting</h2> <ul> <li>...</li> </ul>",
-      "Richt je uitsluitend op de belangrijkste inzichten, feiten en conclusies.",
-      "Vermijd details, voorbeelden en herhalingen.",
-      "Gebruik maximaal 5 bullet points.",
-      "Schrijf elke bullet in één duidelijke zin van maximaal 20 woorden.",
-      "Wees objectief en voeg geen eigen interpretaties toe.",
-      "",
-      "ARTIKEL:",
-      articleText,
-    ].join("\n");
-
-    const result = await postPrompt(prompt, "gpt-5");
-    const summary = result.response
-      ?.trim()
-      .replace(/^```[\w]*\n?|\n?```$/g, "")
-      .trim();
-
-    if (!summary) return;
-
-    props.editor
-      .chain()
-      .focus()
-      .insertContentAt(props.getPos() + 1, summary)
-      .run();
-
-    closeModal();
-  } catch {
-    errorMessage.value = "Het genereren van de samenvatting is mislukt.";
-  } finally {
-    isGenerating.value = false;
-  }
 };
 </script>
 
@@ -147,79 +91,15 @@ const generateWithAi = async () => {
       />
     </div>
 
-    <Dialog class="relative z-50" :open="isModalOpen" @close="closeModal">
-      <div class="fixed inset-0 bg-black/60" aria-hidden="true" />
-
-      <div
-        class="fixed inset-0 flex items-start justify-center overflow-y-auto p-4"
-      >
-        <DialogPanel class="mt-16 w-full max-w-2xl rounded-lg bg-white p-6">
-          <div class="mb-6 flex items-center justify-between">
-            <DialogTitle class="text-xl font-bold">
-              Uitgelicht (kader)
-            </DialogTitle>
-
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="isGenerating"
-                @click="generateWithAi"
-              >
-                {{
-                  isGenerating
-                    ? "Samenvatting genereren..."
-                    : "Genereer samenvatting (AI)"
-                }}
-              </button>
-              <button
-                type="button"
-                class="flex items-center justify-center rounded-full p-2 hover:bg-gray-100"
-                :disabled="isGenerating"
-                @click="closeModal"
-              >
-                <Icon name="material-symbols:close" class="size-5" />
-              </button>
-            </div>
-          </div>
-
-          <div
-            v-if="errorMessage"
-            class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700"
-          >
-            {{ errorMessage }}
-          </div>
-
-          <div class="space-y-6">
-            <div>
-              <p class="mb-3 text-sm font-medium text-gray-700">
-                Kies een kleur
-              </p>
-
-              <div class="flex flex-wrap gap-3">
-                <button
-                  v-for="color in summaryColors"
-                  :key="color.value"
-                  type="button"
-                  class="h-10 w-10 rounded-full border-2 transition"
-                  :class="
-                    selectedColor === color.value
-                      ? 'border-gray-900 ring-2 ring-gray-900/20'
-                      : 'border-gray-200'
-                  "
-                  :title="color.name"
-                  @click="selectedColor = color.value"
-                >
-                  <span
-                    class="block h-full w-full rounded-full"
-                    :class="color.wrapper"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </DialogPanel>
-      </div>
-    </Dialog>
+    <SummaryEditorModal
+      v-if="isEditable && isModalOpen"
+      :open="isModalOpen"
+      :color="selectedColor"
+      :summary-colors="summaryColors"
+      :editor="props.editor"
+      :get-pos="props.getPos"
+      @update:open="isModalOpen = $event"
+      @update:color="selectedColor = $event"
+    />
   </NodeViewWrapper>
 </template>
