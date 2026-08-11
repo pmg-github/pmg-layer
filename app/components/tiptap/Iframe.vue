@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { NodeViewWrapper } from "@tiptap/vue-3";
+import { computed, ref } from "vue";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/vue";
 
 const props = defineProps({
