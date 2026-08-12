@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
@@ -32,8 +31,7 @@ const articleStore = {
 };
 
 const pickImages = async (options: Record<string, unknown>) => {
-  const { articleStore: runtimeStore, imageLibrary } =
-    await getImageRuntime();
+  const { articleStore: runtimeStore, imageLibrary } = await getImageRuntime();
   return imageLibrary?.pickImages?.({
     ...options,
     jobCode: runtimeStore?.metaData?.jobCode,
@@ -456,7 +454,6 @@ onUnmounted(() => {
       :title="`Fotocarrousel (${modalImages.length})`"
       size="5xl"
       @update:open="isModalOpen = $event"
-      persistent
       ref="container"
     >
       <div>

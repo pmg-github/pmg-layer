@@ -175,9 +175,11 @@ const clearVideo = () => {
         >
       </div>
 
-      <h3 class="mb-2 text-lg font-medium text-gray-700">No video selected</h3>
+      <h3 class="mb-2 text-lg font-medium text-gray-700">
+        Geen video geselecteerd
+      </h3>
       <p class="mb-4 text-center text-xs text-gray-400">
-        Set a video reference (for example a job code) to render this block.
+        Stel een video referentie in om deze blok weer te geven.
       </p>
 
       <button
@@ -186,7 +188,7 @@ const clearVideo = () => {
         class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
         @click.stop="openEditor"
       >
-        Configure video
+        Video selecteren
       </button>
     </div>
 
@@ -247,14 +249,14 @@ const clearVideo = () => {
 
     <Modal
       :open="isEditable && isEditing"
-      title="Configure video"
+      title="Video configureren"
       size="md"
       @update:open="isEditing = $event"
     >
       <div class="space-y-4">
         <div>
           <label class="mb-1 block text-sm text-gray-600"
-            >Video reference</label
+            >Video referentie</label
           >
           <input
             v-model="draftVideoId"
@@ -283,7 +285,7 @@ const clearVideo = () => {
             class="rounded px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
             @click="clearVideo"
           >
-            Remove
+            verwijder
           </button>
 
           <div class="flex items-center gap-2">
@@ -292,7 +294,7 @@ const clearVideo = () => {
               class="rounded px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100"
               @click="isEditing = false"
             >
-              Cancel
+              Annuleren
             </button>
             <button
               type="button"
@@ -300,7 +302,7 @@ const clearVideo = () => {
               :disabled="!draftVideoId.trim()"
               @click="applyVideo"
             >
-              Apply
+              Toepassen
             </button>
           </div>
         </div>
