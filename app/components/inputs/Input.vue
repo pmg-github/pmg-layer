@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { useField } from "vee-validate";
 
+defineOptions({ inheritAttrs: false });
+
+const attrs = useAttrs();
+
 export type InputType =
   | "text"
   | "email"
@@ -71,6 +75,15 @@ const hasValue = computed(
   () => displayValue.value != null && displayValue.value !== "",
 );
 
+const maxLength = computed(() => {
+  const ml = attrs.maxlength ?? attrs.maxLength;
+  return ml != null ? Number(ml) : null;
+});
+
+const currentLength = computed(() =>
+  displayValue.value != null ? String(displayValue.value).length : 0,
+);
+
 const onInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const value =
@@ -135,6 +148,7 @@ const clear = () => {
         :placeholder="placeholder"
         :disabled="disabled"
         :required="required"
+        v-bind="$attrs"
         class="min-w-0 flex-1 appearance-none border-none bg-transparent p-0 text-xs text-gray-800 placeholder-gray-400 outline-none [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none focus:ring-0"
         @input="onInput"
         @blur="onBlur"
@@ -151,8 +165,27 @@ const clear = () => {
       </button>
     </div>
 
-    <p v-if="showError" class="mt-1 text-[11px] text-red-500">
-      {{ errorMessage }}
-    </p>
+    <div
+      v-if="showError || maxLength"
+      class="mt-1 flex items-start justify-between gap-2"
+    >
+      <p v-if="showError" class="text-[11px] text-red-500">
+        {{ errorMessage }}
+      </p>
+      <span v-else />
+      <span
+        v-if="maxLength"
+        class="shrink-0 text-[11px]"
+        :class="
+          currentLength >= maxLength
+            ? 'text-red-500'
+            : currentLength >= maxLength * 0.9
+              ? 'text-amber-500'
+              : 'text-gray-400'
+        "
+      >
+        {{ currentLength }}/{{ maxLength }}
+      </span>
+    </div>
   </div>
 </template>
