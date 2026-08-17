@@ -3,11 +3,14 @@ import { computed, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
 import Modal from "../Modal.vue";
 import { useFetchVideos } from "~/composables/useFetchVideos";
-import { usePortalStore } from "#imports";
 interface VideoAttrs {
   videoId?: string;
   autoplay?: boolean;
   muted?: boolean;
+}
+
+interface VideoExtensionOptions {
+  portalCode?: string;
 }
 
 interface VideoResponse {
@@ -29,9 +32,13 @@ const props = defineProps<NodeViewProps>();
 
 const BUNNY_LIBRARY_ID = "698074";
 const { getVideo } = useFetchVideos();
-const portalStore = usePortalStore();
 const isEditable = computed(() => props.editor.isEditable ?? false);
 const isEditing = ref(false);
+const portalCode = computed(
+  () =>
+    (props.extension.options as VideoExtensionOptions | undefined)
+      ?.portalCode ?? "",
+);
 
 const videoAttrs = computed<VideoAttrs>(() => props.node.attrs as VideoAttrs);
 
@@ -113,7 +120,9 @@ const embedUrl = computed(() => {
 
   params.set("autoplay", String(autoplay.value));
   params.set("muted", String(muted.value));
-  params.set("data-theme", portalStore.portalCode);
+  if (portalCode.value) {
+    params.set("data-theme", portalCode.value);
+  }
 
   return `https://player.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${resolvedVideo.value.bunnyVideoId}?${params.toString()}`;
 });

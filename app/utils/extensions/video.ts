@@ -2,6 +2,10 @@ import { mergeAttributes, Node } from "@tiptap/core";
 import { VueNodeViewRenderer } from "@tiptap/vue-3";
 import Video from "../../components/tiptap/Video.vue";
 
+export interface VideoOptions {
+  portalCode: string;
+}
+
 export interface VideoAttrs {
   videoId?: string;
   autoplay?: boolean;
@@ -18,12 +22,18 @@ declare module "@tiptap/core" {
   }
 }
 
-export default Node.create({
+export default Node.create<VideoOptions>({
   name: "video",
   group: "media block",
   atom: true,
   draggable: true,
   selectable: true,
+
+  addOptions() {
+    return {
+      portalCode: "",
+    };
+  },
 
   addAttributes() {
     return {
@@ -59,7 +69,7 @@ export default Node.create({
         ({ commands }) =>
           commands.insertContent([
             { type: this.name, attrs },
-            { type: 'paragraph' },
+            { type: "paragraph" },
           ]),
       setVideo:
         (attrs) =>

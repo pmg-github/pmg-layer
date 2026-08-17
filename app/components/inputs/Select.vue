@@ -1,7 +1,13 @@
 <script setup lang="ts" generic="T extends Record<string, any>, V = any">
 import { useDebounceFn } from "@vueuse/core";
+import { useField } from "vee-validate";
 
 export interface SelectProps<T, V> {
+  /**
+   * Field name. When provided, the select registers itself with vee-validate
+   * via `useField` and displays validation feedback.
+   */
+  name?: string;
   options?: T[];
   fetch?: (query: string, signal: AbortSignal) => Promise<T[]>;
   resolve?: (values: V | V[]) => Promise<T[]>;
@@ -37,6 +43,29 @@ const emit = defineEmits<{
 }>();
 
 const modelValue = defineModel<V | V[] | null>({ default: null });
+
+// Opt-in vee-validate integration to keep behavior unchanged unless `name` is set.
+const field = props.name
+  ? useField<V | V[] | null>(() => props.name!, undefined, {
+      syncVModel: true,
+      validateOnValueUpdate: true,
+    })
+  : null;
+
+const errorMessage = computed(() => field?.errorMessage.value);
+const showError = computed(() => !!field?.meta.touched && !!errorMessage.value);
+
+const selectedValue = computed<V | V[] | null>(() =>
+  field ? field.value.value : modelValue.value,
+);
+
+const setSelectedValue = (value: V | V[] | null) => {
+  if (field) {
+    field.setValue(value);
+  } else {
+    modelValue.value = value;
+  }
+};
 
 // Internal state
 const internalOptions = ref<T[]>([]) as Ref<T[]>;
@@ -104,16 +133,18 @@ const filteredOptions = computed<T[]>(() => {
 
 // Selected option(s) for display
 const selectedOptions = computed<T[]>(() => {
-  if (modelValue.value == null) return [];
+  if (selectedValue.value == null) return [];
 
   if (props.multiple) {
-    const values = Array.isArray(modelValue.value) ? modelValue.value : [];
+    const values = Array.isArray(selectedValue.value)
+      ? selectedValue.value
+      : [];
     return allOptions.value.filter((o) => valuesInclude(values, getValue(o)));
   }
 
   // Single select: find the one option whose value matches modelValue
   const match = allOptions.value.find((o) =>
-    valuesEqual(getValue(o), modelValue.value),
+    valuesEqual(getValue(o), selectedValue.value),
   );
   return match ? [match] : [];
 });
@@ -156,11 +187,11 @@ const debouncedFetch = useDebounceFn((query: string) => {
 
 // Resolve initial values
 const resolveInitialValues = async () => {
-  if (!props.resolve || modelValue.value == null) return;
+  if (!props.resolve || selectedValue.value == null) return;
 
-  const values = Array.isArray(modelValue.value)
-    ? modelValue.value
-    : modelValue.value;
+  const values = Array.isArray(selectedValue.value)
+    ? selectedValue.value
+    : selectedValue.value;
   if (Array.isArray(values) && values.length === 0) return;
 
   isResolving.value = true;
@@ -177,6 +208,9 @@ const resolveInitialValues = async () => {
 // Handle dropdown open
 const onOpenChange = (open: boolean) => {
   isOpen.value = open;
+  if (!open) {
+    field?.setTouched(true);
+  }
   if (open && props.fetch && !hasFetchedOnce.value) {
     doFetch("");
   }
@@ -198,8 +232,8 @@ const onSelect = (option: T) => {
   const value = getValue(option);
 
   if (props.multiple) {
-    const current = Array.isArray(modelValue.value)
-      ? [...modelValue.value]
+    const current = Array.isArray(selectedValue.value)
+      ? [...selectedValue.value]
       : [];
     const idx = current.findIndex((v) => valuesEqual(v, value));
     if (idx > -1) {
@@ -207,10 +241,12 @@ const onSelect = (option: T) => {
     } else {
       current.push(value);
     }
-    modelValue.value = current as any;
+    setSelectedValue(current as any);
+    field?.setTouched(true);
     emit("change", current as any);
   } else {
-    modelValue.value = value as any;
+    setSelectedValue(value as any);
+    field?.setTouched(true);
     emit("change", value as any);
     isOpen.value = false;
   }
@@ -218,22 +254,24 @@ const onSelect = (option: T) => {
 
 const isSelected = (option: T): boolean => {
   const value = getValue(option);
-  if (props.multiple && Array.isArray(modelValue.value)) {
-    return valuesInclude(modelValue.value, value);
+  if (props.multiple && Array.isArray(selectedValue.value)) {
+    return valuesInclude(selectedValue.value, value);
   }
-  return valuesEqual(modelValue.value, value);
+  return valuesEqual(selectedValue.value, value);
 };
 
 const clear = () => {
-  modelValue.value = props.multiple ? ([] as any) : null;
+  setSelectedValue(props.multiple ? ([] as any) : null);
+  field?.setTouched(true);
   emit("change", props.multiple ? ([] as any) : null);
   searchQuery.value = "";
 };
 
 const removeTag = (value: V) => {
-  if (!Array.isArray(modelValue.value)) return;
-  const updated = modelValue.value.filter((v) => !valuesEqual(v, value));
-  modelValue.value = updated as any;
+  if (!Array.isArray(selectedValue.value)) return;
+  const updated = selectedValue.value.filter((v) => !valuesEqual(v, value));
+  setSelectedValue(updated as any);
+  field?.setTouched(true);
   emit("change", updated as any);
 };
 
@@ -245,9 +283,9 @@ onMounted(() => {
   }
 
   // Resolve initial values for async selects
-  if (props.resolve && modelValue.value != null) {
-    const hasValue = Array.isArray(modelValue.value)
-      ? modelValue.value.length > 0
+  if (props.resolve && selectedValue.value != null) {
+    const hasValue = Array.isArray(selectedValue.value)
+      ? selectedValue.value.length > 0
       : true;
     if (hasValue) resolveInitialValues();
   }
@@ -263,7 +301,7 @@ watch(
 
 // Re-resolve when modelValue changes externally (e.g., form reset)
 watch(
-  () => modelValue.value,
+  () => selectedValue.value,
   (newVal, oldVal) => {
     if (JSON.stringify(newVal) === JSON.stringify(oldVal)) return;
     if (!props.resolve || newVal == null) return;
@@ -303,7 +341,10 @@ onUnmounted(() => {
         :class="{
           'cursor-not-allowed opacity-50': disabled,
           'border-blue-300 ring-1 ring-blue-100': isOpen,
+          'border-red-300 focus-within:border-red-300 focus-within:ring-red-100':
+            showError,
         }"
+        @focusout="field?.handleBlur($event)"
       >
         <!-- Multi-select tags (own row, wraps independently) -->
         <div
@@ -380,8 +421,8 @@ onUnmounted(() => {
           <button
             v-if="
               clearable &&
-              modelValue != null &&
-              (Array.isArray(modelValue) ? modelValue.length > 0 : true)
+              selectedValue != null &&
+              (Array.isArray(selectedValue) ? selectedValue.length > 0 : true)
             "
             type="button"
             class="flex shrink-0 items-center text-gray-400 transition hover:text-gray-600"
@@ -442,5 +483,9 @@ onUnmounted(() => {
         </ComboboxContent>
       </ComboboxPortal>
     </ComboboxRoot>
+
+    <p v-if="showError" class="mt-1 text-[11px] text-red-500">
+      {{ errorMessage }}
+    </p>
   </div>
 </template>

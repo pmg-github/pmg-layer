@@ -169,7 +169,14 @@ import {
 
 const editor = new Editor({
   editable: true,
-  extensions: [StarterKit, CarouselExtension, GalleryExtension, VideoExtension],
+  extensions: [
+    StarterKit,
+    CarouselExtension,
+    GalleryExtension,
+    VideoExtension.configure({
+      portalCode: "my-portal",
+    }),
+  ],
 });
 
 editor.commands.setCarousel([
@@ -192,6 +199,8 @@ Video resolution details:
 
 - `videoId` is treated as a reference/job code and resolved via
   `useFetchVideos().getVideo(reference, locale)`.
+- Bunny embeds receive the configured `portalCode` as the `data-theme` query
+  parameter when you use `VideoExtension.configure({ portalCode })`.
 - The layer provides `app/plugins/api.ts`, `app/composables/useApi.ts`, and
   `app/composables/useFetchVideos.ts` in the same pattern as your dashboard app.
 - If the endpoint does not resolve, the component falls back to treating
