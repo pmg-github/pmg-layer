@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
+import FrontendPoll from "../Poll.vue";
 import {
   DialogContent,
   DialogOverlay,
@@ -27,39 +28,11 @@ const searchResults = ref<PollListItem[]>([]);
 const isSearching = ref(false);
 const selectedPoll = ref<PollListItem | null>(null);
 
-// Preview data
-const pollDetail = ref<any | null>(null);
-const isLoadingDetail = ref(false);
-
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
 const pollRef = computed(() => props.node.attrs.pollRef as string | null);
 
 const polls = useFetchPolls();
-
-const loadPollDetail = async (reference: string) => {
-  isLoadingDetail.value = true;
-  try {
-    const results = await polls.getPollsData({ reference });
-    pollDetail.value =
-      Array.isArray(results) && results.length
-        ? await polls.getPoll(results[0].id)
-        : null;
-  } catch {
-    pollDetail.value = null;
-  } finally {
-    isLoadingDetail.value = false;
-  }
-};
-
-watch(
-  pollRef,
-  (ref) => {
-    if (ref) loadPollDetail(ref);
-    else pollDetail.value = null;
-  },
-  { immediate: true },
-);
 
 const openModal = () => {
   if (!isEditable.value) return;
@@ -103,7 +76,6 @@ const applyPoll = () => {
 const removePoll = () => {
   if (!isEditable.value) return;
   props.updateAttributes({ pollRef: null });
-  pollDetail.value = null;
 };
 </script>
 
@@ -136,68 +108,12 @@ const removePoll = () => {
 
     <!-- Filled state -->
     <div v-else-if="pollRef" class="relative overflow-hidden rounded-lg">
-      <!-- Loading -->
-      <div
-        v-if="isLoadingDetail"
-        class="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 py-16 text-gray-300"
-      >
-        <Icon
-          name="material-symbols:progress-activity"
-          class="size-6 animate-spin"
-        />
+      <!-- Poll preview (non-interactive in editor) -->
+      <div class="pointer-events-none select-none">
+        <FrontendPoll :id="pollRef!" />
       </div>
 
-      <!-- Poll preview -->
-      <div
-        v-else-if="pollDetail"
-        class="pointer-events-none select-none rounded-lg border border-gray-200 bg-white p-5"
-      >
-        <!-- Label -->
-        <span
-          class="mb-2 inline-block rounded-full bg-pmg-700 px-4 text-sm font-medium text-white"
-        >
-          Poll
-        </span>
-
-        <!-- Question -->
-        <h3 class="mt-1 text-xl font-semibold leading-tight text-black">
-          {{ pollDetail.questionNl }}
-        </h3>
-
-        <!-- Helper text -->
-        <div class="mb-3 mt-2 text-sm font-medium text-black opacity-60">
-          {{ pollDetail.helperTextNl || "Kies uw antwoord" }}
-        </div>
-
-        <!-- Answers -->
-        <div class="space-y-2.5">
-          <div
-            v-for="answer in pollDetail.answers"
-            :key="answer.id"
-            class="relative flex items-center gap-3 overflow-hidden rounded-xl border-2 border-gray-100 bg-white p-3"
-          >
-            <div class="absolute inset-0 w-0 bg-pmg-500/20" />
-            <div
-              v-if="pollDetail.isMultiple"
-              class="relative z-10 size-5 shrink-0 rounded-md border-2 border-gray-300 bg-white"
-            />
-            <span class="relative z-10 text-sm font-semibold text-gray-900">
-              {{ answer.answerNl }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Fallback -->
-      <div
-        v-else
-        class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-5 py-8 text-sm text-gray-400"
-      >
-        <Icon name="material-symbols:poll-outline" class="size-5 shrink-0" />
-        Poll: {{ pollRef }}
-      </div>
-
-      <!-- Edit / delete buttons (top-right overlay, same as Gallery/Carousel) -->
+      <!-- Edit button (top-right overlay) -->
       <div v-if="isEditable" class="absolute right-2 top-2 z-[1] flex gap-2">
         <button
           type="button"
