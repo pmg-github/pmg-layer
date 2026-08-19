@@ -102,16 +102,21 @@ let highlightInterval: ReturnType<typeof setInterval> | null = null;
 // ── Shared poll data ─────────────────────────────────────────────────────────
 
 // Cast to any — PubPollViewModel in the consuming app includes extra runtime fields (isTest, isWright, etc.)
-const { data: poll, refresh } = await useAsyncData<any>(
-  `tiptap-poll-${pollRef.value ?? "none"}`,
-  async () => {
-    if (!pollRef.value) return null;
-    return polls.getPoll(pollRef.value);
-  },
-);
+const poll = ref<any>(null);
 
-// Re-fetch when editor selects a different poll
-watch(pollRef, () => refresh());
+const refresh = async () => {
+  if (!pollRef.value) {
+    poll.value = null;
+    return;
+  }
+  try {
+    poll.value = await polls.getPoll(pollRef.value);
+  } catch {
+    poll.value = null;
+  }
+};
+
+watch(pollRef, refresh, { immediate: true });
 
 const answers = computed(() => poll.value?.answers ?? []);
 const hasVoted = computed(() => selectedAnswer.value !== null);
