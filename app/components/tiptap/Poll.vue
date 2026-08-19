@@ -35,15 +35,11 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
 const pollRef = computed(() => props.node.attrs.pollRef as string | null);
 
+const polls = useFetchPolls();
+
 const loadPollDetail = async (reference: string) => {
   isLoadingDetail.value = true;
   try {
-    const imports = (await import("#imports")) as any;
-    const polls = imports.useFetchPolls?.();
-    if (!polls?.getPollsData || !polls?.getPoll) {
-      pollDetail.value = null;
-      return;
-    }
     const results = await polls.getPollsData({ reference });
     pollDetail.value =
       Array.isArray(results) && results.length
@@ -76,9 +72,7 @@ const openModal = () => {
 const runSearch = async (keyword: string) => {
   isSearching.value = true;
   try {
-    const imports = (await import("#imports")) as any;
-    const getPolls = imports.useFetchPolls?.()?.getPolls;
-    const results = await getPolls?.({ keyword, limit: 20 });
+    const results = await polls.getPolls({ keyword, limit: 20 });
     searchResults.value = (
       Array.isArray(results) ? results : []
     ) as PollListItem[];
