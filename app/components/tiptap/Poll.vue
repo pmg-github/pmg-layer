@@ -9,7 +9,7 @@ import {
 } from "reka-ui";
 import { NodeViewWrapper } from "@tiptap/vue-3";
 import type { BoPollViewListModel } from "models";
-
+import { useFetchPolls } from "#imports";
 type PollListItem = BoPollViewListModel & { reference?: string };
 
 const props = defineProps({
