@@ -439,7 +439,7 @@ onUnmounted(() => {
           side="bottom"
           align="start"
           :side-offset="4"
-          class="z-50 w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl shadow-gray-200/60"
+          class="w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl shadow-gray-200/60"
         >
           <!-- Search inside dropdown (when searchable but want input in dropdown) -->
           <ComboboxViewport class="max-h-60 overflow-y-auto py-1">
