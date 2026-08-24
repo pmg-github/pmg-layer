@@ -2,11 +2,17 @@
 import { ref, computed } from "vue";
 import { NodeViewWrapper } from "@tiptap/vue-3";
 import type { BoArticleFileModel } from "models";
+import Modal from "../Modal.vue";
+
+interface FileNodeAttrs {
+  files?: BoArticleFileModel[];
+  title?: string;
+}
 
 interface Props {
-  node: { attrs: { files?: BoArticleFileModel[] } };
+  node: { attrs: FileNodeAttrs };
   editor: { isEditable?: boolean };
-  updateAttributes: (attrs: { files: BoArticleFileModel[] }) => void;
+  updateAttributes: (attrs: Partial<FileNodeAttrs>) => void;
 }
 
 const props = defineProps<Props>();
@@ -15,11 +21,14 @@ const isEditable = computed(() => props.editor.isEditable ?? false);
 const fileInput = ref<HTMLInputElement | null>(null);
 const fileInputAdd = ref<HTMLInputElement | null>(null);
 const uploadError = ref<string | null>(null);
+const isModalOpen = ref(false);
+const draftTitle = ref("");
 const editingFileId = ref<number | null>(null);
 const editingFileName = ref("");
 
 const files = computed(() => props.node.attrs.files || []);
 const hasFiles = computed(() => files.value.length > 0);
+const boxTitle = computed(() => props.node.attrs.title?.trim() || "Bestanden");
 
 const mergeUniqueFiles = (
   current: BoArticleFileModel[],
@@ -143,6 +152,31 @@ const removeFile = (index: number) => {
   if (!isEditable.value) return;
   const updatedFiles = files.value.filter((_, i) => i !== index);
   props.updateAttributes({ files: updatedFiles });
+};
+
+const openTitleModal = () => {
+  if (!isEditable.value) return;
+  draftTitle.value = boxTitle.value;
+  isModalOpen.value = true;
+};
+
+const closeTitleModal = () => {
+  isModalOpen.value = false;
+  draftTitle.value = "";
+};
+
+const saveTitle = () => {
+  if (!isEditable.value) return;
+  const nextTitle = draftTitle.value.trim();
+  if (!nextTitle) {
+    void import("#imports").then((imports: any) => {
+      imports.useToast?.()?.error?.("Titel mag niet leeg zijn");
+    });
+    return;
+  }
+
+  props.updateAttributes({ title: nextTitle });
+  closeTitleModal();
 };
 
 const startEditingFileName = (file: BoArticleFileModel) => {
@@ -317,7 +351,7 @@ const handleDrop = async (e: DragEvent) => {
       <div class="absolute left-3 top-3">
         <span
           class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
-          >Bestanden
+          >{{ boxTitle }}
         </span>
       </div>
 
@@ -381,17 +415,27 @@ const handleDrop = async (e: DragEvent) => {
       </div>
       <div class="mb-4 flex items-center justify-between">
         <h4 class="text-sm font-medium text-gray-700">
-          Bestanden ({{ files.length }})
+          {{ boxTitle }} ({{ files.length }})
         </h4>
 
-        <button
-          v-if="isEditable"
-          type="button"
-          @click="triggerFileInput(true)"
-          class="flex cursor-pointer items-center justify-center rounded-full bg-gray-800 bg-opacity-70 px-4 py-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-        >
-          Voeg bestand toe
-        </button>
+        <div v-if="isEditable" class="flex items-center gap-2">
+          <button
+            type="button"
+            class="flex items-center justify-center rounded-full p-2 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-700"
+            :title="`Bewerk titel ${boxTitle}`"
+            @click="openTitleModal"
+          >
+            <Icon name="material-symbols:edit-outline" class="size-5" />
+          </button>
+
+          <button
+            type="button"
+            @click="triggerFileInput(true)"
+            class="flex cursor-pointer items-center justify-center rounded-full bg-gray-800 bg-opacity-70 px-4 py-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+          >
+            Voeg bestand toe
+          </button>
+        </div>
 
         <input
           ref="fileInputAdd"
@@ -516,5 +560,51 @@ const handleDrop = async (e: DragEvent) => {
         </div>
       </div>
     </div>
+
+    <Modal
+      :open="isModalOpen"
+      title="Titel bewerken"
+      size="md"
+      @update:open="(value) => (isModalOpen = value)"
+      @close="closeTitleModal"
+    >
+      <div class="space-y-4">
+        <div>
+          <label
+            for="file-box-title"
+            class="mb-1 block text-sm font-medium text-gray-700"
+          >
+            Titel van bestandenbox
+          </label>
+          <input
+            id="file-box-title"
+            v-model="draftTitle"
+            type="text"
+            maxlength="80"
+            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-300"
+            placeholder="Bijv. Downloads"
+            @keydown.enter.prevent="saveTitle"
+            @keydown.esc.prevent="closeTitleModal"
+          />
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <button
+            type="button"
+            class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            @click="closeTitleModal"
+          >
+            Annuleren
+          </button>
+          <button
+            type="button"
+            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            @click="saveTitle"
+          >
+            Opslaan
+          </button>
+        </div>
+      </div>
+    </Modal>
   </NodeViewWrapper>
 </template>
