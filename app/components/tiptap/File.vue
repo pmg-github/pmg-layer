@@ -451,7 +451,7 @@ const handleDrop = async (e: DragEvent) => {
       <div
         v-for="(file, index) in files"
         :key="file.fileUrl"
-        class="group flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:border-blue-300 hover:shadow-md"
+        class="group flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-blue-300"
         @dragover="handleDragOver"
         @dragenter="handleDragEnter"
         @dragleave="handleDragLeave"
