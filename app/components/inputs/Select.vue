@@ -377,9 +377,21 @@ onUnmounted(() => {
             >
               <span
                 class="truncate text-xs"
-                :class="displayLabel ? 'text-gray-800' : 'text-gray-400'"
+                :class="
+                  multiple
+                    ? selectedOptions.length > 0
+                      ? 'text-gray-400'
+                      : 'text-gray-400'
+                    : displayLabel
+                      ? 'text-gray-800'
+                      : 'text-gray-400'
+                "
               >
-                {{ displayLabel || placeholder || "Selecteer..." }}
+                {{
+                  multiple
+                    ? placeholder || "Selecteer..."
+                    : displayLabel || placeholder || "Selecteer..."
+                }}
               </span>
               <Icon
                 name="material-symbols:keyboard-arrow-down-rounded"
