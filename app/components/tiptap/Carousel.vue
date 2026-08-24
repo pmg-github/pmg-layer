@@ -71,6 +71,10 @@ watch(
 
 const handleSelectImages = () => {
   if (!isEditable.value) return;
+  if (!hasImages.value) {
+    void handleManageImages();
+    return;
+  }
   isModalOpen.value = true;
 };
 

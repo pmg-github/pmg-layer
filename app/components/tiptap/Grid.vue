@@ -71,6 +71,10 @@ const activeLightboxImage = computed(() => images.value[lightboxIndex.value]);
 
 const handleSelectImages = () => {
   if (!isEditable.value) return;
+  if (!hasImages.value) {
+    void handleManageImages();
+    return;
+  }
   isModalOpen.value = true;
 };
 
