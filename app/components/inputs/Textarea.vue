@@ -41,7 +41,7 @@ const onInput = (event: Event) => {
     </label>
 
     <div
-      class="flex w-full items-start gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 transition-colors focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-100"
+      class="flex w-full items-start gap-1.5 rounded-lg border border-gray-200 bg-white px-1.5 py-1.5 transition-colors focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-100"
       :class="{ 'cursor-not-allowed opacity-50': disabled }"
     >
       <textarea

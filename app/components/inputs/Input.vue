@@ -199,7 +199,7 @@ const clear = () => {
     </label>
 
     <div
-      class="flex min-h-[2.25rem] w-full items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 transition-colors focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-100"
+      class="flex min-h-[2.25rem] w-full items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-1.5 py-1.5 transition-colors focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-100"
       :class="{
         'cursor-not-allowed opacity-50': disabled,
         'border-red-300 focus-within:border-red-300 focus-within:ring-red-100':

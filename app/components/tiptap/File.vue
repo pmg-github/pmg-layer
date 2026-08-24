@@ -341,7 +341,7 @@ const handleDrop = async (e: DragEvent) => {
       :class="[
         isDragOver
           ? 'border-blue-500 bg-blue-100'
-          : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50',
+          : 'border-gray-400 bg-gray-50 hover:border-blue-500 hover:bg-blue-50',
       ]"
       @dragover="handleDragOver"
       @dragenter="handleDragEnter"
@@ -370,7 +370,7 @@ const handleDrop = async (e: DragEvent) => {
         v-if="isEditable"
         type="button"
         @click="triggerFileInput(false)"
-        class="cursor-pointer rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        class="cursor-pointer rounded-lg bg-blue-700 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
       >
         Voeg bestanden toe
       </button>
@@ -421,7 +421,7 @@ const handleDrop = async (e: DragEvent) => {
         <div v-if="isEditable" class="flex items-center gap-2">
           <button
             type="button"
-            class="flex items-center justify-center rounded-full p-2 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-700"
+            class="flex items-center justify-center rounded-full p-2 text-gray-600 transition-all hover:bg-gray-100 hover:text-gray-800"
             :title="`Bewerk titel ${boxTitle}`"
             @click="openTitleModal"
           >
@@ -431,7 +431,7 @@ const handleDrop = async (e: DragEvent) => {
           <button
             type="button"
             @click="triggerFileInput(true)"
-            class="flex cursor-pointer items-center justify-center rounded-full bg-gray-800 bg-opacity-70 px-4 py-2 text-sm text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+            class="flex cursor-pointer items-center justify-center rounded-full bg-gray-900 bg-opacity-80 px-4 py-2 text-sm text-white transition-all hover:bg-opacity-95 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
           >
             Voeg bestand toe
           </button>
@@ -451,7 +451,7 @@ const handleDrop = async (e: DragEvent) => {
       <div
         v-for="(file, index) in files"
         :key="file.fileUrl"
-        class="group flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-blue-300"
+        class="group flex items-center gap-4 rounded-lg border border-gray-300 bg-white p-4 transition-all duration-200 hover:border-blue-400"
         @dragover="handleDragOver"
         @dragenter="handleDragEnter"
         @dragleave="handleDragLeave"
@@ -485,13 +485,13 @@ const handleDrop = async (e: DragEvent) => {
             <input
               v-model="editingFileName"
               type="text"
-              class="min-w-0 flex-1 rounded-md border border-blue-200 px-2 py-1.5 text-sm font-medium text-gray-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-200"
+              class="min-w-0 flex-1 rounded-md border border-blue-300 px-2 py-1.5 text-sm font-medium text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-300"
               @keydown.enter.prevent="saveEditingFileName(index)"
               @keydown.esc.prevent="cancelEditingFileName"
             />
             <button
               type="button"
-              class="flex size-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition-all hover:bg-blue-50 hover:text-blue-600"
+              class="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-500 transition-all hover:bg-blue-50 hover:text-blue-700"
               title="Bestandsnaam opslaan"
               @click="saveEditingFileName(index)"
             >
@@ -499,7 +499,7 @@ const handleDrop = async (e: DragEvent) => {
             </button>
             <button
               type="button"
-              class="flex size-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600"
+              class="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-700"
               title="Annuleren"
               @click="cancelEditingFileName"
             >
@@ -530,7 +530,7 @@ const handleDrop = async (e: DragEvent) => {
           <button
             v-if="isEditable && editingFileId !== file.fileId"
             type="button"
-            class="flex items-center justify-center rounded-full p-2 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-700"
+            class="flex items-center justify-center rounded-full p-2 text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-800"
             :title="`Hernoem ${file.altText}`"
             @click="startEditingFileName(file)"
           >
@@ -541,7 +541,7 @@ const handleDrop = async (e: DragEvent) => {
           <a
             :href="file.fileUrl"
             :download="file.altText"
-            class="flex items-center justify-center rounded-full p-2 text-gray-400 transition-all hover:bg-blue-50 hover:text-blue-600"
+            class="flex items-center justify-center rounded-full p-2 text-gray-500 transition-all hover:bg-blue-50 hover:text-blue-700"
             :title="`Download ${file.altText}`"
           >
             <Icon name="material-symbols:download" class="size-5" />
@@ -551,7 +551,7 @@ const handleDrop = async (e: DragEvent) => {
           <button
             v-if="isEditable"
             type="button"
-            class="flex items-center justify-center rounded-full p-2 text-gray-400 transition-all hover:bg-red-50 hover:text-red-600"
+            class="flex items-center justify-center rounded-full p-2 text-gray-500 transition-all hover:bg-red-50 hover:text-red-700"
             :title="`Remove ${file.altText}`"
             @click="removeFile(index)"
           >
@@ -581,7 +581,7 @@ const handleDrop = async (e: DragEvent) => {
             v-model="draftTitle"
             type="text"
             maxlength="80"
-            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-300"
+            class="w-full rounded-md border border-gray-400 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-300"
             placeholder="Bijv. Downloads"
             @keydown.enter.prevent="saveTitle"
             @keydown.esc.prevent="closeTitleModal"
@@ -591,14 +591,14 @@ const handleDrop = async (e: DragEvent) => {
         <div class="flex justify-end gap-2">
           <button
             type="button"
-            class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            class="rounded-md border border-gray-400 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
             @click="closeTitleModal"
           >
             Annuleren
           </button>
           <button
             type="button"
-            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            class="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-800"
             @click="saveTitle"
           >
             Opslaan

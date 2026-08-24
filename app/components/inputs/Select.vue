@@ -337,7 +337,7 @@ onUnmounted(() => {
       @update:open="onOpenChange"
     >
       <ComboboxAnchor
-        class="flex min-h-[2.25rem] w-full flex-col justify-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 transition-colors focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-100"
+        class="flex min-h-[2.25rem] w-full flex-col justify-center gap-1 rounded-lg border border-gray-200 bg-white px-1.5 py-1.5 transition-colors focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-100"
         :class="{
           'cursor-not-allowed opacity-50': disabled,
           'border-blue-300 ring-1 ring-blue-100': isOpen,
