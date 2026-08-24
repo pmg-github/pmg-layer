@@ -610,7 +610,7 @@ onUnmounted(() => {
           </DialogDescription>
 
           <DialogClose
-            class="absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
+            class="fixed right-4 top-4 z-[60] flex size-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
             aria-label="Sluiten"
           >
             <Icon name="material-symbols:close" class="size-6" />
@@ -626,7 +626,9 @@ onUnmounted(() => {
             <Icon name="material-symbols:chevron-left" class="size-7" />
           </button>
 
-          <span class="rounded bg-black/40 px-3 py-1 text-sm text-white">
+          <span
+            class="fixed left-4 top-4 z-[60] rounded bg-black/50 px-3 py-1 text-sm font-medium tabular-nums text-white"
+          >
             {{ lightboxIndex + 1 }} / {{ images.length }}
           </span>
 
