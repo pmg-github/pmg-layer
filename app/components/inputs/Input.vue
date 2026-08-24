@@ -31,6 +31,8 @@ export interface InputProps {
   disabled?: boolean;
   required?: boolean;
   clearable?: boolean;
+  warningMinLength?: number;
+  warningMaxLength?: number;
 }
 
 const props = withDefaults(defineProps<InputProps>(), {
@@ -83,6 +85,76 @@ const maxLength = computed(() => {
 const currentLength = computed(() =>
   displayValue.value != null ? String(displayValue.value).length : 0,
 );
+
+const warningMinLength = computed(() => {
+  if (props.warningMinLength == null) return null;
+  const value = Number(props.warningMinLength);
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : null;
+});
+
+const warningMaxLength = computed(() => {
+  if (props.warningMaxLength == null) return null;
+  const value = Number(props.warningMaxLength);
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : null;
+});
+
+const hasLengthMeta = computed(
+  () =>
+    !!maxLength.value || !!warningMinLength.value || !!warningMaxLength.value,
+);
+
+const lengthMetaText = computed(() => {
+  if (warningMaxLength.value && warningMinLength.value) {
+    return `${currentLength.value}/${warningMaxLength.value} (min. ${warningMinLength.value})`;
+  }
+
+  if (warningMaxLength.value) {
+    return `${currentLength.value}/${warningMaxLength.value}`;
+  }
+
+  if (warningMinLength.value) {
+    return `${currentLength.value} (min. ${warningMinLength.value})`;
+  }
+
+  if (maxLength.value) {
+    return `${currentLength.value}/${maxLength.value}`;
+  }
+
+  return "";
+});
+
+const lengthMetaClass = computed(() => {
+  if (
+    warningMaxLength.value != null &&
+    currentLength.value > warningMaxLength.value
+  ) {
+    return "text-red-500";
+  }
+
+  if (
+    warningMaxLength.value != null &&
+    currentLength.value >= warningMaxLength.value * 0.9
+  ) {
+    return "text-amber-500";
+  }
+
+  if (
+    warningMinLength.value != null &&
+    currentLength.value < warningMinLength.value
+  ) {
+    return "text-amber-500";
+  }
+
+  if (maxLength.value != null && currentLength.value >= maxLength.value) {
+    return "text-red-500";
+  }
+
+  if (maxLength.value != null && currentLength.value >= maxLength.value * 0.9) {
+    return "text-amber-500";
+  }
+
+  return "text-gray-400";
+});
 
 const onInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -166,7 +238,7 @@ const clear = () => {
     </div>
 
     <div
-      v-if="showError || maxLength"
+      v-if="showError || hasLengthMeta"
       class="mt-1 flex items-start justify-between gap-2"
     >
       <p v-if="showError" class="text-[11px] text-red-500">
@@ -174,17 +246,11 @@ const clear = () => {
       </p>
       <span v-else />
       <span
-        v-if="maxLength"
+        v-if="hasLengthMeta"
         class="shrink-0 text-[11px]"
-        :class="
-          currentLength >= maxLength
-            ? 'text-red-500'
-            : currentLength >= maxLength * 0.9
-              ? 'text-amber-500'
-              : 'text-gray-400'
-        "
+        :class="lengthMetaClass"
       >
-        {{ currentLength }}/{{ maxLength }}
+        {{ lengthMetaText }}
       </span>
     </div>
   </div>
