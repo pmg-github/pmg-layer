@@ -31,6 +31,7 @@ export interface InputProps {
   disabled?: boolean;
   required?: boolean;
   clearable?: boolean;
+  autocomplete?: boolean;
   warningMinLength?: number;
   warningMaxLength?: number;
 }
@@ -40,6 +41,7 @@ const props = withDefaults(defineProps<InputProps>(), {
   disabled: false,
   required: false,
   clearable: false,
+  autocomplete: false,
 });
 
 const emit = defineEmits<{
@@ -220,6 +222,7 @@ const clear = () => {
         :placeholder="placeholder"
         :disabled="disabled"
         :required="required"
+        :autocomplete="autocomplete ? 'on' : 'off'"
         v-bind="$attrs"
         class="min-w-0 flex-1 appearance-none border-none bg-transparent p-0 text-xs text-gray-800 placeholder-gray-400 outline-none [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none focus:ring-0"
         @input="onInput"
