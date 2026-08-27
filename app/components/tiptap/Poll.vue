@@ -341,9 +341,7 @@ watch(
 
       <!-- Filled state: visual-only preview -->
       <div v-else class="relative overflow-hidden rounded-lg">
-        <div
-          class="pointer-events-none select-none rounded-lg border border-gray-200 bg-white p-5"
-        >
+        <div class="pointer-events-none select-none rounded-lg">
           <span
             class="mb-2 inline-block rounded-full bg-pmg-700 px-4 text-sm font-medium text-white"
           >
