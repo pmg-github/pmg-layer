@@ -58,11 +58,15 @@ const images = computed<BoArticleImageModel[]>(
 );
 
 const hasImages = computed(() => images.value.length > 0);
+const MOBILE_MAX_VISIBLE = 2;
 const MAX_VISIBLE = 6;
 const visibleImages = computed(() =>
   images.value
     .map((image, originalIndex) => ({ ...image, originalIndex }))
     .slice(0, MAX_VISIBLE),
+);
+const mobileRemainingCount = computed(() =>
+  Math.max(0, images.value.length - MOBILE_MAX_VISIBLE),
 );
 const remainingCount = computed(() =>
   Math.max(0, images.value.length - MAX_VISIBLE),
@@ -399,6 +403,9 @@ onUnmounted(() => {
         <h3 class="mb-2 text-lg font-medium text-gray-700">
           Nog geen foto's toegevoegd
         </h3>
+        <p class="mb-4 max-w-xs text-center text-sm text-gray-500">
+          Selecteer en laad foto's op via de knop hieronder.
+        </p>
         <span
           class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
@@ -420,7 +427,10 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div v-else class="relative grid gap-1 @md:grid-cols-2 @xl:grid-cols-3">
+    <div
+      v-else
+      class="relative grid grid-cols-1 gap-1 @md:grid-cols-2 @xl:grid-cols-3"
+    >
       <button
         v-if="isEditable"
         type="button"
@@ -435,7 +445,10 @@ onUnmounted(() => {
         v-for="(image, index) in visibleImages"
         :key="image.id"
         class="relative aspect-video overflow-hidden rounded-lg border border-gray-200 bg-white transition-all duration-300 hover:border-blue-300"
-        :class="{ 'cursor-pointer': !isEditable }"
+        :class="{
+          'cursor-pointer': !isEditable,
+          'hidden @md:block': index >= MOBILE_MAX_VISIBLE,
+        }"
         @click="openLightbox(image.originalIndex)"
       >
         <img
@@ -445,8 +458,17 @@ onUnmounted(() => {
         />
 
         <div
+          v-if="index === MOBILE_MAX_VISIBLE - 1 && mobileRemainingCount > 0"
+          class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/50 text-white @md:hidden"
+        >
+          <span class="text-2xl font-semibold"
+            >+{{ mobileRemainingCount }}</span
+          >
+        </div>
+
+        <div
           v-if="index === visibleImages.length - 1 && remainingCount > 0"
-          class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/50 text-white"
+          class="absolute inset-0 z-10 hidden items-center justify-center rounded-lg bg-black/50 text-white @md:flex"
         >
           <span class="text-2xl font-semibold">+{{ remainingCount }}</span>
         </div>

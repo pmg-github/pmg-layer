@@ -403,6 +403,9 @@ onUnmounted(() => {
         <h3 class="mb-2 text-lg font-medium text-gray-700">
           Nog geen foto's toegevoegd
         </h3>
+        <p class="mb-4 max-w-xs text-center text-sm text-gray-500">
+          Selecteer en laad foto's op via de knop hieronder.
+        </p>
         <span
           class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
