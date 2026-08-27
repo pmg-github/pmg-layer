@@ -310,7 +310,9 @@ watch(
 </script>
 
 <template>
-  <NodeViewWrapper class="my-4 box-border w-full max-w-full">
+  <NodeViewWrapper
+    class="my-4 box-border border border-gray-200 rounded-lg w-full max-w-full"
+  >
     <!-- ── EDITABLE MODE ─────────────────────────────────────────────────── -->
     <template v-if="isEditable">
       <!-- Empty state -->

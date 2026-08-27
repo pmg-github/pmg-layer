@@ -539,6 +539,17 @@ onUnmounted(() => {
         <DialogOverlay
           class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in"
         />
+        <DialogClose
+          class="fixed right-4 top-4 z-[60] flex size-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
+          aria-label="Sluiten"
+        >
+          <Icon name="material-symbols:close" class="size-6" />
+        </DialogClose>
+        <span
+          class="fixed left-4 top-4 z-[60] rounded bg-black/50 px-3 py-1 text-sm font-medium tabular-nums text-white"
+        >
+          {{ lightboxIndex + 1 }} / {{ images.length }}
+        </span>
 
         <DialogContent
           class="fixed left-1/2 top-1/2 z-50 flex max-h-[95vh] w-[calc(100vw-2rem)] max-w-6xl -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-3 p-4 outline-none"
@@ -549,13 +560,6 @@ onUnmounted(() => {
             Afbeelding {{ lightboxIndex + 1 }} van {{ images.length }}
           </DialogDescription>
 
-          <DialogClose
-            class="fixed right-4 top-4 z-[60] flex size-10 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
-            aria-label="Sluiten"
-          >
-            <Icon name="material-symbols:close" class="size-6" />
-          </DialogClose>
-
           <button
             v-if="images.length > 1"
             type="button"
@@ -565,12 +569,6 @@ onUnmounted(() => {
           >
             <Icon name="material-symbols:chevron-left" class="size-7" />
           </button>
-
-          <span
-            class="fixed left-4 top-4 z-[60] rounded bg-black/50 px-3 py-1 text-sm font-medium tabular-nums text-white"
-          >
-            {{ lightboxIndex + 1 }} / {{ images.length }}
-          </span>
 
           <img
             :src="activeLightboxImage?.url"
