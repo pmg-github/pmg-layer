@@ -28,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
   backdrop: "dark",
   showCloseButton: true,
   persistent: false,
+  zIndex: 9999,
 });
 
 defineOptions({ inheritAttrs: false });
