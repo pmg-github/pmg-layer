@@ -859,13 +859,13 @@ watch(
           </div>
         </div>
 
-        <div class="w-full py-4">
+        <!-- <div class="w-full py-4">
           <div
             class="flex flex-col items-center justify-center gap-2 text-xs font-medium text-gray-600"
           >
             <Translate translate-key="poll.disclaimer" />
           </div>
-        </div>
+        </div> -->
       </div>
     </template>
   </NodeViewWrapper>
