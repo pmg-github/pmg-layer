@@ -165,17 +165,25 @@ const clearVideo = () => {
 
   isEditing.value = false;
 };
+
+const selectNode = () => {
+  if (!isEditable.value) return;
+  props.editor.commands.setNodeSelection(props.getPos());
+};
 </script>
 
 <template>
-  <NodeViewWrapper class="my-4">
+  <NodeViewWrapper
+    class="my-4 rounded-lg"
+    :class="{ 'ring-2 ring-blue-500 ring-offset-2': props.selected }"
+  >
     <div
       v-if="!hasVideo"
       class="relative flex aspect-video flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6"
       :class="{
         'cursor-pointer hover:border-blue-400 hover:bg-blue-50': isEditable,
       }"
-      @click="openEditor"
+      @click="selectNode"
     >
       <div class="absolute left-3 top-3">
         <span
@@ -249,7 +257,16 @@ const clearVideo = () => {
       <button
         v-if="isEditable"
         type="button"
-        class="absolute right-2 top-2 z-[1] rounded-full bg-gray-900/70 px-3 py-1 text-xs font-medium text-white hover:bg-gray-900"
+        class="absolute inset-0 z-[1] cursor-pointer"
+        title="Video selecteren"
+        aria-label="Video selecteren"
+        @click.stop="selectNode"
+      />
+
+      <button
+        v-if="isEditable"
+        type="button"
+        class="absolute right-2 top-2 z-[2] rounded-full bg-gray-900/70 px-3 py-1 text-xs font-medium text-white hover:bg-gray-900"
         @click.stop="openEditor"
       >
         Edit

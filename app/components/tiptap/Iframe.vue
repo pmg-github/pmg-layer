@@ -12,6 +12,8 @@ import {
 const props = defineProps({
   node: { type: Object, required: true },
   editor: { type: Object, required: true },
+  getPos: { type: Function, required: true },
+  selected: { type: Boolean, default: false },
   updateAttributes: { type: Function, required: true },
   deleteNode: { type: Function, required: true },
 });
@@ -48,14 +50,23 @@ const applyEmbed = () => {
   props.updateAttributes({ src: resolved });
   isModalOpen.value = false;
 };
+
+const selectNode = () => {
+  if (!isEditable.value) return;
+  props.editor.commands.setNodeSelection(props.getPos());
+};
 </script>
 
 <template>
-  <NodeViewWrapper class="my-4">
+  <NodeViewWrapper
+    class="my-4 rounded-lg"
+    :class="{ 'ring-2 ring-blue-500 ring-offset-2': selected }"
+  >
     <!-- Empty state -->
     <div
       v-if="!hasValidSrc"
       class="relative flex aspect-video cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6 transition-all hover:border-blue-400 hover:bg-blue-50"
+      @click="selectNode"
     >
       <div class="absolute left-14 top-3">
         <span
@@ -84,7 +95,7 @@ const applyEmbed = () => {
     </div>
 
     <!-- Display state -->
-    <div v-else class="relative w-full aspect-video overflow-hidden rounded-lg">
+    <div v-else class="relative aspect-video w-full overflow-hidden rounded-lg">
       <iframe
         :src="props.node.attrs.src"
         class="h-full w-full"
@@ -94,8 +105,17 @@ const applyEmbed = () => {
         referrerpolicy="no-referrer-when-downgrade"
       />
 
+      <button
+        v-if="isEditable"
+        type="button"
+        class="absolute inset-0 z-[1] cursor-pointer"
+        title="Embed selecteren"
+        aria-label="Embed selecteren"
+        @click.stop="selectNode"
+      />
+
       <!-- Edit button -->
-      <div v-if="isEditable" class="absolute right-2 top-2 z-[1] flex gap-2">
+      <div v-if="isEditable" class="absolute right-2 top-2 z-[2] flex gap-2">
         <button
           @click.stop="openModal"
           class="flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-white transition-all hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"

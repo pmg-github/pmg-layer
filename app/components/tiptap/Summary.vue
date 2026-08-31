@@ -13,6 +13,7 @@ const props = defineProps<{
   node: { attrs: { color?: string } };
   editor: any;
   getPos: () => number;
+  selected: boolean;
   updateAttributes: (attrs: { color?: string }) => void;
 }>();
 
@@ -74,6 +75,11 @@ const openSettings = () => {
 
 const closeModal = () => {
   isModalOpen.value = false;
+};
+
+const selectNode = () => {
+  if (!isEditable.value) return;
+  props.editor.commands.setNodeSelection(props.getPos());
 };
 
 const generateWithAi = async () => {
@@ -138,9 +144,23 @@ const generateWithAi = async () => {
   <NodeViewWrapper
     as="section"
     class="mt-4 box-border w-full max-w-full rounded-lg border"
-    :class="activeColor.wrapper"
+    :class="[
+      activeColor.wrapper,
+      { 'ring-2 ring-blue-500 ring-offset-2': selected },
+    ]"
   >
     <div class="relative">
+      <button
+        v-if="isEditable"
+        type="button"
+        class="absolute left-2 top-2 z-[1] flex items-center justify-center rounded-full bg-gray-800/70 p-2 text-white transition hover:bg-gray-800/90"
+        title="Samenvatting selecteren"
+        aria-label="Samenvatting selecteren"
+        @click.stop="selectNode"
+      >
+        <Icon name="material-symbols:select-all" class="size-5" />
+      </button>
+
       <div v-if="isEditable" class="absolute right-2 top-2 z-[1]">
         <button
           type="button"

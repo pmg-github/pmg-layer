@@ -310,9 +310,7 @@ watch(
 </script>
 
 <template>
-  <NodeViewWrapper
-    class="my-4 box-border border border-gray-200 rounded-lg p-8 w-full max-w-full"
-  >
+  <NodeViewWrapper class="my-4 box-border w-full max-w-full">
     <!-- ── EDITABLE MODE ─────────────────────────────────────────────────── -->
     <template v-if="isEditable">
       <!-- Empty state -->
@@ -340,7 +338,7 @@ watch(
       </div>
 
       <!-- Filled state: visual-only preview -->
-      <div v-else class="relative overflow-hidden rounded-lg">
+      <div v-else class="overflow-hidden rounded-lg p-8 border border-gray-200">
         <div class="pointer-events-none select-none rounded-lg">
           <span
             class="mb-2 inline-block rounded-full bg-pmg-700 px-4 text-sm font-medium text-white"
