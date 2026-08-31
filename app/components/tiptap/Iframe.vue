@@ -53,7 +53,7 @@ const applyEmbed = () => {
 
 const selectNode = () => {
   if (!isEditable.value) return;
-  props.editor.commands.setNodeSelection(props.getPos());
+  props.editor.chain().focus().setNodeSelection(props.getPos()).run();
 };
 </script>
 

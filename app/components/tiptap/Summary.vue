@@ -78,7 +78,7 @@ const closeModal = () => {
 
 const selectNode = () => {
   if (!isEditable.value) return;
-  props.editor.commands.setNodeSelection(props.getPos());
+  props.editor.chain().focus().setNodeSelection(props.getPos()).run();
 };
 
 const selectNodeFromBackground = (event: MouseEvent) => {
@@ -152,7 +152,7 @@ const generateWithAi = async () => {
     :class="[activeColor.wrapper, { 'cursor-pointer': isEditable }]"
     @click="selectNodeFromBackground"
   >
-    <div class="relative">
+    <div class="relative min-h-24 p-8">
       <div v-if="isEditable" class="absolute right-2 top-2 z-[1]">
         <button
           type="button"
@@ -165,7 +165,7 @@ const generateWithAi = async () => {
       </div>
 
       <NodeViewContent
-        class="summary-content min-h-24 p-8 text-sm leading-relaxed focus:outline-none"
+        class="summary-content text-sm leading-relaxed focus:outline-none"
         :class="[activeColor.content, { 'cursor-text': isEditable }]"
       />
     </div>
