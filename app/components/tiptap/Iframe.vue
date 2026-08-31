@@ -58,10 +58,7 @@ const selectNode = () => {
 </script>
 
 <template>
-  <NodeViewWrapper
-    class="my-4 rounded-lg"
-    :class="{ 'ring-2 ring-blue-500 ring-offset-2': selected }"
-  >
+  <NodeViewWrapper class="my-4 rounded-lg">
     <!-- Empty state -->
     <div
       v-if="!hasValidSrc"
@@ -106,7 +103,7 @@ const selectNode = () => {
       />
 
       <button
-        v-if="isEditable"
+        v-if="isEditable && !selected"
         type="button"
         class="absolute inset-0 z-[1] cursor-pointer"
         title="Embed selecteren"

@@ -2,3 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+@layer components {
+  .ProseMirror [data-node-view-wrapper].ProseMirror-selectednode {
+    outline: 2px solid rgb(59 130 246);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+}

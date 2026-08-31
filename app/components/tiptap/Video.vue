@@ -173,10 +173,7 @@ const selectNode = () => {
 </script>
 
 <template>
-  <NodeViewWrapper
-    class="my-4 rounded-lg"
-    :class="{ 'ring-2 ring-blue-500 ring-offset-2': props.selected }"
-  >
+  <NodeViewWrapper class="my-4 rounded-lg">
     <div
       v-if="!hasVideo"
       class="relative flex aspect-video flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6"
@@ -255,7 +252,7 @@ const selectNode = () => {
       </video>
 
       <button
-        v-if="isEditable"
+        v-if="isEditable && !props.selected"
         type="button"
         class="absolute inset-0 z-[1] cursor-pointer"
         title="Video selecteren"
