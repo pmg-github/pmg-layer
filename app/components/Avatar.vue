@@ -25,7 +25,7 @@ watch(
 <template>
   <div
     v-bind="$attrs"
-    class="relative shrink-0 overflow-hidden rounded-full bg-gray-200"
+    class="relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200"
   >
     <img
       v-if="props.src && !imageFailed"
