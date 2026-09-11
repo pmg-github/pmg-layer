@@ -82,6 +82,7 @@ Once extended, the consuming project automatically gets:
 - `<PMGSelect />` universal select/combobox component (see [Select.md](./app/components/inputs/Select.md))
 - `<PMGInput />` universal text input component (see [Input.md](./app/components/inputs/Input.md))
 - `<PMGTextarea />`, `<PMGSwitch />`, `<PMGCheckbox />`, `<PMGRadioGroup />` form controls (see [FormControls.md](./app/components/inputs/FormControls.md))
+- `<PMGTable />`, `<PMGDataTable />` modular table system & primitives (see [Table.md](./app/components/table/Table.md))
 - `useLayerCounter()` composable
 - `formatDate()` util
 - `useLayerPreferencesStore()` Pinia store
