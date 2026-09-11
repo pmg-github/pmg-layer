@@ -1,53 +1,178 @@
 # PMG Table System
 
-A modular, accessible, and strongly-typed table system for Nuxt and Vue 3.
+Semantic, lightweight table primitives for Nuxt and Vue 3.
 
-The table system is organized into two distinct layers:
-
-1. **Low-level Table Primitives (`PmgTable`)** — Direct 1:1 mapping to semantic HTML table elements (`<table>`, `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>`, `<td>`, `<caption>`).
-2. **High-level Data Table (`PmgDataTable`)** — Configuration-driven table with automatic markup generation, TypeScript generics, and granular scoped slot customization.
+Each component maps 1:1 to a standard HTML table element, providing PMG design system styling, accessibility defaults (e.g. `scope="col"` on headers), and class customization via `tailwind-merge`.
 
 All components are auto-imported in consuming projects with the `PMG` / `Pmg` prefix:
-`<PmgTable>`, `<PmgTableHeader>`, `<PmgTableBody>`, `<PmgTableFooter>`, `<PmgTableRow>`, `<PmgTableHead>`, `<PmgTableCell>`, `<PmgTableCaption>`, and `<PmgDataTable>`.
+
+- `<PMGTable>` → `<table>`
+- `<PMGTableHeader>` → `<thead>`
+- `<PMGTableBody>` → `<tbody>`
+- `<PMGTableFooter>` → `<tfoot>`
+- `<PMGTableRow>` → `<tr>`
+- `<PMGTableHead>` → `<th>`
+- `<PMGTableCell>` → `<td>`
+- `<PMGTableCaption>` → `<caption>`
 
 ---
 
-## When to Use What
+## Component Reference
 
-| Feature / Requirement | `PmgTable` (Primitives)                                                     | `PmgDataTable` (High-Level)                                            |
-| :-------------------- | :-------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
-| **Primary Use Case**  | Custom layouts, static content, asymmetric grids, complex multi-row headers | Application data grids, lists, CRUD tables, API responses              |
-| **Data Source**       | Manual markup via Vue template                                              | `rows` array and `columns` schema                                      |
-| **Markup Control**    | 100% manual control over every `<tr>`, `<th>`, `<td>`                       | Auto-generated standard table structure                                |
-| **Customization**     | Native template markup & standard Vue directives (`v-for`, `v-if`)          | Scoped dynamic slots (`#cell-{key}`, `#header-{key}`)                  |
-| **State Handling**    | Custom markup for empty / loading                                           | Built-in `:loading` prop, `emptyText`, and `#empty` / `#loading` slots |
+### `<PMGTable>`
+
+Base table container.
+
+| Prop        | Type      | Default | Description                                                                               |
+| :---------- | :-------- | :------ | :---------------------------------------------------------------------------------------- |
+| `fixed`     | `boolean` | `false` | Sets `table-fixed` (vs `table-auto`), enforcing strict column widths set on header cells. |
+| `striped`   | `boolean` | `false` | Alternates background color on even body rows.                                            |
+| `hoverable` | `boolean` | `false` | Adds hover highlight across body rows.                                                    |
+| `bordered`  | `boolean` | `false` | Adds subtle outer and cell borders.                                                       |
+| `dense`     | `boolean` | `false` | Reduces padding for compact data presentation.                                            |
+| `class`     | `any`     | —       | Additional CSS classes.                                                                   |
+
+### `<PMGTableHeader>`
+
+Header section (`<thead>`).
+
+| Prop     | Type      | Default | Description                                            |
+| :------- | :-------- | :------ | :----------------------------------------------------- |
+| `sticky` | `boolean` | `false` | Sticky positioning at the top of the scroll container. |
+| `class`  | `any`     | —       | Additional CSS classes.                                |
+
+### `<PMGTableBody>`
+
+Body section (`<tbody>`) with row dividers.
+
+| Prop    | Type  | Default | Description             |
+| :------ | :---- | :------ | :---------------------- |
+| `class` | `any` | —       | Additional CSS classes. |
+
+### `<PMGTableFooter>`
+
+Footer section (`<tfoot>`) with top border.
+
+| Prop    | Type  | Default | Description             |
+| :------ | :---- | :------ | :---------------------- |
+| `class` | `any` | —       | Additional CSS classes. |
+
+### `<PMGTableRow>`
+
+Table row (`<tr>`).
+
+| Prop          | Type      | Default | Description                                                   |
+| :------------ | :-------- | :------ | :------------------------------------------------------------ |
+| `selected`    | `boolean` | `false` | Sets active selection background and `data-state="selected"`. |
+| `hoverable`   | `boolean` | `true`  | Enables hover highlight on the row.                           |
+| `interactive` | `boolean` | `false` | Shows pointer cursor and active press state.                  |
+| `class`       | `any`     | —       | Additional CSS classes.                                       |
+
+### `<PMGTableHead>`
+
+Header cell (`<th>`). In HTML tables, setting a width/minWidth prop or class (e.g. `w-48`, `min-w-[200px]`, `w-1/4`) on `<PMGTableHead>` automatically defines the width for every `<PMGTableCell>` in that column without repeating it per row.
+
+| Prop       | Type                            | Default  | Description                                                                     |
+| :--------- | :------------------------------ | :------- | :------------------------------------------------------------------------------ |
+| `width`    | `string \| number`              | —        | Explicit column width (e.g., `'240px'`, `'30%'`, `200`).                        |
+| `minWidth` | `string \| number`              | —        | Explicit column min-width (e.g., `'150px'`, `'12rem'`, `150`).                  |
+| `scope`    | `string`                        | `'col'`  | Accessible scope attribute (`col`, `row`, etc.).                                |
+| `align`    | `'left' \| 'center' \| 'right'` | `'left'` | Text alignment.                                                                 |
+| `class`    | `any`                           | —        | Additional CSS classes (e.g. `w-64`, `min-w-[200px]`, `w-1/3`, `truncate`, etc). |
+
+### `<PMGTableCell>`
+
+Data cell (`<td>`).
+
+| Prop    | Type                            | Default  | Description             |
+| :------ | :------------------------------ | :------- | :---------------------- |
+| `align` | `'left' \| 'center' \| 'right'` | `'left'` | Text alignment.         |
+| `class` | `any`                           | —        | Additional CSS classes. |
+
+### `<PMGTableCaption>`
+
+Accessible table caption (`<caption>`).
+
+| Prop    | Type                | Default    | Description             |
+| :------ | :------------------ | :--------- | :---------------------- |
+| `side`  | `'top' \| 'bottom'` | `'bottom'` | Caption position.       |
+| `class` | `any`               | —          | Additional CSS classes. |
 
 ---
 
-## 1. Low-Level Table Primitives
+## Usage Example
 
-The low-level components wrap native HTML table elements to ensure semantic correctness, accessibility defaults, and consistent PMG styling while forwarding all native attributes.
+```vue
+<script setup lang="ts">
+const users = [
+  {
+    id: 1,
+    name: "Alex Morgan",
+    email: "alex@example.com",
+    role: "Admin",
+    status: "Active",
+  },
+  {
+    id: 2,
+    name: "Sarah Connor",
+    email: "sarah@example.com",
+    role: "Editor",
+    status: "Active",
+  },
+  {
+    id: 3,
+    name: "James Wilson",
+    email: "james@example.com",
+    role: "Viewer",
+    status: "Pending",
+  },
+];
+</script>
 
-### Component Mapping
+<template>
+  <div class="overflow-x-auto rounded-lg border border-gray-200">
+    <PMGTable hoverable>
+      <PMGTableCaption>Team members directory</PMGTableCaption>
 
-| Component           | Semantic HTML Tag | Default Behavior / Role                                                      |
-| :------------------ | :---------------- | :--------------------------------------------------------------------------- |
-| `<PmgTable>`        | `<table>`         | Base table container with collapse, typography, and optional borders/stripes |
-| `<PmgTableHeader>`  | `<thead>`         | Header group with muted background and uppercase typography                  |
-| `<PmgTableBody>`    | `<tbody>`         | Body section with row dividers                                               |
-| `<PmgTableFooter>`  | `<tfoot>`         | Footer section with top border and medium weight                             |
-| `<PmgTableRow>`     | `<tr>`            | Table row with optional hover, selection, and interactive styles             |
-| `<PmgTableHead>`    | `<th>`            | Header cell with default `scope="col"` and alignment options                 |
-| `<PmgTableCell>`    | `<td>`            | Data cell with standard padding and alignment options                        |
-| `<PmgTableCaption>` | `<caption>`       | Accessible table caption positioned at top or bottom                         |
+      <PMGTableHeader>
+        <PMGTableRow>
+          <PMGTableHead>Name</PMGTableHead>
+          <PMGTableHead>Email</PMGTableHead>
+          <PMGTableHead>Role</PMGTableHead>
+          <PMGTableHead>Status</PMGTableHead>
+          <PMGTableHead align="right">Actions</PMGTableHead>
+        </PMGTableRow>
+      </PMGTableHeader>
 
-### Props Reference (Primitives)
+      <PMGTableBody>
+        <PMGTableRow v-for="user in users" :key="user.id">
+          <PMGTableCell class="font-medium text-gray-900">
+            {{ user.name }}
+          </PMGTableCell>
+          <PMGTableCell>{{ user.email }}</PMGTableCell>
+          <PMGTableCell>{{ user.role }}</PMGTableCell>
+          <PMGTableCell>
+            <span
+              class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
+              :class="
+                user.status === 'Active'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-amber-100 text-amber-700'
+              "
+            >
+              {{ user.status }}
+            </span>
+          </PMGTableCell>
+          <PMGTableCell align="right">
+            <PMGButton size="sm" variant="ghost">Edit</PMGButton>
+          </PMGTableCell>
+        </PMGTableRow>
+      </PMGTableBody>
+    </PMGTable>
+  </div>
+</template>
+```
 
-#### `PmgTable`
-
-- `striped?: boolean` — Alternates row backgrounds (`default: false`).
-- `hoverable?: boolean` — Enables hover highlight on body rows (`default: false`).
-- `bordered?: boolean` — Adds outer border and subtle cell borders (`default: false`).
 - `dense?: boolean` — Reduces padding for compact datasets (`default: false`).
 
 #### `PmgTableHeader`

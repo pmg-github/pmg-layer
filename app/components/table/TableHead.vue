@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { twMerge } from "tailwind-merge";
-import type { TableAlign } from "~/types/table";
 
 export interface TableHeadProps {
   /**
@@ -13,7 +12,16 @@ export interface TableHeadProps {
    * Text and content alignment.
    * @default 'left'
    */
-  align?: TableAlign;
+  align?: "left" | "center" | "right";
+  /**
+   * Column width (e.g., '200px', '25%', 150).
+   * In standard tables, setting width on the header automatically sizes the entire column.
+   */
+  width?: string | number;
+  /**
+   * Column minimum width (e.g., '150px', '10rem', 120).
+   */
+  minWidth?: string | number;
   /**
    * Additional CSS classes for the th element.
    */
@@ -34,10 +42,23 @@ const headClasses = computed(() =>
     props.class,
   ),
 );
+
+const headStyles = computed(() => {
+  const styles: Record<string, string> = {};
+  if (props.width != null) {
+    styles.width =
+      typeof props.width === "number" ? `${props.width}px` : props.width;
+  }
+  if (props.minWidth != null) {
+    styles.minWidth =
+      typeof props.minWidth === "number" ? `${props.minWidth}px` : props.minWidth;
+  }
+  return styles;
+});
 </script>
 
 <template>
-  <th :scope="scope" :class="headClasses">
+  <th :scope="scope" :class="headClasses" :style="headStyles">
     <slot />
   </th>
 </template>

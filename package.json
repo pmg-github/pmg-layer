@@ -6,14 +6,6 @@
   "main": "./nuxt.config.ts",
   "exports": {
     ".": "./nuxt.config.ts",
-    "./types": {
-      "types": "./app/types/index.ts",
-      "import": "./app/types/index.ts"
-    },
-    "./types/*": {
-      "types": "./app/types/*.ts",
-      "import": "./app/types/*.ts"
-    },
     "./utils/extensions/*": {
       "types": "./app/utils/extensions/*.ts",
       "import": "./app/utils/extensions/*.ts"

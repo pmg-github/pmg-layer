@@ -4,6 +4,12 @@ import { twMerge } from "tailwind-merge";
 
 export interface TableProps {
   /**
+   * Whether to use fixed table layout ('table-fixed' vs 'table-auto').
+   * When true, column widths strictly adhere to the widths set on <PMGTableHead>.
+   * @default false
+   */
+  fixed?: boolean;
+  /**
    * Whether the table rows alternate background colors.
    */
   striped?: boolean;
@@ -26,6 +32,7 @@ export interface TableProps {
 }
 
 const props = withDefaults(defineProps<TableProps>(), {
+  fixed: false,
   striped: false,
   hoverable: false,
   bordered: false,
@@ -35,6 +42,7 @@ const props = withDefaults(defineProps<TableProps>(), {
 const tableClasses = computed(() =>
   twMerge(
     "w-full text-left text-sm text-gray-700 border-collapse caption-bottom",
+    props.fixed ? "table-fixed" : "table-auto",
     props.bordered && "border border-gray-200",
     props.striped && "[&_tbody_tr:nth-child(even)]:bg-gray-50/50",
     props.hoverable &&

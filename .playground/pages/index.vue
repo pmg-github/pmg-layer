@@ -51,7 +51,7 @@ const onSubmit = handleSubmit((submittedValues) => {
   console.log("submitted", submittedValues);
 });
 
-// Table demo state & data
+// Table demo data
 interface UserItem {
   id: number;
   name: string;
@@ -90,17 +90,6 @@ const tableUsers = ref<UserItem[]>([
     status: "inactive",
   },
 ]);
-
-const dataTableColumns = [
-  { key: "name", label: "User Name" },
-  { key: "email", label: "Email Address" },
-  { key: "role", label: "System Role" },
-  { key: "status", label: "Status" },
-  { key: "actions", label: "Actions", align: "right" as const },
-];
-
-const isTableLoading = ref(false);
-const emptyTableRows = ref<UserItem[]>([]);
 </script>
 
 <template>
@@ -215,132 +204,51 @@ const emptyTableRows = ref<UserItem[]>([]);
 
     <p>Today: {{ formatDate(new Date()) }}</p>
 
-    <div class="mt-12 max-w-4xl space-y-10 border-t pt-8">
-      <h2 class="text-2xl font-bold text-gray-900">Table System Demos</h2>
+    <div class="mt-12 max-w-4xl space-y-6 border-t pt-8">
+      <h2 class="text-2xl font-bold text-gray-900">PMGTable Demo</h2>
+      <p class="text-xs text-gray-500">
+        Semantic HTML table primitives with PMG styling and accessibility
+        defaults.
+      </p>
 
-      <!-- 1. Low-level Table Primitives -->
-      <section class="space-y-3">
-        <h3 class="text-lg font-semibold text-gray-800">
-          1. Low-Level Table Primitives (PMGTable)
-        </h3>
-        <p class="text-xs text-gray-500">
-          Direct semantic HTML control with default PMG styling.
-        </p>
-
-        <div class="overflow-x-auto rounded-lg border border-gray-200">
-          <PMGTable hoverable>
-            <PMGTableCaption>Active team members</PMGTableCaption>
-            <PMGTableHeader>
-              <PMGTableRow>
-                <PMGTableHead>Name</PMGTableHead>
-                <PMGTableHead>Email</PMGTableHead>
-                <PMGTableHead>Role</PMGTableHead>
-                <PMGTableHead align="right">Status</PMGTableHead>
-              </PMGTableRow>
-            </PMGTableHeader>
-            <PMGTableBody>
-              <PMGTableRow v-for="user in tableUsers" :key="user.id">
-                <PMGTableCell class="font-medium text-gray-900">
-                  {{ user.name }}
-                </PMGTableCell>
-                <PMGTableCell>{{ user.email }}</PMGTableCell>
-                <PMGTableCell>{{ user.role }}</PMGTableCell>
-                <PMGTableCell align="right">
-                  <span
-                    class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
-                    :class="{
-                      'bg-green-100 text-green-700': user.status === 'active',
-                      'bg-amber-100 text-amber-700': user.status === 'pending',
-                      'bg-gray-100 text-gray-600': user.status === 'inactive',
-                    }"
-                  >
-                    {{ user.status }}
-                  </span>
-                </PMGTableCell>
-              </PMGTableRow>
-            </PMGTableBody>
-          </PMGTable>
-        </div>
-      </section>
-
-      <!-- 2. High-Level PMGDataTable with Scoped Slots -->
-      <section class="space-y-3">
-        <h3 class="text-lg font-semibold text-gray-800">
-          2. High-Level Data Table (PMGDataTable) with Scoped Slots
-        </h3>
-        <p class="text-xs text-gray-500">
-          Data-driven table with custom #cell-name, #cell-status, and
-          #cell-actions templates.
-        </p>
-
-        <div class="rounded-lg border border-gray-200 bg-white">
-          <PMGDataTable
-            :rows="tableUsers"
-            :columns="dataTableColumns"
-            row-key="id"
-            hoverable
-          >
-            <template #cell-name="{ row, value }">
-              <div class="flex items-center gap-2">
-                <div
-                  class="flex size-7 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700"
+      <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <PMGTable hoverable>
+          <PMGTableCaption>Active team members directory</PMGTableCaption>
+          <PMGTableHeader>
+            <PMGTableRow>
+              <PMGTableHead class="w-64">Name</PMGTableHead>
+              <PMGTableHead class="min-w-[200px]">Email</PMGTableHead>
+              <PMGTableHead class="w-32">Role</PMGTableHead>
+              <PMGTableHead class="w-28">Status</PMGTableHead>
+              <PMGTableHead align="right" width="100px">Actions</PMGTableHead>
+            </PMGTableRow>
+          </PMGTableHeader>
+          <PMGTableBody>
+            <PMGTableRow v-for="user in tableUsers" :key="user.id">
+              <PMGTableCell class="font-medium text-gray-900">
+                {{ user.name }}
+              </PMGTableCell>
+              <PMGTableCell>{{ user.email }}</PMGTableCell>
+              <PMGTableCell>{{ user.role }}</PMGTableCell>
+              <PMGTableCell>
+                <span
+                  class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
+                  :class="{
+                    'bg-green-100 text-green-700': user.status === 'active',
+                    'bg-amber-100 text-amber-700': user.status === 'pending',
+                    'bg-gray-100 text-gray-600': user.status === 'inactive',
+                  }"
                 >
-                  {{ row.name.charAt(0) }}
-                </div>
-                <span class="font-medium text-gray-900">{{ value }}</span>
-              </div>
-            </template>
-
-            <template #cell-status="{ value }">
-              <span
-                class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
-                :class="{
-                  'bg-green-100 text-green-700': value === 'active',
-                  'bg-amber-100 text-amber-700': value === 'pending',
-                  'bg-gray-100 text-gray-600': value === 'inactive',
-                }"
-              >
-                {{ value }}
-              </span>
-            </template>
-
-            <template #cell-actions="{ row }">
-              <PMGButton
-                size="sm"
-                variant="ghost"
-                @click="alert(`Edit user: ${row.name}`)"
-              >
-                Edit
-              </PMGButton>
-            </template>
-          </PMGDataTable>
-        </div>
-      </section>
-
-      <!-- 3. Empty & Loading State Demos -->
-      <section class="space-y-4">
-        <h3 class="text-lg font-semibold text-gray-800">
-          3. Empty State & Loading States
-        </h3>
-        <div class="flex gap-2">
-          <PMGButton
-            size="sm"
-            variant="secondary"
-            @click="isTableLoading = !isTableLoading"
-          >
-            Toggle Loading State ({{ isTableLoading ? "ON" : "OFF" }})
-          </PMGButton>
-        </div>
-
-        <div class="rounded-lg border border-gray-200 bg-white">
-          <PMGDataTable
-            :rows="emptyTableRows"
-            :columns="dataTableColumns"
-            :loading="isTableLoading"
-            empty-text="No team members found. Click 'Add Member' to create one."
-          />
-        </div>
-      </section>
+                  {{ user.status }}
+                </span>
+              </PMGTableCell>
+              <PMGTableCell align="right">
+                <PMGButton size="sm" variant="ghost">Edit</PMGButton>
+              </PMGTableCell>
+            </PMGTableRow>
+          </PMGTableBody>
+        </PMGTable>
+      </div>
     </div>
 
     <PMGTest video-id="EDBbe2052V05" />

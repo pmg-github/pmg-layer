@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { twMerge } from "tailwind-merge";
-import type { TableAlign } from "~/types/table";
 
 export interface TableCellProps {
   /**
    * Text and content alignment.
    * @default 'left'
    */
-  align?: TableAlign;
+  align?: "left" | "center" | "right";
   /**
    * Additional CSS classes for the td element.
    */

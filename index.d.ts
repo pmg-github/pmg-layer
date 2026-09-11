@@ -10,4 +10,4 @@ declare module "vue" {
   }
 }
 
-export * from "./app/types";
+export {};
