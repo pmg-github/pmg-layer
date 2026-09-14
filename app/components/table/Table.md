@@ -14,10 +14,11 @@ All components are auto-imported in consuming projects with the `PMG` / `Pmg` pr
 - `<PMGTableHead>` → `<th>`
 - `<PMGTableCell>` → `<td>`
 - `<PMGTableCaption>` → `<caption>`
+- `<PMGTableInfinite>` → `<tr>`/`<td>` infinite-scroll sentinel (see [Section 5](#5-infinite-loading))
 
 ---
 
-## Component Reference
+## 1. Table Primitives
 
 ### `<PMGTable>`
 
@@ -72,12 +73,12 @@ Table row (`<tr>`).
 
 Header cell (`<th>`). In HTML tables, setting a width/minWidth prop or class (e.g. `w-48`, `min-w-[200px]`, `w-1/4`) on `<PMGTableHead>` automatically defines the width for every `<PMGTableCell>` in that column without repeating it per row.
 
-| Prop       | Type                            | Default  | Description                                                                     |
-| :--------- | :------------------------------ | :------- | :------------------------------------------------------------------------------ |
-| `width`    | `string \| number`              | —        | Explicit column width (e.g., `'240px'`, `'30%'`, `200`).                        |
-| `minWidth` | `string \| number`              | —        | Explicit column min-width (e.g., `'150px'`, `'12rem'`, `150`).                  |
-| `scope`    | `string`                        | `'col'`  | Accessible scope attribute (`col`, `row`, etc.).                                |
-| `align`    | `'left' \| 'center' \| 'right'` | `'left'` | Text alignment.                                                                 |
+| Prop       | Type                            | Default  | Description                                                                      |
+| :--------- | :------------------------------ | :------- | :------------------------------------------------------------------------------- |
+| `width`    | `string \| number`              | —        | Explicit column width (e.g., `'240px'`, `'30%'`, `200`).                         |
+| `minWidth` | `string \| number`              | —        | Explicit column min-width (e.g., `'150px'`, `'12rem'`, `150`).                   |
+| `scope`    | `string`                        | `'col'`  | Accessible scope attribute (`col`, `row`, etc.).                                 |
+| `align`    | `'left' \| 'center' \| 'right'` | `'left'` | Text alignment.                                                                  |
 | `class`    | `any`                           | —        | Additional CSS classes (e.g. `w-64`, `min-w-[200px]`, `w-1/3`, `truncate`, etc). |
 
 ### `<PMGTableCell>`
@@ -173,31 +174,6 @@ const users = [
 </template>
 ```
 
-- `dense?: boolean` — Reduces padding for compact datasets (`default: false`).
-
-#### `PmgTableHeader`
-
-- `sticky?: boolean` — Sticky positioning at top of scroll viewport (`default: false`).
-
-#### `PmgTableRow`
-
-- `selected?: boolean` — Sets selection style and `data-state="selected"` (`default: false`).
-- `hoverable?: boolean` — Enables row hover effect (`default: true`).
-- `interactive?: boolean` — Adds pointer cursor and active press feedback (`default: false`).
-
-#### `PmgTableHead`
-
-- `scope?: string` — Native scope attribute (`default: 'col'`).
-- `align?: 'left' | 'center' | 'right'` — Text alignment (`default: 'left'`).
-
-#### `PmgTableCell`
-
-- `align?: 'left' | 'center' | 'right'` — Text alignment (`default: 'left'`).
-
-#### `PmgTableCaption`
-
-- `side?: 'top' | 'bottom'` — Caption position (`default: 'bottom'`).
-
 ### Primitives Example
 
 ```vue
@@ -243,6 +219,8 @@ const users = [
 ---
 
 ## 2. High-Level `PmgDataTable`
+
+> **Status:** Not yet implemented in this layer — only the `PMGTable*` primitives from Section 1 exist today. This section documents the intended API to build against.
 
 `PmgDataTable` provides a high-level, declarative API for rendering data-driven tables. Internally, it renders the semantic `PmgTable` primitives, keeping markup clean and accessible.
 
@@ -491,3 +469,52 @@ const items = ref([]);
 2. **Column & Row Scopes:** `PmgTableHead` applies `scope="col"` by default. If a cell serves as a row header, use `<PmgTableHead scope="row">`.
 3. **Colspan in State Rows:** Loading and empty rows calculate `:colspan="columns.length"` automatically so screen readers and table layout engines parse single full-width state messages properly.
 4. **Interactive Rows:** When `@rowClick` is used or `interactive-rows` is set, rows are styled for interactive discovery without breaking table DOM structure.
+
+---
+
+## 5. Infinite Loading
+
+Infinite scroll is not a separate wrapper around the whole table. The `<PMGTableInfinite>` primitive renders a single `<tr>`/`<td :colspan>` row and owns the `IntersectionObserver` lifecycle, keeping the DOM valid inside `<PMGTableBody>` and standardizing loading/end states across pages.
+
+```vue
+<PMGTableBody>
+  <PMGTableRow v-for="c in contributors" :key="c.id">
+    <PMGTableCell>{{ c.name }}</PMGTableCell>
+  </PMGTableRow>
+
+  <PMGTableInfinite
+    :colspan="columns.length"
+    :loading-more="loadingMore"
+    :can-load-more="canLoadMore"
+    @load-more="fetchMoreContributors"
+  />
+</PMGTableBody>
+```
+
+### `<PMGTableInfinite>`
+
+| Prop          | Type      | Default             | Description                                                                                                 |
+| :------------ | :-------- | :------------------ | :---------------------------------------------------------------------------------------------------------- |
+| `colspan`     | `number`  | **Required**        | Should match `columns.length` so the row spans the full table width.                                        |
+| `loadingMore` | `boolean` | `false`             | Shows the loading indicator (`#loading` slot or `loadingText`) while a subsequent page loads.               |
+| `canLoadMore` | `boolean` | `false`             | Whether the sentinel is observed. `false` (and not `loadingMore`) hides the row entirely.                   |
+| `rootMargin`  | `string`  | `'200px'`           | `IntersectionObserver` root margin, controlling how early `load-more` fires before the sentinel is visible. |
+| `loadingText` | `string`  | `'Loading more...'` | Default text shown while `loadingMore` is true.                                                             |
+| `class`       | `any`     | —                   | Additional CSS classes on the `<td>`.                                                                       |
+
+| Event        | Payload | Description                                                                |
+| :----------- | :------ | :------------------------------------------------------------------------- |
+| `@load-more` | —       | Emitted when the sentinel enters the viewport and `can-load-more` is true. |
+
+### Slots
+
+- `#loading` — Custom markup shown while `loadingMore` is true (replaces `loadingText`).
+- `#idle` — Custom markup shown while waiting to be observed (e.g. an error/retry state); rendered when `loadingMore` is false and `canLoadMore` is true.
+
+The component only observes and emits `load-more`; it does not fetch data. Consuming pages remain responsible for:
+
+- Data fetching and cursor/page selection.
+- De-duplicating rows across pages.
+- Resetting pagination state on search/filter changes.
+
+Once a high-level `PmgDataTable` ships in this layer (see Section 2), it can wrap `<PMGTableInfinite>` internally so pages only need `loading-more` / `can-load-more` / `@load-more` props — no manual sentinel markup required.
