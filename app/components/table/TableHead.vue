@@ -23,6 +23,17 @@ export interface TableHeadProps {
    */
   minWidth?: string | number;
   /**
+   * Whether this column can be sorted. Renders a clickable header with a sort icon.
+   * The consuming app owns the actual sort/filter logic via the `@sort` event.
+   * @default false
+   */
+  sortable?: boolean;
+  /**
+   * Current sort direction for this column, controlled by the consumer.
+   * `null`/`undefined` renders the neutral (unsorted) icon state.
+   */
+  sortDirection?: "asc" | "desc" | null;
+  /**
    * Additional CSS classes for the th element.
    */
   class?: any;
@@ -31,7 +42,13 @@ export interface TableHeadProps {
 const props = withDefaults(defineProps<TableHeadProps>(), {
   scope: "col",
   align: "left",
+  sortable: false,
+  sortDirection: null,
 });
+
+const emit = defineEmits<{
+  (e: "sort"): void;
+}>();
 
 const headClasses = computed(() =>
   twMerge(
@@ -43,6 +60,14 @@ const headClasses = computed(() =>
   ),
 );
 
+const buttonClasses = computed(() =>
+  twMerge(
+    "inline-flex items-center gap-1 hover:text-gray-900",
+    props.align === "center" && "justify-center",
+    props.align === "right" && "justify-end",
+  ),
+);
+
 const headStyles = computed(() => {
   const styles: Record<string, string> = {};
   if (props.width != null) {
@@ -51,14 +76,48 @@ const headStyles = computed(() => {
   }
   if (props.minWidth != null) {
     styles.minWidth =
-      typeof props.minWidth === "number" ? `${props.minWidth}px` : props.minWidth;
+      typeof props.minWidth === "number"
+        ? `${props.minWidth}px`
+        : props.minWidth;
   }
   return styles;
 });
 </script>
 
 <template>
-  <th :scope="scope" :class="headClasses" :style="headStyles">
-    <slot />
+  <th
+    :scope="scope"
+    :class="headClasses"
+    :style="headStyles"
+    :aria-sort="
+      !sortable
+        ? undefined
+        : sortDirection === 'asc'
+          ? 'ascending'
+          : sortDirection === 'desc'
+            ? 'descending'
+            : 'none'
+    "
+  >
+    <button
+      v-if="sortable"
+      type="button"
+      :class="buttonClasses"
+      @click="emit('sort')"
+    >
+      <slot />
+      <svg
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        class="size-3.5 shrink-0"
+        :class="!sortDirection && 'text-gray-400'"
+        aria-hidden="true"
+      >
+        <path v-if="sortDirection === 'asc'" d="M10 5l5 6H5l5-6z" />
+        <path v-else-if="sortDirection === 'desc'" d="M10 15l-5-6h10l-5 6z" />
+        <path v-else d="M10 4l4 5H6l4-5zm0 12l-4-5h8l-4 5z" />
+      </svg>
+    </button>
+    <slot v-else />
   </th>
 </template>
