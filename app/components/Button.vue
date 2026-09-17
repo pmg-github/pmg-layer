@@ -33,9 +33,9 @@ const iconOnly = computed(() => !slots.default);
     :disabled="isDisabled"
     class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border font-medium leading-none transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
     :class="[
-      size === 'sm' && !iconOnly && 'min-h-[1.75rem] px-2.5 py-1 text-[11px]',
-      size === 'md' && !iconOnly && 'min-h-[2.25rem] px-3 py-1.5 text-xs',
-      size === 'lg' && !iconOnly && 'min-h-[2.75rem] px-4 py-2 text-sm',
+      size === 'sm' && !iconOnly && 'min-h-[1.75rem] px-2.5 py-1 text-xs',
+      size === 'md' && !iconOnly && 'min-h-[2.25rem] px-3 py-1.5 text-sm',
+      size === 'lg' && !iconOnly && 'min-h-[2.75rem] px-4 py-2 text-base',
       size === 'sm' && iconOnly && 'size-[1.75rem] text-[11px]',
       size === 'md' && iconOnly && 'size-[2.25rem] text-xs',
       size === 'lg' && iconOnly && 'size-[2.75rem] text-sm',
