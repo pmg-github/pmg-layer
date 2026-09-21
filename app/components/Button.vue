@@ -42,7 +42,7 @@ const iconOnly = computed(() => !slots.default);
       variant === 'primary' &&
         'border-blue-500 bg-blue-500 text-white hover:border-blue-600 hover:bg-blue-600 focus-visible:border-blue-300',
       variant === 'secondary' &&
-        'border-blue-500  text-blue-600 hover:border-blue-600 focus-visible:border-blue-300',
+        'border-blue-500  text-blue-600 hover:bg-blue-50 hover:border-blue-600 focus-visible:border-blue-300',
       variant === 'ghost' &&
         'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 focus-visible:border-blue-300',
       variant === 'danger' &&
