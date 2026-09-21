@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<TableHeaderProps>(), {
 const headerClasses = computed(() =>
   twMerge(
     "border-b border-gray-200 bg-gray-50/80 text-xs font-semibold text-gray-600 tracking-wider",
-    props.sticky && "sticky top-0 z-10 bg-gray-50 backdrop-blur-sm",
+    props.sticky && "sticky top-0 z-[2] bg-gray-50 backdrop-blur-sm",
     props.class,
   ),
 );
