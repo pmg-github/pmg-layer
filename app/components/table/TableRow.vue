@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<TableRowProps>(), {
 
 const rowClasses = computed(() =>
   twMerge(
-    "border-b border-gray-100 transition-colors last:border-b-0",
+    "group/row border-b border-gray-100 transition-colors last:border-b-0",
     props.hoverable && "hover:bg-gray-50/70",
     props.interactive &&
       "cursor-pointer hover:bg-gray-100/70 active:bg-gray-100",

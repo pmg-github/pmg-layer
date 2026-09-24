@@ -13,6 +13,7 @@ All components are auto-imported in consuming projects with the `PMG` / `Pmg` pr
 - `<PMGTableRow>` → `<tr>`
 - `<PMGTableHead>` → `<th>`
 - `<PMGTableCell>` → `<td>`
+- `<PMGTableActionCell>` → `<td>` with row-hover actions
 - `<PMGTableCaption>` → `<caption>`
 - `<PMGTableInfinite>` → `<tr>`/`<td>` infinite-scroll sentinel (see [Section 5](#5-infinite-loading))
 
@@ -90,6 +91,24 @@ Data cell (`<td>`).
 | `align` | `'left' \| 'center' \| 'right'` | `'left'` | Text alignment.         |
 | `class` | `any`                           | —        | Additional CSS classes. |
 
+### `<PMGTableActionCell>`
+
+Action-column cell whose content becomes visible when the row is hovered or
+focused. On devices without hover support, actions remain visible so they are
+always accessible.
+
+| Prop    | Type                            | Default   | Description             |
+| :------ | :------------------------------ | :-------- | :---------------------- |
+| `align` | `'left' \| 'center' \| 'right'` | `'right'` | Text alignment.         |
+| `class` | `any`                           | —         | Additional CSS classes. |
+
+```vue
+<PMGTableActionCell>
+  <SharedActionButton icon="material-symbols:edit-rounded" />
+  <SharedActionButton icon="material-symbols:delete-rounded" />
+</PMGTableActionCell>
+```
+
 ### `<PMGTableCaption>`
 
 Accessible table caption (`<caption>`).
@@ -152,6 +171,7 @@ const users = [
           </PMGTableCell>
           <PMGTableCell>{{ user.email }}</PMGTableCell>
           <PMGTableCell>{{ user.role }}</PMGTableCell>
+
           <PMGTableCell>
             <span
               class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
