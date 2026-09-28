@@ -171,8 +171,9 @@ const handleEditImage = async (index: number) => {
 
     if (!editedImage) return;
     modalImages.value[index] = {
-      ...modalImages.value[index],
+      ...currentImage,
       ...toBoImageModel(editedImage),
+      caption: currentImage.caption,
     };
     props.updateAttributes({ images: [...modalImages.value] });
   } catch {
