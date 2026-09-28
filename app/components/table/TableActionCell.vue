@@ -29,7 +29,7 @@ const cellClasses = computed(() =>
 );
 
 const contentClasses = computed(() => [
-  "invisible flex items-center gap-2 group-hover/row:visible group-focus-within/row:visible [@media(hover:none)]:visible",
+  "invisible flex items-center gap-2 group-hover/table-row:visible group-focus-within/table-row:visible [@media(hover:none)]:visible",
   props.align === "left" && "justify-start",
   props.align === "center" && "justify-center",
   props.align === "right" && "justify-end",
