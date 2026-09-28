@@ -194,9 +194,7 @@ const tableUsers = ref<UserItem[]>([
         placeholder="18"
         required
       />
-
       <PMGButton type="submit">Submit</PMGButton>
-
       <ClientOnly>
         <pre class="text-xs text-gray-500">{{ formValues }}</pre>
       </ClientOnly>
