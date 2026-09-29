@@ -132,6 +132,7 @@ const clear = () => {
     </label>
 
     <TagsInputRoot
+      addOnBlur
       :id="inputId"
       v-model="tags"
       :delimiter="delimiterPattern"
@@ -173,6 +174,11 @@ const clear = () => {
         <Icon name="material-symbols:close" class="size-3.5" />
       </button>
     </TagsInputRoot>
+
+    <p class="mt-1 text-[11px] text-gray-500">
+      Druk op Enter of gebruik het scheidingsteken om een trefwoord toe te
+      voegen.
+    </p>
 
     <div v-if="showError" class="mt-1 flex items-start justify-between gap-2">
       <p class="text-[11px] text-red-500">
