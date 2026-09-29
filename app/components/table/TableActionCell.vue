@@ -29,7 +29,7 @@ const cellClasses = computed(() =>
 );
 
 const contentClasses = computed(() => [
-  "invisible flex items-center gap-2 group-hover/table-row:visible group-focus-within/table-row:visible [@media(hover:none)]:visible",
+  "table-action-content invisible flex items-center gap-2 [@media(hover:none)]:visible",
   props.align === "left" && "justify-start",
   props.align === "center" && "justify-center",
   props.align === "right" && "justify-end",
@@ -37,9 +37,16 @@ const contentClasses = computed(() => [
 </script>
 
 <template>
-  <td :class="cellClasses">
+  <td :class="['table-action-cell', cellClasses]">
     <div :class="contentClasses">
       <slot />
     </div>
   </td>
 </template>
+
+<style scoped>
+:global(tr:hover > td.table-action-cell > .table-action-content),
+:global(tr:focus-within > td.table-action-cell > .table-action-content) {
+  visibility: visible;
+}
+</style>
