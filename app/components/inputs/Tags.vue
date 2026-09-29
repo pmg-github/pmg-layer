@@ -176,7 +176,7 @@ const clear = () => {
     </TagsInputRoot>
 
     <p class="mt-1 text-[11px] text-gray-500">
-      Druk op Enter of gebruik het scheidingsteken om een trefwoord toe te
+      Druk op Enter of gebruik het "{{ separator }}" om een trefwoord toe te
       voegen.
     </p>
 
