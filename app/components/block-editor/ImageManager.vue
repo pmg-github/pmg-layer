@@ -1,7 +1,22 @@
 <script setup lang="ts">
-import EditorOnly from './EditorOnly.vue';
+import { useBlockEditorComponent, useBlockEditorPanel } from "./context";
+
+defineOptions({ inheritAttrs: false });
+
+const editor = useBlockEditorComponent("ImageManager");
+const { isOpen, setOpen, open, close } = useBlockEditorPanel("media");
+
+defineExpose({ open, close });
 </script>
 
 <template>
-  <EditorOnly name="ImageManager" v-bind="$attrs"><slot /></EditorOnly>
+  <component
+    v-if="editor"
+    :is="editor"
+    v-bind="$attrs"
+    :open="isOpen"
+    @update:open="setOpen"
+  >
+    <slot />
+  </component>
 </template>
