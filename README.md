@@ -96,6 +96,40 @@ Once extended, the consuming project automatically gets:
 - Tailwind CSS support via `@nuxtjs/tailwindcss` with this layer's shared config
 - TipTap building blocks: `<TiptapCarousel />`, `<TiptapGallery />`,
   `<TiptapVideo />`, `CarouselExtension`, `GalleryExtension`, and `VideoExtension`
+- Page blocks such as `<PMGHero />`, `<PMGFeatures />`, `<PMGTileGrid />`,
+  `<PMGTimeline />`, and the other components in `app/components/blocks`
+
+## Shared page blocks
+
+The page blocks use the dashboard implementation as their canonical source.
+They render as normal read-only components when `editable` is omitted or false:
+
+```vue
+<PMGFeatures
+  title="Features"
+  :content="features"
+  color-scheme="light"
+/>
+```
+
+The dashboard can pass `editable` and `selected` to activate the inline-editing
+paths. Editor controls such as `BlocksSharedEditableText`, block settings,
+image selection, and item controls remain consumer-owned components, so the
+public website does not need to implement them.
+
+The layer includes read-only fallbacks for the shared text and selection-frame
+components. A consuming dashboard's local `BlocksSharedEditableText` and
+`BlocksSharedSelectionFrame` components override these fallbacks automatically.
+
+The blocks can also be imported explicitly when building a dynamic registry:
+
+```ts
+import Features from "pmg-layer/app/components/blocks/Features.vue";
+import Hero from "pmg-layer/app/components/blocks/Hero.vue";
+```
+
+Consumers that render `<PMGTabs />` must provide the `@headlessui/vue` peer
+dependency.
 
 The consuming project's own files always win if there's a naming collision
 (project > layer).

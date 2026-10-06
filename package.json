@@ -11,6 +11,8 @@
       "import": "./app/utils/extensions/*.ts"
     },
     "./app/components/tiptap/*": "./app/components/tiptap/*",
+    "./app/components/block-editor/*": "./app/components/block-editor/*",
+    "./app/components/blocks/*": "./app/components/blocks/*",
     "./app/components/table/*": "./app/components/table/*"
   },
   "types": "./index.d.ts",
