@@ -349,6 +349,7 @@ defineExpose({
       ref="heroEl"
       :id="props.id"
       class="group relative min-h-[380px] w-full overflow-hidden bg-primary-800"
+      :class="{ '-mt-16': !editable }"
       :style="{ height: heroHeight }"
     >
       <!-- Background -->
