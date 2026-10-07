@@ -45,6 +45,11 @@ const heroEl = ref<HTMLElement | null>(null);
 const blockSettingsRef = ref();
 const linkPanelOpen = ref(false);
 const selectedLinkIndex = ref<number | null>(null);
+const activeLink = computed(() =>
+  selectedLinkIndex.value === null
+    ? undefined
+    : model.links?.[selectedLinkIndex.value],
+);
 const resizeState = ref<{ startY: number; startHeight: number } | null>(null);
 
 const heightPresets = [
@@ -263,10 +268,11 @@ defineExpose({
           </div>
 
           <div v-else>
-            <SharedInput
-              :length="250"
+            <PMGInput
+              :maxlength="250"
+              :model-value="model.content.videoUrl ?? ''"
               label="Video url"
-              v-model="model.content.videoUrl"
+              @update:model-value="model.content.videoUrl = String($event ?? '')"
             />
           </div>
         </section>
@@ -295,51 +301,36 @@ defineExpose({
         </section>
 
         <section class="border-t border-gray-100 pt-5">
-          <label class="block">
-            <span class="mb-1 block text-xs font-semibold text-gray-600"
-              >Referentie</span
-            >
-            <input
-              class="w-full rounded-md border border-gray-300 px-2.5 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              :value="props.id || ''"
-              placeholder="section-id"
-              @input="update(['id'], ($event.target as HTMLInputElement).value)"
-            />
-          </label>
+          <PMGInput
+            label="Referentie"
+            :model-value="props.id || ''"
+            placeholder="section-id"
+            @update:model-value="update(['id'], String($event ?? ''))"
+          />
         </section>
 
         <section class="border-t border-gray-100 pt-5">
           <div class="grid grid-cols-2 gap-2">
-            <label class="block">
-              <span class="mb-1 block text-xs font-semibold text-gray-600"
-                >Zichtbaar van</span
-              >
-              <input
-                class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                type="date"
-                :value="props.visibleFrom?.slice(0, 10) || ''"
-                @input="
-                  emits('update:settings', {
-                    visibleFrom: ($event.target as HTMLInputElement).value,
-                  })
-                "
-              />
-            </label>
-            <label class="block">
-              <span class="mb-1 block text-xs font-semibold text-gray-600"
-                >Zichtbaar tot</span
-              >
-              <input
-                class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                type="date"
-                :value="props.visibleUntil?.slice(0, 10) || ''"
-                @input="
-                  emits('update:settings', {
-                    visibleUntil: ($event.target as HTMLInputElement).value,
-                  })
-                "
-              />
-            </label>
+            <PMGInput
+              label="Zichtbaar van"
+              type="date"
+              :model-value="props.visibleFrom?.slice(0, 10) || ''"
+              @update:model-value="
+                emits('update:settings', {
+                  visibleFrom: String($event ?? ''),
+                })
+              "
+            />
+            <PMGInput
+              label="Zichtbaar tot"
+              type="date"
+              :model-value="props.visibleUntil?.slice(0, 10) || ''"
+              @update:model-value="
+                emits('update:settings', {
+                  visibleUntil: String($event ?? ''),
+                })
+              "
+            />
           </div>
         </section>
       </div>
@@ -478,8 +469,7 @@ defineExpose({
                   editable &&
                   selected &&
                   linkPanelOpen &&
-                  selectedLinkIndex !== null &&
-                  model.links?.[selectedLinkIndex]
+                  activeLink
                 "
                 class="absolute bottom-full left-1/2 z-20 mb-2 flex w-[min(22rem,100%)] -translate-x-1/2 items-center gap-1 rounded-full border border-gray-200 bg-white p-1.5 pl-3 text-gray-900 shadow-2xl"
                 @click.stop
@@ -488,64 +478,60 @@ defineExpose({
                   name="material-symbols:link-rounded"
                   class="size-4 shrink-0 text-gray-400"
                 />
-                <input
-                  v-model="model.links[selectedLinkIndex].url"
-                  type="text"
-                  inputmode="url"
+                <PMGInput
+                  v-model="activeLink.url"
+                  type="url"
                   placeholder="https://... of #sectie"
-                  class="min-w-0 flex-1 rounded-full border-0 bg-transparent px-1 py-1.5 text-sm outline-none placeholder:text-gray-400"
+                  class="min-w-0 flex-1"
                 />
                 <BlocksSharedLinkReferenceSelect
-                  v-model="model.links[selectedLinkIndex].url"
+                  v-model="activeLink.url"
                 />
-                <button
+                <PMGButton
                   type="button"
-                  class="flex size-8 shrink-0 items-center justify-center rounded-full transition"
+                  variant="ghost"
+                  size="sm"
+                  icon="material-symbols:open-in-new-rounded"
+                  class="!size-8 !shrink-0 !rounded-full !border-0 !p-0"
                   :class="
-                    model.links[selectedLinkIndex].target === '_blank'
-                      ? 'bg-blue-100 text-blue-600'
-                      : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'
+                    activeLink.target === '_blank'
+                      ? '!bg-blue-100 !text-blue-600'
+                      : '!bg-transparent !text-gray-400 hover:!bg-gray-100 hover:!text-gray-700'
                   "
                   title="Openen in nieuw tabblad"
                   aria-label="Openen in nieuw tabblad"
                   @click="
-                    model.links[selectedLinkIndex].target =
-                      model.links[selectedLinkIndex].target === '_blank'
+                    activeLink.target =
+                      activeLink.target === '_blank'
                         ? null
                         : '_blank'
                   "
-                >
-                  <Icon
-                    name="material-symbols:open-in-new-rounded"
-                    class="size-4"
-                  />
-                </button>
-                <button
+                />
+                <PMGButton
                   type="button"
-                  class="flex size-8 shrink-0 items-center justify-center rounded-full text-red-500 transition hover:bg-red-50"
+                  variant="ghost"
+                  size="sm"
+                  icon="material-symbols:delete-outline-rounded"
+                  class="!size-8 !shrink-0 !rounded-full !border-0 !bg-transparent !p-0 !text-red-500 hover:!bg-red-50"
                   title="Verwijderen"
                   aria-label="Link verwijderen"
                   @click="removeActiveButton"
-                >
-                  <Icon
-                    name="material-symbols:delete-outline-rounded"
-                    class="size-4"
-                  />
-                </button>
+                />
               </div>
 
-              <button
+              <PMGButton
                 v-if="
                   editable &&
                   selected &&
                   (!model.links || model.links.length < 2)
                 "
                 type="button"
-                class="rounded-full border border-dashed border-white/70 bg-black/20 px-6 py-3 text-sm font-medium text-white backdrop-blur-sm hover:bg-black/30"
+                variant="ghost"
+                class="!rounded-full !border-dashed !border-white/70 !bg-black/20 !px-6 !py-3 !text-sm !font-medium !text-white backdrop-blur-sm hover:!bg-black/30"
                 @click.stop="addButton"
               >
                 + Knop toevoegen
-              </button>
+              </PMGButton>
             </div>
           </div>
         </div>

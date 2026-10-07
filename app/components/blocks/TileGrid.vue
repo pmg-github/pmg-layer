@@ -28,7 +28,7 @@ const props = defineProps<{
       description?: string;
     }>;
     columns?: number;
-    alignment?: 'center' | 'left';
+    alignment?: 'left' | 'center' | 'right';
   };
   colorScheme?: 'light' | 'dark' | 'white';
 }>();
@@ -50,11 +50,33 @@ const handleAnchorClick = (url: string, target?: string | null) => {
 const cols = computed(() =>
   Math.min(4, Math.max(1, props.content?.columns ?? 3)),
 );
-const contentAlignment = computed(() =>
-  props.content?.alignment === 'left' ? 'left' : 'center',
+const contentAlignment = computed(() => {
+  const alignment = props.content?.alignment;
+  return alignment === 'left' || alignment === 'right' ? alignment : 'center';
+});
+const contentAlignmentClass = computed(
+  () =>
+    ({
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right',
+    })[contentAlignment.value],
 );
-const contentAlignmentClass = computed(() =>
-  contentAlignment.value === 'center' ? 'text-center' : 'text-left',
+const contentSelfAlignmentClass = computed(
+  () =>
+    ({
+      left: 'self-start',
+      center: 'self-center',
+      right: 'self-end',
+    })[contentAlignment.value],
+);
+const contentJustifyClass = computed(
+  () =>
+    ({
+      left: 'justify-start',
+      center: 'justify-center',
+      right: 'justify-end',
+    })[contentAlignment.value],
 );
 const gridClass = computed(
   () =>
@@ -200,10 +222,7 @@ function addTile() {
           <div :class="['flex flex-col', contentAlignmentClass]">
             <BlocksSharedEditableIcon
               v-if="editable"
-              :class="[
-                'mb-4',
-                contentAlignment === 'center' ? 'self-center' : 'self-start',
-              ]"
+              :class="['mb-4', contentSelfAlignmentClass]"
               :model-value="t?.icon"
               label="Icoon wijzigen"
               @update:model-value="setField(t, 'icon', $event)"
@@ -217,9 +236,7 @@ function addTile() {
             <span
               v-else-if="t?.icon"
               class="mb-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-100 ring-1 ring-primary-200"
-              :class="
-                contentAlignment === 'center' ? 'self-center' : 'self-start'
-              "
+              :class="contentSelfAlignmentClass"
             >
               <Icon
                 :name="iconName(t.icon)"
@@ -261,12 +278,7 @@ function addTile() {
           </div>
 
           <div
-            :class="[
-              'mt-auto flex',
-              contentAlignment === 'center'
-                ? 'justify-center'
-                : 'justify-start',
-            ]"
+            :class="['mt-auto flex w-full', contentJustifyClass]"
           >
             <BlocksSharedEditableLinks
               v-if="editable"
@@ -361,14 +373,19 @@ function addTile() {
           <button
             v-for="option in [
               {
+                value: 'left',
+                label: 'Links',
+                icon: 'material-symbols:format-align-left',
+              },
+              {
                 value: 'center',
                 label: 'Gecentreerd',
                 icon: 'material-symbols:format-align-center',
               },
               {
-                value: 'left',
-                label: 'Links',
-                icon: 'material-symbols:format-align-left',
+                value: 'right',
+                label: 'Rechts',
+                icon: 'material-symbols:format-align-right',
               },
             ]"
             :key="option.value"
