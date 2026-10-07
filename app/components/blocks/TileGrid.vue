@@ -10,6 +10,7 @@ import {
   BlocksSharedSelectionFrame,
 } from '../block-editor';
 import { computed } from 'vue';
+import { responsiveTileGridClass } from '../../utils/responsiveTileGrid';
 
 const props = defineProps<{
   editable?: boolean;
@@ -57,7 +58,10 @@ const contentAlignmentClass = computed(() =>
 );
 const gridClass = computed(
   () =>
-    `grid gap-6  grid-cols-1 sm:grid-cols-2 md:grid-cols-${cols.value} lg:grid-cols-${cols.value}`,
+    responsiveTileGridClass(
+      props.content?.tiles?.length ?? 0,
+      cols.value,
+    ),
 );
 
 const cardClass = computed(() => 'flex flex-col rounded-lg bg-white p-8 ');

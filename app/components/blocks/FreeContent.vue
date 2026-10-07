@@ -6,7 +6,7 @@ import {
   BlocksSharedEditableText,
   BlocksSharedSelectionFrame,
 } from '../block-editor';
-import { computed, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 
 const props = defineProps<{
   editable?: boolean;
@@ -74,10 +74,56 @@ const emits = defineEmits([
   'update:kicker',
 ]);
 
-const { model, update } = useInlineBlock(props, emits);
+const { update } = useInlineBlock(props, emits);
 const blockSettingsRef = ref();
 const editableLinksRef = ref();
-const contentMode = ref<'visual' | 'html'>('visual');
+const contentMode = ref<'preview' | 'html'>('html');
+const renderedContentRef = ref<HTMLIFrameElement | null>(null);
+let contentResizeObserver: ResizeObserver | null = null;
+
+function stopObservingRenderedContent() {
+  contentResizeObserver?.disconnect();
+  contentResizeObserver = null;
+}
+
+function resizeRenderedContent() {
+  const frame = renderedContentRef.value;
+  const document = frame?.contentDocument;
+  if (!frame || !document) return;
+
+  const height = Math.max(
+    256,
+    document.documentElement?.scrollHeight || 0,
+    document.body?.scrollHeight || 0,
+  );
+  frame.style.height = `${height}px`;
+}
+
+function observeRenderedContent() {
+  stopObservingRenderedContent();
+
+  const frame = renderedContentRef.value;
+  const document = frame?.contentDocument;
+  if (!frame || !document) return;
+
+  frame.style.height = '256px';
+  resizeRenderedContent();
+  contentResizeObserver = new ResizeObserver(resizeRenderedContent);
+  contentResizeObserver.observe(document.documentElement);
+  if (document.body) contentResizeObserver.observe(document.body);
+
+  document.fonts?.ready.then(resizeRenderedContent);
+  document.querySelectorAll('img').forEach((image) => {
+    if (!image.complete) image.addEventListener('load', resizeRenderedContent);
+  });
+}
+
+watch(
+  () => [props.content, contentMode.value],
+  () => nextTick(resizeRenderedContent),
+);
+
+onBeforeUnmount(stopObservingRenderedContent);
 
 defineExpose({
   openSettings: () => blockSettingsRef.value?.open?.(),
@@ -117,20 +163,14 @@ defineExpose({
           <template v-else>{{ subtitle }}</template>
         </p>
 
-        <div
-          v-if="editable || props.content"
-          :class="[
-            'prose free-content editor-prose max-w-none',
-            props.colorScheme === 'dark' ? 'free-content-dark' : '',
-            themeClasses.content,
-          ]"
-        >
+        <div v-if="editable || props.content" class="max-w-none">
           <div
             v-if="editable"
             class="mb-2 flex items-center justify-between gap-3"
           >
-            <p class="text-xs text-current opacity-60">
-              Gebruik HTML om bijvoorbeeld AI-uitvoer rechtstreeks te plakken.
+            <p :class="['text-xs opacity-60', themeClasses.content]">
+              Plak volledige HTML of een fragment, inclusief een
+              &lt;style&gt;-blok. Scripts worden niet uitgevoerd.
             </p>
             <div
               class="flex shrink-0 rounded-lg border border-gray-200 bg-white p-0.5 text-xs text-gray-700 shadow-sm"
@@ -141,13 +181,13 @@ defineExpose({
                 type="button"
                 class="rounded-md px-2.5 py-1.5 font-medium transition"
                 :class="
-                  contentMode === 'visual'
+                  contentMode === 'preview'
                     ? 'bg-gray-900 text-white'
                     : 'hover:bg-gray-100'
                 "
-                @click="contentMode = 'visual'"
+                @click="contentMode = 'preview'"
               >
-                Visueel
+                Voorbeeld
               </button>
               <button
                 type="button"
@@ -164,26 +204,32 @@ defineExpose({
             </div>
           </div>
 
-          <Tiptap
-            v-if="editable && contentMode === 'visual'"
-            v-model="model.content"
-            class="free-content-html-editor min-h-64 rounded-xl border border-gray-300 bg-white p-5 text-gray-900 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100"
-            placeholder="Voeg hier vrije inhoud toe…"
-            can-edit-link
-            can-change-style
-          />
           <textarea
-            v-else-if="editable"
+            v-if="editable && contentMode === 'html'"
             :value="props.content || ''"
             class="min-h-64 w-full resize-y rounded-xl border border-gray-300 bg-gray-950 p-5 font-mono text-sm leading-6 text-gray-100 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            placeholder="Plak hier HTML, bijvoorbeeld <h2>...</h2>"
+            placeholder="Plak hier HTML, bijvoorbeeld <style>...</style><section>...</section>"
             aria-label="HTML-broncode"
             spellcheck="false"
             @input="
               update(['content'], ($event.target as HTMLTextAreaElement).value)
             "
           />
-          <div v-else v-html="props.content" />
+          <iframe
+            v-else-if="props.content"
+            ref="renderedContentRef"
+            :srcdoc="props.content"
+            class="block min-h-64 w-full border-0 bg-transparent"
+            sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+            title="Vrije HTML-inhoud"
+            @load="observeRenderedContent"
+          />
+          <div
+            v-else-if="editable"
+            class="flex min-h-64 items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white/80 p-8 text-center text-sm text-gray-500"
+          >
+            Plak eerst HTML in de HTML-weergave.
+          </div>
         </div>
 
         <div
@@ -241,103 +287,3 @@ defineExpose({
     </div>
   </BlocksSharedBlockSettings>
 </template>
-
-<style lang="postcss" scoped>
-html {
-  scroll-behavior: smooth;
-}
-.prose {
-  line-height: 1.7;
-}
-.free-content-html-editor :deep(.tiptap) {
-  min-height: 14rem;
-  outline: none;
-}
-:deep(p) {
-  margin-top: 1rem;
-}
-
-.free-content {
-  :deep(li) {
-    @apply text-gray-900;
-  }
-  :deep(ul) {
-    @apply mb-4 list-inside list-disc pl-2;
-  }
-  :deep(ol) {
-    @apply mb-4 list-decimal;
-  }
-  :deep(h1) {
-    @apply mb-4 text-3xl font-bold text-gray-900;
-  }
-  :deep(h2) {
-    @apply mb-4 text-2xl font-bold text-gray-900;
-  }
-  :deep(h3) {
-    @apply mb-4 text-xl font-bold text-gray-900;
-  }
-  :deep(h4) {
-    @apply mb-4 text-lg font-bold text-gray-900;
-  }
-  :deep(h5) {
-    @apply mb-4 text-base font-bold text-gray-900;
-  }
-  :deep(h6) {
-    @apply mb-4 text-sm font-bold text-gray-900;
-  }
-  :deep(p) {
-    @apply mb-4 text-base text-gray-900;
-  }
-  :deep(a) {
-    @apply text-blue-600 underline hover:text-blue-700;
-  }
-  :deep(code) {
-    @apply rounded-md bg-gray-100 px-1 py-0.5 font-mono text-sm text-gray-900;
-  }
-
-  :deep(pre) {
-    @apply mb-4 rounded-md bg-gray-100 p-4 font-mono text-sm text-gray-900;
-  }
-
-  :deep(pre) :deep(code) {
-    @apply m-0;
-  }
-  :deep(blockquote) {
-    @apply mb-4 border-l-4 border-gray-300 pl-4 italic text-gray-900;
-  }
-  :deep(strong) {
-    @apply font-bold text-gray-900;
-  }
-  :deep(em) {
-    @apply italic text-gray-900;
-  }
-}
-.free-content-dark {
-  :deep(li),
-  :deep(h1),
-  :deep(h2),
-  :deep(h3),
-  :deep(h4),
-  :deep(h5),
-  :deep(h6),
-  :deep(p),
-  :deep(blockquote),
-  :deep(strong),
-  :deep(em) {
-    color: inherit;
-  }
-  :deep(a) {
-    @apply text-white underline decoration-white/60 hover:text-white;
-  }
-  :deep(code),
-  :deep(pre) {
-    @apply bg-white/10 text-white;
-  }
-  :deep(blockquote) {
-    @apply border-white/30;
-  }
-}
-:deep(.editor-prose p:empty)::before {
-  content: '\00a0'; /* non-breaking space */
-}
-</style>

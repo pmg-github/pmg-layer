@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useInlineBlock } from '../../composables/useInlineBlock';
+import { responsiveTileGridClass } from '../../utils/responsiveTileGrid';
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
@@ -92,6 +93,9 @@ const emits = defineEmits([
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
+const gridClass = computed(() =>
+  responsiveTileGridClass(props.content?.length ?? 0, 3),
+);
 const blockSettingsRef = ref();
 const editableLinksRef = ref();
 const openBadgeColorIndex = ref<number | null>(null);
@@ -193,7 +197,7 @@ function updateCardButton(index: number, card: any, links: any[]) {
         </p>
       </div>
 
-      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div :class="gridClass">
         <div
           v-for="(card, i) in props.content || []"
           :key="i"

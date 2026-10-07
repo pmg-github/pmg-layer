@@ -97,7 +97,8 @@ Once extended, the consuming project automatically gets:
 - TipTap building blocks: `<TiptapCarousel />`, `<TiptapGallery />`,
   `<TiptapVideo />`, `CarouselExtension`, `GalleryExtension`, and `VideoExtension`
 - Page blocks such as `<PMGHero />`, `<PMGFeatures />`, `<PMGTileGrid />`,
-  `<PMGTimeline />`, and the other components in `app/components/blocks`
+  `<PMGTimeline />`, `<PMGQAndA />`, and the other components in
+  `app/components/blocks`
 
 ## Shared page blocks
 

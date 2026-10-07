@@ -9,6 +9,7 @@ import {
 } from '../block-editor';
 import type { FileButtonViewModel } from 'models';
 import { computed } from 'vue';
+import { responsiveTileGridClass } from '../../utils/responsiveTileGrid';
 const { locale } = useI18n();
 
 const props = defineProps<{
@@ -60,7 +61,10 @@ const contentAlignmentClass = computed(() =>
 );
 const gridClass = computed(
   () =>
-    `grid gap-6  grid-cols-1 sm:grid-cols-2 md:grid-cols-${cols.value} lg:grid-cols-${cols.value}`,
+    responsiveTileGridClass(
+      props.content?.tiles?.length ?? 0,
+      cols.value,
+    ),
 );
 
 const cardClass = computed(
