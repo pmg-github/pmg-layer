@@ -206,12 +206,11 @@ const tileImageUrl = (tile: any) => {
             :src="tileImageUrl(t)"
             class="w-full"
           />
-          <div
+          <PMGVideoPlayer
             v-else-if="t?.type === 'video' && t?.videoCode?.value"
-            :key="t.videoCode?.value"
-            class="pmgvideo onview aspect-video w-full"
-            :data-code="t.videoCode.value"
-            :data-language="props.language || locale"
+            :key="t.videoCode.value"
+            :video-id="t.videoCode.value"
+            :language="props.language || locale"
           />
           <div
             v-if="editable || t?.title || t?.subtitle || t?.description"

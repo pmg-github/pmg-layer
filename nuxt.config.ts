@@ -20,6 +20,7 @@ export default defineNuxtConfig({
       path: resolve("./app/components"),
       prefix: "PMG",
       pathPrefix: false,
+      ignore: ["**/block-editor/**"],
     },
   ],
 

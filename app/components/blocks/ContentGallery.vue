@@ -351,11 +351,10 @@ const removeActiveButton = () => {
           class="space-y-4"
           :class="props.content?.layout ? 'lg:order-1' : 'lg:order-2'"
         >
-          <div
+          <PMGVideoPlayer
             v-if="props.content?.type === 'video'"
-            class="pmgvideo onview aspect-video w-full"
-            :data-code="props.content?.videoCode?.value"
-            :data-language="props.language || locale"
+            :video-id="props.content?.videoCode?.value"
+            :language="props.language || locale"
             :key="props.content?.videoCode?.value"
           />
 

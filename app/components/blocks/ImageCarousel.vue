@@ -221,12 +221,11 @@ const setSlidesPerView = (value: string | number) => {
             @update:model-value="update(['subtitle'], $event)"
           /><template v-else>{{ subtitle }}</template>
         </p>
-      </div>
+            <PMGVideoPlayer
 
-      <Swiper
-        :key="`${desktopSlidesPerView}-${carouselTiles.length}`"
         :allow-touch-move="!editable"
-        :slides-per-view="1"
+              :video-id="t.videoCode.value"
+              :language="props.language || locale"
         :autoplay="autoplayConfig"
         :modules="[Navigation, Autoplay]"
         :navigation="canNavigate"
@@ -266,12 +265,11 @@ const setSlidesPerView = (value: string | number) => {
               :alt="t?.title || ''"
               class="aspect-[16/9] w-full object-cover"
             />
-            <div
+            <PMGVideoPlayer
               v-else-if="t?.type === 'video' && t?.videoCode?.value"
-              class="pmgvideo onview aspect-video w-full"
-              :data-code="t.videoCode.value"
               :key="t.videoCode?.value"
-              :data-language="props.language || locale"
+              :video-id="t.videoCode.value"
+              :language="props.language || locale"
             />
             <div
               v-if="editable || t?.title || t?.subtitle || t?.description"

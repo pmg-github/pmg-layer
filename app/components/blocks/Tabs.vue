@@ -465,12 +465,11 @@ const getAllVideoCodes = (...args: any[]) =>
                     </div>
                   </div>
 
-                  <div
+                  <PMGVideoPlayer
                     v-if="t.type === 'video' && t.videoCode?.value"
-                    class="pmgvideo onview aspect-video w-full overflow-hidden rounded-lg"
                     :key="t.videoCode?.value"
-                    :data-code="t.videoCode.value"
-                    :data-language="props.language || locale"
+                    :video-id="t.videoCode.value"
+                    :language="props.language || locale"
                   />
                   <SharedInputSelect
                     v-else-if="editable && t.type === 'video'"
