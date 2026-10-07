@@ -39,7 +39,11 @@ const videoNotFound = ref(false);
 let requestId = 0;
 
 watch(
-  () => [String(props.videoId ?? "").trim(), props.language || locale.value] as const,
+  () =>
+    [
+      String(props.videoId ?? "").trim(),
+      props.language || locale.value,
+    ] as const,
   async ([reference, language]) => {
     const currentRequestId = ++requestId;
     resolvedVideo.value = null;
@@ -56,9 +60,10 @@ watch(
     const videoLanguage = match?.[2]?.toLowerCase() || language;
 
     try {
-      const video = (await getVideo(jobCode, videoLanguage)) as
-        | VideoResponse
-        | null;
+      const video = (await getVideo(
+        jobCode,
+        videoLanguage,
+      )) as VideoResponse | null;
       if (currentRequestId !== requestId) return;
 
       if (!video?.bunnyVideoId && !video?.sources?.length) {
@@ -114,7 +119,13 @@ const embedUrl = computed(() => {
       :src="embedUrl"
       class="absolute inset-0 h-full w-full border-0"
       loading="lazy"
-      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+      allow="
+        accelerometer;
+        gyroscope;
+        autoplay;
+        encrypted-media;
+        picture-in-picture;
+      "
       allowfullscreen
       :title="`Video ${videoId}`"
     />

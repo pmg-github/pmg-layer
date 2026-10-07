@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedEditableText,
   BlocksSharedLinkReferenceSelect,
-} from '../block-editor';
+} from "../block-editor";
 const props = defineProps<{
   editable?: boolean;
   selected?: boolean;
@@ -30,13 +30,13 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits([
-  'update:props',
-  'update:settings',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:settings",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -53,17 +53,17 @@ const activeLink = computed(() =>
 const resizeState = ref<{ startY: number; startHeight: number } | null>(null);
 
 const heightPresets = [
-  { label: '60%', value: '60vh' },
-  { label: '75%', value: '75vh' },
-  { label: 'Volledig', value: '100dvh' },
+  { label: "60%", value: "60vh" },
+  { label: "75%", value: "75vh" },
+  { label: "Volledig", value: "100dvh" },
 ];
 
-const heroHeight = computed(() => model.content.height || '100dvh');
+const heroHeight = computed(() => model.content.height || "100dvh");
 
 const backgroundImageUrl = computed(() => {
   const src = model.content.image?.url || model.content.imageUrl;
-  if (!src) return '';
-  const separator = src.includes('?') ? '&' : '?';
+  if (!src) return "";
+  const separator = src.includes("?") ? "&" : "?";
   return `${src}${separator}width=2000`;
 });
 
@@ -99,7 +99,7 @@ const openMediaPanel = () => {
 const openLinkEditor = (index?: number) => {
   blockSettingsRef.value?.close?.();
 
-  if (typeof index === 'number') {
+  if (typeof index === "number") {
     selectedLinkIndex.value = index;
     linkPanelOpen.value = true;
     return;
@@ -126,8 +126,8 @@ const addButton = () => {
   if (model.links.length >= 2) return;
 
   model.links.push({
-    text: 'Nieuwe knop',
-    url: '#',
+    text: "Nieuwe knop",
+    url: "#",
     target: null,
   });
   selectedLinkIndex.value = model.links.length - 1;
@@ -149,14 +149,14 @@ const setHeightPreset = (height: string) => {
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
 
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (el) el.scrollIntoView({ behavior: "smooth" });
     return;
   }
 
-  if (target === '_blank') {
-    window.open(url, '_blank', 'noopener,noreferrer');
+  if (target === "_blank") {
+    window.open(url, "_blank", "noopener,noreferrer");
     return;
   }
 
@@ -175,9 +175,9 @@ const onResizeMove = (event: PointerEvent) => {
 
 const stopResize = () => {
   resizeState.value = null;
-  window.removeEventListener('pointermove', onResizeMove);
-  window.removeEventListener('pointerup', stopResize);
-  window.removeEventListener('pointercancel', stopResize);
+  window.removeEventListener("pointermove", onResizeMove);
+  window.removeEventListener("pointerup", stopResize);
+  window.removeEventListener("pointercancel", stopResize);
 };
 
 const startResize = (event: PointerEvent) => {
@@ -190,9 +190,9 @@ const startResize = (event: PointerEvent) => {
     startHeight: heroEl.value.getBoundingClientRect().height,
   };
 
-  window.addEventListener('pointermove', onResizeMove);
-  window.addEventListener('pointerup', stopResize);
-  window.addEventListener('pointercancel', stopResize);
+  window.addEventListener("pointermove", onResizeMove);
+  window.addEventListener("pointerup", stopResize);
+  window.addEventListener("pointercancel", stopResize);
 };
 
 watch(
@@ -272,7 +272,9 @@ defineExpose({
               :maxlength="250"
               :model-value="model.content.videoUrl ?? ''"
               label="Video url"
-              @update:model-value="model.content.videoUrl = String($event ?? '')"
+              @update:model-value="
+                model.content.videoUrl = String($event ?? '')
+              "
             />
           </div>
         </section>
@@ -465,12 +467,7 @@ defineExpose({
               </div>
 
               <div
-                v-if="
-                  editable &&
-                  selected &&
-                  linkPanelOpen &&
-                  activeLink
-                "
+                v-if="editable && selected && linkPanelOpen && activeLink"
                 class="absolute bottom-full left-1/2 z-20 mb-2 flex w-[min(22rem,100%)] -translate-x-1/2 items-center gap-1 rounded-full border border-gray-200 bg-white p-1.5 pl-3 text-gray-900 shadow-2xl"
                 @click.stop
               >
@@ -484,9 +481,7 @@ defineExpose({
                   placeholder="https://... of #sectie"
                   class="min-w-0 flex-1"
                 />
-                <BlocksSharedLinkReferenceSelect
-                  v-model="activeLink.url"
-                />
+                <BlocksSharedLinkReferenceSelect v-model="activeLink.url" />
                 <PMGButton
                   type="button"
                   variant="ghost"
@@ -502,9 +497,7 @@ defineExpose({
                   aria-label="Openen in nieuw tabblad"
                   @click="
                     activeLink.target =
-                      activeLink.target === '_blank'
-                        ? null
-                        : '_blank'
+                      activeLink.target === '_blank' ? null : '_blank'
                   "
                 />
                 <PMGButton
@@ -555,6 +548,6 @@ defineExpose({
 
 <style scoped lang="postcss">
 :deep(.editor-prose p:empty)::before {
-  content: '\00a0';
+  content: "\00a0";
 }
 </style>

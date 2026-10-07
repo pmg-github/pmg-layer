@@ -221,11 +221,8 @@ const setSlidesPerView = (value: string | number) => {
             @update:model-value="update(['subtitle'], $event)"
           /><template v-else>{{ subtitle }}</template>
         </p>
-            <PMGVideoPlayer
-
-        :allow-touch-move="!editable"
-              :video-id="t.videoCode.value"
-              :language="props.language || locale"
+          <Swiper
+          :allow-touch-move="!editable"
         :autoplay="autoplayConfig"
         :modules="[Navigation, Autoplay]"
         :navigation="canNavigate"

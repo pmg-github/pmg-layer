@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedEditableText,
   BlocksSharedImageManager,
   BlocksSharedLinkReferenceSelect,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import { computed, ref } from 'vue';
-import ContentLightbox from './ContentLightbox.vue';
-import type { FileButtonViewModel } from 'models';
+} from "../block-editor";
+import { computed, ref } from "vue";
+import ContentLightbox from "./ContentLightbox.vue";
+import type { FileButtonViewModel } from "models";
 
 const { locale } = useI18n();
 
@@ -25,23 +25,23 @@ const props = defineProps<{
     images: Array<string | FileButtonViewModel>;
     layout: boolean;
     label?: string;
-    type?: 'image' | 'video';
+    type?: "image" | "video";
     videoCode?: { value: string; key: string } | null;
   };
   language?: string;
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
 }>();
 
 const handleAnchorClick = (url?: string, target?: string | null) => {
   if (props.editable) return;
   if (!url) return;
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  } else if (target === '_blank') {
-    window.open(url, '_blank');
+  } else if (target === "_blank") {
+    window.open(url, "_blank");
   } else {
     window.location.href = url;
   }
@@ -49,38 +49,38 @@ const handleAnchorClick = (url?: string, target?: string | null) => {
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white',
-        content: 'text-white',
-        label: 'bg-white/15 text-white ring-1 ring-white/20',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white",
+        content: "text-white",
+        label: "bg-white/15 text-white ring-1 ring-white/20",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
+          "border border-white bg-transparent text-white hover:bg-white/10",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-950',
-        subtitle: 'text-primary-950',
-        content: 'text-gray-800',
-        label: 'bg-primary-900 text-white',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-950",
+        subtitle: "text-primary-950",
+        content: "text-gray-800",
+        label: "bg-primary-900 text-white",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
       };
     default: // white
       return {
-        bg: 'bg-white',
-        text: 'text-gray-900',
-        subtitle: 'text-gray-600',
-        content: 'text-gray-800',
-        label: 'bg-primary-900 text-white',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-gray-900",
+        subtitle: "text-gray-600",
+        content: "text-gray-800",
+        label: "bg-primary-900 text-white",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
       };
   }
 });
@@ -88,25 +88,25 @@ const themeClasses = computed(() => {
 const pg = ref<InstanceType<typeof ContentLightbox> | null>(null);
 
 const imageUrl = (image?: string | FileButtonViewModel) =>
-  typeof image === 'string' ? image : image?.url || '';
+  typeof image === "string" ? image : image?.url || "";
 
 const imageUrls = computed(() =>
   (props.content?.images || []).map(imageUrl).filter(Boolean),
 );
 
 function openFromParent(i: number) {
-  if (pg && pg.value && typeof pg.value.open === 'function') {
+  if (pg && pg.value && typeof pg.value.open === "function") {
     pg.value.open(i);
   }
 }
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -126,7 +126,7 @@ const getAllVideoCodes = (...args: any[]) =>
   useFetchFilters().getAllVideoCodes(...args);
 
 const openLinkEditor = (index?: number) => {
-  if (typeof index === 'number') {
+  if (typeof index === "number") {
     selectedLinkIndex.value = index;
     linkPanelOpen.value = true;
     return;
@@ -152,7 +152,7 @@ const addButton = () => {
   if (!model.links) model.links = [];
   if (model.links.length >= 2) return;
 
-  model.links.push({ text: 'Nieuwe knop', url: '#', target: null });
+  model.links.push({ text: "Nieuwe knop", url: "#", target: null });
   selectedLinkIndex.value = model.links.length - 1;
   linkPanelOpen.value = true;
 };
@@ -573,6 +573,6 @@ const removeActiveButton = () => {
 }
 
 :deep(.editor-prose p:empty)::before {
-  content: '\00a0'; /* non-breaking space */
+  content: "\00a0"; /* non-breaking space */
 }
 </style>

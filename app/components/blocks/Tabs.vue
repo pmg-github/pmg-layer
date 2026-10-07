@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
-import type { FileButtonViewModel } from 'models';
-import { ref, watch, computed } from 'vue';
+} from "../block-editor";
+import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "reka-ui";
+import type { FileButtonViewModel } from "models";
+import { ref, watch, computed } from "vue";
 const { locale } = useI18n();
 
 const props = defineProps<{
@@ -23,7 +23,7 @@ const props = defineProps<{
       imageUrl?: string | FileButtonViewModel;
       image?: FileButtonViewModel;
       videoCode?: { value: string; key: string } | null;
-      type?: 'image' | 'video';
+      type?: "image" | "video";
       links?: Array<{ url: string; text: string; target?: string | null }>;
     }>;
     modelValue?: number;
@@ -32,17 +32,17 @@ const props = defineProps<{
   links?: { url: string; text: string; target?: string }[];
   title?: string;
   subtitle?: string;
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
 }>();
 
 const emits = defineEmits([
-  'update:modelValue',
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:modelValue",
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const active = ref(props.content.modelValue ?? 0);
@@ -55,7 +55,7 @@ const activeValue = computed({
   },
 });
 
-watch(active, (v) => emits('update:modelValue', v));
+watch(active, (v) => emits("update:modelValue", v));
 
 watch(
   () => props.content.modelValue,
@@ -72,69 +72,69 @@ function slotName(id: string | number) {
 const theme = computed(() => {
   // Consolidated, intent-driven design tokens
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        surface: 'bg-primary-900',
-        ring: 'ring-primary-700',
-        heading: 'text-white',
-        muted: 'text-white/80',
-        tabBase: 'text-sm font-medium',
-        tabSelected: 'border-white bg-white text-gray-900 shadow-sm',
+        surface: "bg-primary-900",
+        ring: "ring-primary-700",
+        heading: "text-white",
+        muted: "text-white/80",
+        tabBase: "text-sm font-medium",
+        tabSelected: "border-white bg-white text-gray-900 shadow-sm",
         tabIdle:
-          'border-transparent text-white/80 hover:bg-white/10 hover:text-white',
+          "border-transparent text-white/80 hover:bg-white/10 hover:text-white",
         tabAction:
-          'border-white/50 text-white hover:border-white hover:bg-white/10',
-        chip: 'bg-white/10 text-white hover:bg-white/20 focus-visible:ring-white/50',
-        card: 'bg-white/5 ring-1 ring-white/10',
-        button: 'bg-white text-gray-900 hover:bg-gray-100',
+          "border-white/50 text-white hover:border-white hover:bg-white/10",
+        chip: "bg-white/10 text-white hover:bg-white/20 focus-visible:ring-white/50",
+        card: "bg-white/5 ring-1 ring-white/10",
+        button: "bg-white text-gray-900 hover:bg-gray-100",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
+          "border border-white bg-transparent text-white hover:bg-white/10",
       } as const;
-    case 'light':
+    case "light":
       return {
-        surface: 'bg-primary-50',
-        ring: 'ring-primary-200',
-        heading: 'text-primary-950',
-        muted: 'text-primary-950',
-        tabBase: 'text-sm font-medium',
-        tabSelected: 'border-primary-900 bg-primary-900 text-white shadow-sm',
-        tabIdle: 'border-transparent text-primary-950 hover:bg-primary-100',
-        tabAction: 'border-primary-900 text-primary-950 hover:bg-primary-100',
-        chip: 'bg-primary-100 text-primary-950 hover:bg-primary-200 focus-visible:ring-primary-300',
-        card: 'bg-white/80 ring-1 ring-primary-200',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        surface: "bg-primary-50",
+        ring: "ring-primary-200",
+        heading: "text-primary-950",
+        muted: "text-primary-950",
+        tabBase: "text-sm font-medium",
+        tabSelected: "border-primary-900 bg-primary-900 text-white shadow-sm",
+        tabIdle: "border-transparent text-primary-950 hover:bg-primary-100",
+        tabAction: "border-primary-900 text-primary-950 hover:bg-primary-100",
+        chip: "bg-primary-100 text-primary-950 hover:bg-primary-200 focus-visible:ring-primary-300",
+        card: "bg-white/80 ring-1 ring-primary-200",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
       } as const;
     default:
       // light / default brand-forward
       return {
-        surface: 'bg-white',
-        ring: 'ring-primary-200',
-        heading: 'text-gray-900',
-        muted: 'text-gray-600',
-        tabBase: 'text-sm font-medium',
-        tabSelected: 'border-primary-900 bg-primary-900 text-white shadow-sm',
-        tabIdle: 'border-transparent text-primary-950 hover:bg-primary-50',
-        tabAction: 'border-primary-900 text-primary-950 hover:bg-primary-50',
-        chip: 'bg-primary-50 text-primary-900 hover:bg-primary-100 focus-visible:ring-primary-300',
-        card: 'bg-white ring-1 ring-primary-200',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        surface: "bg-white",
+        ring: "ring-primary-200",
+        heading: "text-gray-900",
+        muted: "text-gray-600",
+        tabBase: "text-sm font-medium",
+        tabSelected: "border-primary-900 bg-primary-900 text-white shadow-sm",
+        tabIdle: "border-transparent text-primary-950 hover:bg-primary-50",
+        tabAction: "border-primary-900 text-primary-950 hover:bg-primary-50",
+        chip: "bg-primary-50 text-primary-900 hover:bg-primary-100 focus-visible:ring-primary-300",
+        card: "bg-white ring-1 ring-primary-200",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
       } as const;
   }
 });
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  } else if (target === '_blank') {
-    window.open(url, '_blank');
+  } else if (target === "_blank") {
+    window.open(url, "_blank");
   } else {
     window.location.href = url;
   }
@@ -151,14 +151,14 @@ defineExpose({
 });
 
 const inlineTabImageSource = (tab: any) =>
-  typeof tab.image === 'string'
+  typeof tab.image === "string"
     ? tab.image
     : tab.image?.url ||
-      (typeof tab.imageUrl === 'string' ? tab.imageUrl : tab.imageUrl?.url);
+      (typeof tab.imageUrl === "string" ? tab.imageUrl : tab.imageUrl?.url);
 
 const inlineTabImage = (tab: any) => {
   const image =
-    tab.image || (typeof tab.imageUrl === 'object' ? tab.imageUrl : undefined);
+    tab.image || (typeof tab.imageUrl === "object" ? tab.imageUrl : undefined);
   if (image?.id) return image;
 
   const url = inlineTabImageSource(tab);
@@ -171,7 +171,7 @@ const inlineUpdateImage = (tab: any, image: any) => {
   if (image) {
     tab.image = image;
     tab.imageUrl = image.url;
-    tab.type = 'image';
+    tab.type = "image";
     tab.videoCode = null;
   }
 };
@@ -186,11 +186,11 @@ const addTab = () => {
   model.content.tabs = [
     ...(model.content.tabs || []),
     {
-      text: '',
+      text: "",
       title: `Tab ${tabNumber}`,
-      subtitle: '',
-      type: 'image',
-      imageUrl: '',
+      subtitle: "",
+      type: "image",
+      imageUrl: "",
       videoCode: null,
       links: [],
     },
@@ -586,6 +586,6 @@ const getAllVideoCodes = (...args: any[]) =>
 }
 
 :deep(.editor-prose p:empty)::before {
-  content: '\00a0'; /* non-breaking space */
+  content: "\00a0"; /* non-breaking space */
 }
 </style>

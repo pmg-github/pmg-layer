@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedImageManager,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import type { FileButtonViewModel } from 'models';
-import { computed } from 'vue';
-import { responsiveTileGridClass } from '../../utils/responsiveTileGrid';
+} from "../block-editor";
+import type { FileButtonViewModel } from "models";
+import { computed } from "vue";
+import { responsiveTileGridClass } from "../../utils/responsiveTileGrid";
 const { locale } = useI18n();
 
 const props = defineProps<{
@@ -30,21 +30,21 @@ const props = defineProps<{
       link?: { url: string; target?: string };
     }>;
     columns?: number;
-    alignment?: 'center' | 'left';
+    alignment?: "center" | "left";
   };
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
   language?: string;
 }>();
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  } else if (target === '_blank') {
-    window.open(url, '_blank');
+  } else if (target === "_blank") {
+    window.open(url, "_blank");
   } else {
     window.location.href = url;
   }
@@ -54,79 +54,75 @@ const cols = computed(() =>
   Math.min(4, Math.max(1, props.content?.columns ?? 3)),
 );
 const contentAlignment = computed(() =>
-  props.content?.alignment === 'left' ? 'left' : 'center',
+  props.content?.alignment === "left" ? "left" : "center",
 );
 const contentAlignmentClass = computed(() =>
-  contentAlignment.value === 'center' ? 'text-center' : 'text-left',
+  contentAlignment.value === "center" ? "text-center" : "text-left",
 );
-const gridClass = computed(
-  () =>
-    responsiveTileGridClass(
-      props.content?.tiles?.length ?? 0,
-      cols.value,
-    ),
+const gridClass = computed(() =>
+  responsiveTileGridClass(props.content?.tiles?.length ?? 0, cols.value),
 );
 
 const cardClass = computed(
-  () => 'flex flex-col rounded-lg bg-white overflow-hidden',
+  () => "flex flex-col rounded-lg bg-white overflow-hidden",
 );
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white',
-        card: 'bg-white text-primary-900',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white",
+        card: "bg-white text-primary-900",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
+          "border border-white bg-transparent text-white hover:bg-white/10",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
-        card: 'bg-white text-primary-900',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
+        card: "bg-white text-primary-900",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
       };
     default: // white
       return {
-        bg: 'bg-white',
-        text: 'text-primary-900',
-        subtitle: 'text-gray-600',
-        card: 'bg-white text-primary-900 border border-gray-200',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-primary-900",
+        subtitle: "text-gray-600",
+        card: "bg-white text-primary-900 border border-gray-200",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
       };
   }
 });
 
 const iconMap: Record<string, string> = {
-  info: 'material-symbols:info',
-  map: 'material-symbols:map',
-  medical: 'material-symbols:medical-services',
-  ship: 'material-symbols:directions-boat',
-  tag: 'material-symbols:local-offer',
-  image: 'material-symbols:photo',
+  info: "material-symbols:info",
+  map: "material-symbols:map",
+  medical: "material-symbols:medical-services",
+  ship: "material-symbols:directions-boat",
+  tag: "material-symbols:local-offer",
+  image: "material-symbols:photo",
 };
 
 function iconName(key?: string) {
-  if (!key) return 'material-symbols:editor-choice';
+  if (!key) return "material-symbols:editor-choice";
   return iconMap[key] || key;
 }
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -143,23 +139,23 @@ defineExpose({
 // tile: { type:'image'|'video', icon,title,subtitle,description,link,image,videoCode }
 
 const createImageTile = (image: FileButtonViewModel) => ({
-  type: 'image' as const,
+  type: "image" as const,
   image,
   videoCode: null,
-  title: '',
-  subtitle: '',
-  description: '',
-  link: { url: '', target: '_self' },
+  title: "",
+  subtitle: "",
+  description: "",
+  link: { url: "", target: "_self" },
 });
 
 const tileImageUrl = (tile: any) => {
-  if (typeof tile?.image === 'string') return tile.image;
+  if (typeof tile?.image === "string") return tile.image;
   return (
     tile?.image?.url ||
     tile?.imageUrl ||
     tile?.image?.imageUrl ||
     tile?.image?.fileUrl ||
-    ''
+    ""
   );
 };
 </script>
@@ -244,8 +240,7 @@ const tileImageUrl = (tile: any) => {
           </div>
 
           <div class="mt-auto flex"></div>
-        </component
-        >
+        </component>
       </div>
 
       <div
@@ -351,6 +346,6 @@ const tileImageUrl = (tile: any) => {
 
 <style scoped>
 :deep(.editor-prose p:empty)::before {
-  content: '\00a0'; /* non-breaking space */
+  content: "\00a0"; /* non-breaking space */
 }
 </style>
