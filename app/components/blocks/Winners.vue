@@ -366,7 +366,7 @@ async function addWinner() {
         <div v-if="editable || content.length" class="relative min-w-0">
           <div
             v-if="editable && content.length"
-            class="mb-4 flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50/80 px-4 py-3"
+            class="mb-4 flex items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50/80 px-4 py-3"
           >
             <p class="text-sm font-medium text-blue-950">
               {{ content.length }}
@@ -443,7 +443,7 @@ async function addWinner() {
                   class="group/item relative !flex !justify-center"
                 >
                   <article
-                    class="winner-card w-[min(22rem,78vw)] overflow-hidden rounded-xl border border-gray-300 bg-white/95"
+                    class="winner-card w-[min(22rem,78vw)] overflow-hidden rounded-lg border border-gray-300 bg-white/95"
                     @click="setActive(index)"
                   >
                     <!-- Image -->

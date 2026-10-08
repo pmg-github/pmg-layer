@@ -139,7 +139,7 @@ defineExpose({
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-screen-lg">
-        <h2 :class="['mb-8 text-3xl font-bold', themeClasses.text]">
+        <h2 :class="['mb-8 text-2xl font-bold sm:text-3xl', themeClasses.text]">
           <BlocksSharedEditableText
             v-if="editable"
             :editable="editable"
@@ -207,7 +207,7 @@ defineExpose({
           <textarea
             v-if="editable && contentMode === 'html'"
             :value="props.content || ''"
-            class="min-h-64 w-full resize-y rounded-xl border border-gray-300 bg-gray-950 p-5 font-mono text-sm leading-6 text-gray-100 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            class="min-h-64 w-full resize-y rounded-lg border border-gray-300 bg-gray-950 p-5 font-mono text-sm leading-6 text-gray-100 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             placeholder="Plak hier HTML, bijvoorbeeld <style>...</style><section>...</section>"
             aria-label="HTML-broncode"
             spellcheck="false"
@@ -226,7 +226,7 @@ defineExpose({
           />
           <div
             v-else-if="editable"
-            class="flex min-h-64 items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white/80 p-8 text-center text-sm text-gray-500"
+            class="flex min-h-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white/80 p-8 text-center text-sm text-gray-500"
           >
             Plak eerst HTML in de HTML-weergave.
           </div>

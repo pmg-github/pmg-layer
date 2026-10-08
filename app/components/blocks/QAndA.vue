@@ -114,7 +114,7 @@ defineExpose({
 
     <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
       <div class="text-center">
-        <h2 :class="['text-3xl font-bold', themeClasses.title]">
+        <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.title]">
           <BlocksSharedEditableText
             v-if="editable"
             :editable="editable"
@@ -140,7 +140,7 @@ defineExpose({
       <div
         v-if="displayedItems.length || editable"
         :class="[
-          'mt-10 overflow-hidden rounded-2xl border shadow-sm',
+          'mt-10 overflow-hidden rounded-lg border shadow-sm',
           themeClasses.accordion,
         ]"
       >

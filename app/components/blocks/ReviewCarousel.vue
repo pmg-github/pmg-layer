@@ -497,7 +497,7 @@ defineExpose({
         <!-- Header -->
         <div class="mb-8 flex items-start justify-between">
           <div class="mx-auto max-w-4xl text-center">
-            <h3 :class="[' text-center text-3xl font-bold', themeClasses.text]">
+            <h3 :class="['text-center text-2xl font-bold sm:text-3xl', themeClasses.text]">
               <BlocksSharedEditableText
                 :editable="editable"
                 v-if="editable"
@@ -547,7 +547,7 @@ defineExpose({
         <div class="relative">
           <div
             v-if="editable && !list.length"
-            class="flex h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white/60 px-6 text-center"
+            class="flex h-72 flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white/60 px-6 text-center"
           >
             <span
               class="mb-3 flex size-11 items-center justify-center rounded-full bg-gray-100 text-gray-500"
@@ -616,7 +616,7 @@ defineExpose({
               class="group/review relative h-full"
             >
               <article
-                class="group relative flex h-80 w-full flex-col overflow-hidden rounded-2xl border shadow-sm"
+                class="group relative flex h-80 w-full flex-col overflow-hidden rounded-lg border shadow-sm"
                 :class="themeClasses.card"
                 :aria-label="`Review by ${review.name}`"
               >

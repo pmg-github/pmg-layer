@@ -177,7 +177,7 @@ function updateCardButton(index: number, card: any, links: any[]) {
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-4xl text-center">
-        <h3 :class="['text-center text-3xl font-bold', themeClasses.text]">
+        <h3 :class="['text-center text-2xl font-bold sm:text-3xl', themeClasses.text]">
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -201,7 +201,7 @@ function updateCardButton(index: number, card: any, links: any[]) {
         <div
           v-for="(card, i) in props.content || []"
           :key="i"
-          class="pricing-card group/item relative flex h-full w-full flex-col rounded-2xl border-2 bg-white p-6 shadow-sm"
+          class="pricing-card group/item relative flex h-full w-full flex-col rounded-lg border-2 bg-white p-6 shadow-sm"
           :class="[
             borderColor(card.label?.color),
             openBadgeColorIndex === i ? 'z-50' : '',
@@ -237,7 +237,7 @@ function updateCardButton(index: number, card: any, links: any[]) {
               </button>
               <div
                 v-if="openBadgeColorIndex === i"
-                class="absolute bottom-10 left-1/2 z-[70] flex -translate-x-1/2 gap-1.5 rounded-xl border border-gray-200 bg-white p-2 shadow-xl"
+                class="absolute bottom-10 left-1/2 z-[70] flex -translate-x-1/2 gap-1.5 rounded-lg border border-gray-200 bg-white p-2 shadow-xl"
                 aria-label="Badgekleur"
               >
                 <button

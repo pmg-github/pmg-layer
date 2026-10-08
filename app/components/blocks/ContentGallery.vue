@@ -373,7 +373,7 @@ const removeActiveButton = () => {
               :class="[
                 props.content.images.length === 1
                   ? 'rounded-3xl'
-                  : 'h-full min-h-[240px] rounded-xl',
+                  : 'h-full min-h-[240px] rounded-lg',
               ]"
               @click.prevent="openFromParent(0)"
             >
@@ -396,7 +396,7 @@ const removeActiveButton = () => {
             >
               <button
                 v-if="props.content.images.length > 1"
-                class="h-full min-h-[115px] cursor-zoom-in overflow-hidden rounded-xl"
+                class="h-full min-h-[115px] cursor-zoom-in overflow-hidden rounded-lg"
                 @click.prevent="openFromParent(1)"
               >
                 <img
@@ -409,7 +409,7 @@ const removeActiveButton = () => {
 
               <button
                 v-if="props.content.images.length > 2"
-                class="relative h-full min-h-[115px] cursor-zoom-in overflow-hidden rounded-xl"
+                class="relative h-full min-h-[115px] cursor-zoom-in overflow-hidden rounded-lg"
                 @click.prevent="openFromParent(2)"
               >
                 <img

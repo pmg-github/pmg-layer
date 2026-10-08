@@ -175,7 +175,7 @@ defineExpose({
       <div class="flex flex-col justify-center">
         <!-- Title -->
         <div class="text-center">
-          <h2 :class="['text-3xl font-bold', themeClasses.text]">
+          <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.text]">
             <BlocksSharedEditableText
               v-if="editable"
               :model-value="props.title"
@@ -217,7 +217,7 @@ defineExpose({
             :target="item.url ? '_blank' : undefined"
             :rel="item.url ? 'noopener noreferrer' : undefined"
             :class="[
-              'flex aspect-square w-full max-w-72 items-center justify-center rounded-xl bg-white p-6 transition-transform duration-200',
+              'flex aspect-square w-full max-w-72 items-center justify-center rounded-lg bg-white p-6 transition-transform duration-200',
               item.url ? 'cursor-pointer hover:-translate-y-1' : '',
             ]"
           >

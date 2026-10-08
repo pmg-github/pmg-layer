@@ -203,7 +203,7 @@ const setSlidesPerView = (value: string | number) => {
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="w-full px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-4xl text-center">
-        <h3 :class="['text-center text-3xl font-bold', themeClasses.text]">
+        <h3 :class="['text-center text-2xl font-bold sm:text-3xl', themeClasses.text]">
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -350,7 +350,7 @@ const setSlidesPerView = (value: string | number) => {
 
       <div
         v-if="editable && !carouselTiles.length"
-        class="flex min-h-48 w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/50 p-8 text-center text-primary-950"
+        class="flex min-h-48 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary-200 bg-primary-50/50 p-8 text-center text-primary-950"
       >
         <Icon
           name="material-symbols:view-carousel-outline-rounded"

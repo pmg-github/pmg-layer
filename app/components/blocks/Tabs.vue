@@ -239,7 +239,12 @@ const getAllVideoCodes = (...args: any[]) =>
         <div class="w-full px-4 sm:px-6 lg:px-8">
           <div class="flex gap-4">
             <div class="mx-auto max-w-4xl text-center">
-              <h3 :class="[' text-center text-3xl font-bold', theme.heading]">
+              <h3
+                :class="[
+                  'text-center text-2xl font-bold sm:text-3xl',
+                  theme.heading,
+                ]"
+              >
                 <BlocksSharedEditableText
                   :editable="editable"
                   v-if="editable"
@@ -323,7 +328,7 @@ const getAllVideoCodes = (...args: any[]) =>
           <button
             v-else-if="editable"
             type="button"
-            class="flex min-h-32 w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-primary-400"
+            class="flex min-h-32 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-primary-400"
             :class="theme.tabAction"
             @click.stop="addTab"
           >
@@ -472,7 +477,7 @@ const getAllVideoCodes = (...args: any[]) =>
                     :language="props.language || locale"
                   />
                   <SharedInputSelect
-                    v-else-if="editable && t.type === 'video'"
+                    v-if="editable && t.type === 'video'"
                     :name="`tab-video-code-${tabIndex}`"
                     :fetch-data="(e) => getAllVideoCodes(e)"
                     v-model:selected="t.videoCode"
@@ -480,7 +485,7 @@ const getAllVideoCodes = (...args: any[]) =>
                     placeholder="Zoek op jobnummer of titel..."
                   />
                   <ImageLibraryTile
-                    v-else-if="editable"
+                    v-if="editable && t.type !== 'video'"
                     :image-source="inlineTabImageSource(t)"
                     :image="inlineTabImage(t)"
                     :folder-id="70"
@@ -489,7 +494,7 @@ const getAllVideoCodes = (...args: any[]) =>
                     @clear="clearTabImage(t)"
                   />
                   <img
-                    v-else
+                    v-if="!editable && t.type !== 'video'"
                     :src="inlineTabImageSource(t)"
                     :alt="t.title"
                     class="h-56 w-full rounded-lg object-cover md:h-full"
