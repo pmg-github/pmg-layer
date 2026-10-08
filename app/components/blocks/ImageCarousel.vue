@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedImageManager,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import type { FileButtonViewModel } from 'models';
-import { computed } from 'vue';
-import type { Swiper as SwiperInstance } from 'swiper';
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Navigation, Autoplay } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/navigation';
+} from "../block-editor";
+import type { FileButtonViewModel } from "models";
+import { computed } from "vue";
+import type { Swiper as SwiperInstance } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/vue";
+import { Navigation, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
 
 const { locale } = useI18n();
 
@@ -26,7 +26,7 @@ const props = defineProps<{
   subtitle?: string;
   content?: {
     tiles?: Array<{
-      type?: 'image' | 'video';
+      type?: "image" | "video";
       image: FileButtonViewModel;
       videoCode?: { value: string; key: string } | null;
       title?: string;
@@ -38,7 +38,7 @@ const props = defineProps<{
     autoplay?: boolean;
   };
   language?: string;
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
 }>();
 
 const slidesPerView = computed(() =>
@@ -86,13 +86,13 @@ const goToSlide = (index: number) => {
 };
 
 const slideImageUrl = (tile: any) => {
-  if (typeof tile?.image === 'string') return tile.image;
+  if (typeof tile?.image === "string") return tile.image;
   return (
     tile?.image?.url ||
     tile?.imageUrl ||
     tile?.image?.imageUrl ||
     tile?.image?.fileUrl ||
-    ''
+    ""
   );
 };
 
@@ -104,59 +104,59 @@ const autoplayConfig = computed(() =>
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white',
-        card: 'bg-white text-primary-900',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white",
+        card: "bg-white text-primary-900",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
+          "border border-white bg-transparent text-white hover:bg-white/10",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
-        card: 'bg-white text-primary-900',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
+        card: "bg-white text-primary-900",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
       };
     default:
       return {
-        bg: 'bg-white',
-        text: 'text-primary-900',
-        subtitle: 'text-gray-600',
-        card: 'bg-white text-primary-900 border border-gray-200',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-primary-900",
+        subtitle: "text-gray-600",
+        card: "bg-white text-primary-900 border border-gray-200",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
       };
   }
 });
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  } else if (target === '_blank') {
-    window.open(url, '_blank');
+  } else if (target === "_blank") {
+    window.open(url, "_blank");
   } else {
     window.location.href = url;
   }
 };
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -173,17 +173,17 @@ defineExpose({
 // tile: { type:'image'|'video', image, videoCode, title, subtitle, description, link }
 
 const createImageSlide = (image: FileButtonViewModel) => ({
-  type: 'image' as const,
+  type: "image" as const,
   image,
   videoCode: null,
-  title: '',
-  subtitle: '',
-  description: '',
-  link: { url: '', text: 'Lees meer', target: '_self' },
+  title: "",
+  subtitle: "",
+  description: "",
+  link: { url: "", text: "Lees meer", target: "_self" },
 });
 
 const updateSlideLinkText = (tile: any, text: string) => {
-  setField(tile, 'link', { ...tile.link, text });
+  setField(tile, "link", { ...tile.link, text });
 };
 
 const setSlidesPerView = (value: string | number) => {
@@ -203,7 +203,12 @@ const setSlidesPerView = (value: string | number) => {
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="w-full px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-4xl text-center">
-        <h3 :class="['text-center text-2xl font-bold sm:text-3xl', themeClasses.text]">
+        <h3
+          :class="[
+            'text-center text-2xl font-bold sm:text-3xl',
+            themeClasses.text,
+          ]"
+        >
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -221,8 +226,9 @@ const setSlidesPerView = (value: string | number) => {
             @update:model-value="update(['subtitle'], $event)"
           /><template v-else>{{ subtitle }}</template>
         </p>
-          <Swiper
-          :allow-touch-move="!editable"
+      </div>
+      <Swiper
+        :allow-touch-move="!editable"
         :autoplay="autoplayConfig"
         :modules="[Navigation, Autoplay]"
         :navigation="canNavigate"
@@ -310,7 +316,7 @@ const setSlidesPerView = (value: string | number) => {
                   placeholder="Knoptekst"
                   @update:model-value="updateSlideLinkText(t, $event)"
                 />
-                <template v-else>{{ t?.link?.text || 'Lees meer' }}</template>
+                <template v-else>{{ t?.link?.text || "Lees meer" }}</template>
               </span>
             </div>
           </component>
