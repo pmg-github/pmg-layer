@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
+} from "../block-editor";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 
 const props = defineProps<{
   editable?: boolean;
@@ -16,68 +16,68 @@ const props = defineProps<{
   title?: string;
   subtitle?: string;
   content?: string;
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
 }>();
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white',
-        content: 'text-white',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white",
+        content: "text-white",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
+          "border border-white bg-transparent text-white hover:bg-white/10",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
-        content: 'text-primary-900',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
+        content: "text-primary-900",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
       };
     default: // white
       return {
-        bg: 'bg-white',
-        text: 'text-primary-900',
-        subtitle: 'text-gray-600',
-        content: 'text-gray-800',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-primary-900",
+        subtitle: "text-gray-600",
+        content: "text-gray-800",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
       };
   }
 });
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
-  if (url.startsWith('#')) {
-    document.querySelector(url)?.scrollIntoView({ behavior: 'smooth' });
-  } else if (target === '_blank') {
-    window.open(url, '_blank', 'noopener,noreferrer');
+  if (url.startsWith("#")) {
+    document.querySelector(url)?.scrollIntoView({ behavior: "smooth" });
+  } else if (target === "_blank") {
+    window.open(url, "_blank", "noopener,noreferrer");
   } else {
     window.location.href = url;
   }
 };
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { update } = useInlineBlock(props, emits);
 const blockSettingsRef = ref();
 const editableLinksRef = ref();
-const contentMode = ref<'preview' | 'html'>('html');
+const contentMode = ref<"preview" | "html">("html");
 const renderedContentRef = ref<HTMLIFrameElement | null>(null);
 let contentResizeObserver: ResizeObserver | null = null;
 
@@ -106,15 +106,15 @@ function observeRenderedContent() {
   const document = frame?.contentDocument;
   if (!frame || !document) return;
 
-  frame.style.height = '256px';
+  frame.style.height = "256px";
   resizeRenderedContent();
   contentResizeObserver = new ResizeObserver(resizeRenderedContent);
   contentResizeObserver.observe(document.documentElement);
   if (document.body) contentResizeObserver.observe(document.body);
 
   document.fonts?.ready.then(resizeRenderedContent);
-  document.querySelectorAll('img').forEach((image) => {
-    if (!image.complete) image.addEventListener('load', resizeRenderedContent);
+  document.querySelectorAll("img").forEach((image) => {
+    if (!image.complete) image.addEventListener("load", resizeRenderedContent);
   });
 }
 

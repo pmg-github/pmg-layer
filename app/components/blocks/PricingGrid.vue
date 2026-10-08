@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
-import { responsiveTileGridClass } from '../../utils/responsiveTileGrid';
+import { useInlineBlock } from "../../composables/useInlineBlock";
+import { responsiveTileGridClass } from "../../utils/responsiveTileGrid";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
@@ -8,7 +8,7 @@ import {
   BlocksSharedEditableText,
   BlocksSharedItemControls,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
+} from "../block-editor";
 const props = defineProps<{
   editable?: boolean;
   selected?: boolean;
@@ -20,7 +20,7 @@ const props = defineProps<{
     title?: string;
     label?: {
       text: string;
-      color?: 'yellow' | 'red' | 'green' | 'pink' | 'orange' | null;
+      color?: "yellow" | "red" | "green" | "pink" | "orange" | null;
     };
     tags?: string[];
     benefits?: Array<{ label: string; included: boolean }>;
@@ -30,66 +30,66 @@ const props = defineProps<{
     buttonUrl?: string;
     buttonTarget?: string;
   }[];
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
 }>();
 
 const borderColor = (color?: string | null) => ({
-  'border-yellow-300': color === 'yellow',
-  'border-red-300': color === 'red',
-  'border-green-300': color === 'green',
-  'border-pink-300': color === 'pink',
-  'border-orange-300': color === 'orange',
-  'border-gray-200': !color,
+  "border-yellow-300": color === "yellow",
+  "border-red-300": color === "red",
+  "border-green-300": color === "green",
+  "border-pink-300": color === "pink",
+  "border-orange-300": color === "orange",
+  "border-gray-200": !color,
 });
 
 const badgeBg = (color?: string | null) => ({
-  'bg-yellow-300': color === 'yellow',
-  'bg-red-300': color === 'red',
-  'bg-green-300': color === 'green',
-  'bg-pink-300': color === 'pink',
-  'bg-orange-300': color === 'orange',
-  'bg-gray-200': !color,
+  "bg-yellow-300": color === "yellow",
+  "bg-red-300": color === "red",
+  "bg-green-300": color === "green",
+  "bg-pink-300": color === "pink",
+  "bg-orange-300": color === "orange",
+  "bg-gray-200": !color,
 });
 
 const badgeColors = [
-  { value: null, label: 'Grijs', class: 'bg-gray-200' },
-  { value: 'yellow', label: 'Geel', class: 'bg-yellow-300' },
-  { value: 'red', label: 'Rood', class: 'bg-red-300' },
-  { value: 'green', label: 'Groen', class: 'bg-green-300' },
-  { value: 'pink', label: 'Roze', class: 'bg-pink-300' },
-  { value: 'orange', label: 'Oranje', class: 'bg-orange-300' },
+  { value: null, label: "Grijs", class: "bg-gray-200" },
+  { value: "yellow", label: "Geel", class: "bg-yellow-300" },
+  { value: "red", label: "Rood", class: "bg-red-300" },
+  { value: "green", label: "Groen", class: "bg-green-300" },
+  { value: "pink", label: "Roze", class: "bg-pink-300" },
+  { value: "orange", label: "Oranje", class: "bg-orange-300" },
 ] as const;
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
       };
     default:
       return {
-        bg: 'bg-white',
-        text: 'text-primary-900',
-        subtitle: 'text-gray-600',
+        bg: "bg-white",
+        text: "text-primary-900",
+        subtitle: "text-gray-600",
       };
   }
 });
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -112,7 +112,7 @@ function toggleBadgeColorPicker(index: number) {
 }
 
 function selectBadgeColor(label: any, color: string | null) {
-  setField(label, 'color', color);
+  setField(label, "color", color);
   openBadgeColorIndex.value = null;
 }
 
@@ -126,9 +126,11 @@ function closeBadgeColorPicker(event: PointerEvent) {
   }
 }
 
-onMounted(() => document.addEventListener('pointerdown', closeBadgeColorPicker));
+onMounted(() =>
+  document.addEventListener("pointerdown", closeBadgeColorPicker),
+);
 onUnmounted(() =>
-  document.removeEventListener('pointerdown', closeBadgeColorPicker),
+  document.removeEventListener("pointerdown", closeBadgeColorPicker),
 );
 
 watch(
@@ -151,20 +153,20 @@ function cardButtonLinks(card: any) {
 
   return [
     {
-      text: card.buttonLabel || '',
-      url: card.buttonUrl || '',
-      target: card.buttonTarget || '_self',
+      text: card.buttonLabel || "",
+      url: card.buttonUrl || "",
+      target: card.buttonTarget || "_self",
     },
   ];
 }
 
 function updateCardButton(index: number, card: any, links: any[]) {
   const link = links[0];
-  update(['content', index], {
+  update(["content", index], {
     ...card,
-    buttonLabel: link?.text || '',
-    buttonUrl: link?.url || '',
-    buttonTarget: link?.target || '_self',
+    buttonLabel: link?.text || "",
+    buttonUrl: link?.url || "",
+    buttonTarget: link?.target || "_self",
   });
 }
 </script>
@@ -177,7 +179,12 @@ function updateCardButton(index: number, card: any, links: any[]) {
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-4xl text-center">
-        <h3 :class="['text-center text-2xl font-bold sm:text-3xl', themeClasses.text]">
+        <h3
+          :class="[
+            'text-center text-2xl font-bold sm:text-3xl',
+            themeClasses.text,
+          ]"
+        >
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -254,7 +261,9 @@ function updateCardButton(index: number, card: any, links: any[]) {
                   :title="color.label"
                   :aria-label="`Badgekleur ${color.label}`"
                   :aria-pressed="card.label?.color === color.value"
-                  @click.stop.prevent="selectBadgeColor(card.label, color.value)"
+                  @click.stop.prevent="
+                    selectBadgeColor(card.label, color.value)
+                  "
                 />
               </div>
             </div>

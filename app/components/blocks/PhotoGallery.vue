@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedImageManager,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import { ref, computed } from 'vue';
-import ContentLightbox from './ContentLightbox.vue';
-import type { FileButtonViewModel } from 'models';
+} from "../block-editor";
+import { ref, computed } from "vue";
+import ContentLightbox from "./ContentLightbox.vue";
+import type { FileButtonViewModel } from "models";
 
 const props = defineProps<{
   editable?: boolean;
@@ -19,18 +19,18 @@ const props = defineProps<{
   title?: string;
   subtitle?: string;
   links?: { url: string; text: string; target?: string }[];
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
 }>();
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  } else if (target === '_blank') {
-    window.open(url, '_blank');
+  } else if (target === "_blank") {
+    window.open(url, "_blank");
   } else {
     window.location.href = url;
   }
@@ -38,39 +38,39 @@ const handleAnchorClick = (url: string, target?: string | null) => {
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
+          "border border-white bg-transparent text-white hover:bg-white/10",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
       };
     default: // white
       return {
-        bg: 'bg-white',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
       };
   }
 });
 
 const maxThumbs = 8;
 const imageUrl = (image?: string | FileButtonViewModel | null) =>
-  typeof image === 'string' ? image : image?.url || '';
+  typeof image === "string" ? image : image?.url || "";
 const imageUrls = computed(() =>
   (props.content || []).map(imageUrl).filter(Boolean),
 );
@@ -82,7 +82,7 @@ const displayed = computed(() =>
 const cl = ref<InstanceType<typeof ContentLightbox> | null>(null);
 
 function open(i: number) {
-  if (!props.editable && cl.value && typeof cl.value.open === 'function')
+  if (!props.editable && cl.value && typeof cl.value.open === "function")
     cl.value.open(i);
 }
 
@@ -95,12 +95,12 @@ function thumbnailOnError(e: Event) {
 }
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -122,7 +122,12 @@ defineExpose({
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-4xl text-center">
-        <h3 :class="['text-center text-2xl font-bold sm:text-3xl', themeClasses.text]">
+        <h3
+          :class="[
+            'text-center text-2xl font-bold sm:text-3xl',
+            themeClasses.text,
+          ]"
+        >
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -239,6 +244,6 @@ defineExpose({
   height: auto;
 }
 :deep(.editor-prose p:empty)::before {
-  content: '\00a0'; /* non-breaking space */
+  content: "\00a0"; /* non-breaking space */
 }
 </style>

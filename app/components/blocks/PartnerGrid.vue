@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { useFetchCampaigns } from '../../composables/useFetchCampaigns';
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useFetchCampaigns } from "../../composables/useFetchCampaigns";
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import { computed } from 'vue';
+} from "../block-editor";
+import { computed } from "vue";
 const { getCampaign } = useFetchCampaigns();
 
 const sentenceCase = (value?: string) =>
-  value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
+  value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
 // Campaign choices are only requested by the dashboard settings panel.
 const getCampaigns = (...args: any[]) =>
   useFetchFilters().getCampaigns(...args);
@@ -22,7 +22,7 @@ const props = defineProps<{
   editable?: boolean;
   selected?: boolean;
   content?: { campaign: CampaignOption };
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
   title?: string;
   subtitle?: string;
   links?: { url: string; text: string; target?: string }[];
@@ -45,8 +45,8 @@ const fetchCampaignOptions = async (
   const options = await getCampaigns({ query });
   return options.filter(
     (campaignOption): campaignOption is CampaignOption =>
-      typeof campaignOption.key === 'string' &&
-      typeof campaignOption.value === 'number',
+      typeof campaignOption.key === "string" &&
+      typeof campaignOption.value === "number",
   );
 };
 const getCampaignOptionValue = (campaignOption: CampaignOption) =>
@@ -56,13 +56,13 @@ const campaignData = computed(() => (campaign.value as any) || null);
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  } else if (target === '_blank') {
-    window.open(url, '_blank');
+  } else if (target === "_blank") {
+    window.open(url, "_blank");
   } else {
     window.location.href = url;
   }
@@ -70,35 +70,35 @@ const handleAnchorClick = (url: string, target?: string | null) => {
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white/90',
-        content: 'text-white',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white/90",
+        content: "text-white",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
+          "border border-white bg-transparent text-white hover:bg-white/10",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
-        content: 'text-primary-900',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
+        content: "text-primary-900",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
       };
     default: // white
       return {
-        bg: 'bg-white',
-        text: 'text-primary-900',
-        subtitle: 'text-gray-600',
-        content: 'text-gray-800',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-primary-900",
+        subtitle: "text-gray-600",
+        content: "text-gray-800",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
       };
   }
 });
@@ -125,32 +125,32 @@ const desktopColumns = computed(() => {
 });
 
 const gridMaxWidth = computed(() => {
-  if (desktopColumns.value <= 2) return '56rem';
-  if (desktopColumns.value === 3) return '64rem';
+  if (desktopColumns.value <= 2) return "56rem";
+  if (desktopColumns.value === 3) return "64rem";
 
-  return 'min(100%, calc(var(--desktop-columns) * var(--item-min-width) + (var(--desktop-columns) - 1) * var(--grid-gap)))';
+  return "min(100%, calc(var(--desktop-columns) * var(--item-min-width) + (var(--desktop-columns) - 1) * var(--grid-gap)))";
 });
 
 const gridStyle = computed(() => ({
-  '--desktop-columns': String(desktopColumns.value),
-  '--item-min-width': desktopColumns.value <= 3 ? '13rem' : '11rem',
-  '--grid-gap': '2.5rem',
+  "--desktop-columns": String(desktopColumns.value),
+  "--item-min-width": desktopColumns.value <= 3 ? "13rem" : "11rem",
+  "--grid-gap": "2.5rem",
   maxWidth: gridMaxWidth.value,
 }));
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
 const selectedCampaign = computed<CampaignOption | null>({
   get: () => props.content?.campaign ?? null,
-  set: (value) => update(['content', 'campaign'], value),
+  set: (value) => update(["content", "campaign"], value),
 });
 const blockSettingsRef = ref();
 const editableLinksRef = ref();

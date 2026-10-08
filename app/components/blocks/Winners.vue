@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
@@ -8,16 +8,16 @@ import {
   BlocksSharedEditableText,
   BlocksSharedItemControls,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import { computed, nextTick, ref, toRefs } from 'vue';
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Autoplay, EffectCoverflow } from 'swiper/modules';
-import type { Swiper as SwiperInstance } from 'swiper';
+} from "../block-editor";
+import { computed, nextTick, ref, toRefs } from "vue";
+import { Swiper, SwiperSlide } from "swiper/vue";
+import { Autoplay, EffectCoverflow } from "swiper/modules";
+import type { Swiper as SwiperInstance } from "swiper";
 
-import 'swiper/css';
-import 'swiper/css/effect-coverflow';
+import "swiper/css";
+import "swiper/css/effect-coverflow";
 
-import type { FileButtonViewModel } from 'models';
+import type { FileButtonViewModel } from "models";
 
 interface WinnerLink {
   url: string;
@@ -44,15 +44,15 @@ const props = withDefaults(
     title?: string;
     subtitle?: string;
     content?: WinnerItem[];
-    colorScheme?: 'light' | 'dark' | 'white';
+    colorScheme?: "light" | "dark" | "white";
   }>(),
   {
     links: () => [],
     content: () => [],
-    kicker: '',
-    title: '',
-    subtitle: '',
-    colorScheme: 'white',
+    kicker: "",
+    title: "",
+    subtitle: "",
+    colorScheme: "white",
   },
 );
 
@@ -69,33 +69,33 @@ const activeIndex = ref(0);
 
 const themes = {
   dark: {
-    bg: 'bg-primary-900',
-    heading: 'text-white',
-    subtitle: 'text-white/80',
-    kicker: 'text-white/75',
-    button: 'bg-white text-primary-950 hover:bg-primary-50',
+    bg: "bg-primary-900",
+    heading: "text-white",
+    subtitle: "text-white/80",
+    kicker: "text-white/75",
+    button: "bg-white text-primary-950 hover:bg-primary-50",
     secondaryButton:
-      'border border-white bg-transparent text-white hover:bg-white/10',
+      "border border-white bg-transparent text-white hover:bg-white/10",
   },
 
   light: {
-    bg: 'bg-primary-50',
-    heading: 'text-primary-900',
-    subtitle: 'text-primary-950',
-    kicker: 'text-primary-950',
-    button: 'bg-primary-900 text-white hover:bg-primary-950',
+    bg: "bg-primary-50",
+    heading: "text-primary-900",
+    subtitle: "text-primary-950",
+    kicker: "text-primary-950",
+    button: "bg-primary-900 text-white hover:bg-primary-950",
     secondaryButton:
-      'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+      "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
   },
 
   white: {
-    bg: 'bg-white',
-    heading: 'text-primary-900',
-    subtitle: 'text-zinc-600',
-    kicker: 'text-primary-950',
-    button: 'bg-primary-900 text-white hover:bg-primary-950',
+    bg: "bg-white",
+    heading: "text-primary-900",
+    subtitle: "text-zinc-600",
+    kicker: "text-primary-950",
+    button: "bg-primary-900 text-white hover:bg-primary-950",
     secondaryButton:
-      'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+      "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
   },
 } as const;
 
@@ -202,16 +202,16 @@ const showNext = () => {
 };
 
 const handleLinkClick = (url: string, target?: string) => {
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     document.querySelector(url)?.scrollIntoView({
-      behavior: 'smooth',
+      behavior: "smooth",
     });
 
     return;
   }
 
-  if (target === '_blank') {
-    window.open(url, '_blank', 'noopener,noreferrer');
+  if (target === "_blank") {
+    window.open(url, "_blank", "noopener,noreferrer");
 
     return;
   }
@@ -220,12 +220,12 @@ const handleLinkClick = (url: string, target?: string) => {
 };
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -241,16 +241,16 @@ defineExpose({
 
 const inlineImageSource = (
   image: string | FileButtonViewModel | null | undefined,
-) => (typeof image === 'string' ? image : image?.url);
+) => (typeof image === "string" ? image : image?.url);
 
 function inlineCreateWinner(): WinnerItem {
   return {
-    category: '',
-    companyName: '',
-    product: '',
+    category: "",
+    companyName: "",
+    product: "",
     imageUrl: null,
     labelUrl: null,
-    footer: '',
+    footer: "",
   };
 }
 
@@ -370,7 +370,7 @@ async function addWinner() {
           >
             <p class="text-sm font-medium text-blue-950">
               {{ content.length }}
-              {{ content.length === 1 ? 'winnaar' : 'winnaars' }}
+              {{ content.length === 1 ? "winnaar" : "winnaars" }}
             </p>
             <button
               type="button"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
@@ -8,9 +8,9 @@ import {
   BlocksSharedEditableText,
   BlocksSharedItemControls,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import { computed } from 'vue';
-import { responsiveTileGridClass } from '../../utils/responsiveTileGrid';
+} from "../block-editor";
+import { computed } from "vue";
+import { responsiveTileGridClass } from "../../utils/responsiveTileGrid";
 
 const props = defineProps<{
   editable?: boolean;
@@ -28,20 +28,20 @@ const props = defineProps<{
       description?: string;
     }>;
     columns?: number;
-    alignment?: 'left' | 'center' | 'right';
+    alignment?: "left" | "center" | "right";
   };
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
 }>();
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  } else if (target === '_blank') {
-    window.open(url, '_blank');
+  } else if (target === "_blank") {
+    window.open(url, "_blank");
   } else {
     window.location.href = url;
   }
@@ -52,98 +52,94 @@ const cols = computed(() =>
 );
 const contentAlignment = computed(() => {
   const alignment = props.content?.alignment;
-  return alignment === 'left' || alignment === 'right' ? alignment : 'center';
+  return alignment === "left" || alignment === "right" ? alignment : "center";
 });
 const contentAlignmentClass = computed(
   () =>
     ({
-      left: 'text-left',
-      center: 'text-center',
-      right: 'text-right',
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
     })[contentAlignment.value],
 );
 const contentSelfAlignmentClass = computed(
   () =>
     ({
-      left: 'self-start',
-      center: 'self-center',
-      right: 'self-end',
+      left: "self-start",
+      center: "self-center",
+      right: "self-end",
     })[contentAlignment.value],
 );
 const contentJustifyClass = computed(
   () =>
     ({
-      left: 'justify-start',
-      center: 'justify-center',
-      right: 'justify-end',
+      left: "justify-start",
+      center: "justify-center",
+      right: "justify-end",
     })[contentAlignment.value],
 );
-const gridClass = computed(
-  () =>
-    responsiveTileGridClass(
-      props.content?.tiles?.length ?? 0,
-      cols.value,
-    ),
+const gridClass = computed(() =>
+  responsiveTileGridClass(props.content?.tiles?.length ?? 0, cols.value),
 );
 
-const cardClass = computed(() => 'flex flex-col rounded-lg bg-white p-8 ');
+const cardClass = computed(() => "flex flex-col rounded-lg bg-white p-8 ");
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white',
-        card: 'bg-white text-primary-900',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white",
+        card: "bg-white text-primary-900",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
+          "border border-white bg-transparent text-white hover:bg-white/10",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
-        card: 'bg-white text-primary-900',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
+        card: "bg-white text-primary-900",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
       };
     default: // white
       return {
-        bg: 'bg-white',
-        text: 'text-primary-900',
-        subtitle: 'text-gray-600',
-        card: 'bg-white text-primary-900 border border-gray-200',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-primary-900",
+        subtitle: "text-gray-600",
+        card: "bg-white text-primary-900 border border-gray-200",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
       };
   }
 });
 
 const iconMap: Record<string, string> = {
-  info: 'material-symbols:info',
-  map: 'material-symbols:map',
-  medical: 'material-symbols:medical-services',
-  ship: 'material-symbols:directions-boat',
-  tag: 'material-symbols:local-offer',
-  image: 'material-symbols:photo',
+  info: "material-symbols:info",
+  map: "material-symbols:map",
+  medical: "material-symbols:medical-services",
+  ship: "material-symbols:directions-boat",
+  tag: "material-symbols:local-offer",
+  image: "material-symbols:photo",
 };
 
 function iconName(key?: string) {
-  if (!key) return 'material-symbols:editor-choice';
+  if (!key) return "material-symbols:editor-choice";
   return iconMap[key] || key;
 }
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -162,11 +158,11 @@ function addTile() {
   model.content.tiles = [
     ...tiles,
     {
-      icon: '',
-      title: '',
-      subtitle: '',
-      description: '',
-      links: [{ url: '', text: '', target: '_self' }],
+      icon: "",
+      title: "",
+      subtitle: "",
+      description: "",
+      links: [{ url: "", text: "", target: "_self" }],
     },
   ];
 }
@@ -180,7 +176,12 @@ function addTile() {
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-4xl text-center">
-        <h3 :class="['text-center text-2xl font-bold sm:text-3xl', themeClasses.text]">
+        <h3
+          :class="[
+            'text-center text-2xl font-bold sm:text-3xl',
+            themeClasses.text,
+          ]"
+        >
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -277,9 +278,7 @@ function addTile() {
             />
           </div>
 
-          <div
-            :class="['mt-auto flex w-full', contentJustifyClass]"
-          >
+          <div :class="['mt-auto flex w-full', contentJustifyClass]">
             <BlocksSharedEditableLinks
               v-if="editable"
               :model-value="t.links"
@@ -416,6 +415,6 @@ function addTile() {
 
 <style scoped>
 :deep(.editor-prose p:empty)::before {
-  content: '\00a0'; /* non-breaking space */
+  content: "\00a0"; /* non-breaking space */
 }
 </style>

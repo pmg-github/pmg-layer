@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
@@ -8,8 +8,8 @@ import {
   BlocksSharedEditableText,
   BlocksSharedItemControls,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import { computed } from 'vue';
+} from "../block-editor";
+import { computed } from "vue";
 
 interface Feature {
   icon?: string | object;
@@ -24,72 +24,72 @@ const props = defineProps<{
   title?: string;
   subtitle?: string;
   content?: Feature[];
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
   links?: { url: string; text: string; target?: string }[];
 }>();
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white/90',
-        iconBg: 'bg-white/10 text-white',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white/90",
+        iconBg: "bg-white/10 text-white",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
+          "border border-white bg-transparent text-white hover:bg-white/10",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
-        iconBg: 'bg-primary-100 text-primary-900',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
+        iconBg: "bg-primary-100 text-primary-900",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
       };
     default:
       return {
-        bg: 'bg-white',
-        text: 'text-primary-900',
-        subtitle: 'text-gray-600',
-        iconBg: 'bg-primary-100 text-primary-900',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-primary-900",
+        subtitle: "text-gray-600",
+        iconBg: "bg-primary-100 text-primary-900",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
       };
   }
 });
 
 function iconName(icon?: string | object) {
-  if (!icon) return '';
-  if (typeof icon === 'string') return icon;
-  return '';
+  if (!icon) return "";
+  if (typeof icon === "string") return icon;
+  return "";
 }
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  } else if (target === '_blank') {
-    window.open(url, '_blank');
+  } else if (target === "_blank") {
+    window.open(url, "_blank");
   } else {
     window.location.href = url;
   }
 };
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -111,7 +111,12 @@ defineExpose({
   >
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-      <h3 :class="['text-center text-2xl font-bold sm:text-3xl', themeClasses.text]">
+      <h3
+        :class="[
+          'text-center text-2xl font-bold sm:text-3xl',
+          themeClasses.text,
+        ]"
+      >
         <BlocksSharedEditableText
           :editable="editable"
           v-if="editable"

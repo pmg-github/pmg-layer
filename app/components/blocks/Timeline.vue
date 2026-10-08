@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import { computed } from 'vue';
+} from "../block-editor";
+import { computed } from "vue";
 
 const props = defineProps<{
   editable?: boolean;
@@ -15,7 +15,7 @@ const props = defineProps<{
   id?: string;
   title?: string;
   subtitle?: string;
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
   links?: { url: string; text: string; target?: string }[];
   content: {
     items?: {
@@ -32,84 +32,84 @@ const props = defineProps<{
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white',
-        content: 'text-white',
-        noteBg: 'bg-white/10 ring-1 ring-white/15',
-        noteTitle: 'text-white',
-        noteContent: 'text-white/80',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white",
+        content: "text-white",
+        noteBg: "bg-white/10 ring-1 ring-white/15",
+        noteTitle: "text-white",
+        noteContent: "text-white/80",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
-        timelineBorder: 'border-white/30',
-        timelineDot: 'bg-white',
-        labelBg: 'bg-white/15',
-        labelText: 'text-white',
-        itemText: 'text-white/80',
+          "border border-white bg-transparent text-white hover:bg-white/10",
+        timelineBorder: "border-white/30",
+        timelineDot: "bg-white",
+        labelBg: "bg-white/15",
+        labelText: "text-white",
+        itemText: "text-white/80",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
-        content: 'text-primary-900',
-        noteBg: 'bg-primary-50',
-        noteTitle: 'text-primary-950',
-        noteContent: 'text-gray-700',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
+        content: "text-primary-900",
+        noteBg: "bg-primary-50",
+        noteTitle: "text-primary-950",
+        noteContent: "text-gray-700",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
-        timelineBorder: 'border-primary-200',
-        timelineDot: 'bg-primary-400',
-        labelBg: 'bg-primary-100',
-        labelText: 'text-primary-950',
-        itemText: 'text-gray-500',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
+        timelineBorder: "border-primary-200",
+        timelineDot: "bg-primary-400",
+        labelBg: "bg-primary-100",
+        labelText: "text-primary-950",
+        itemText: "text-gray-500",
       };
     default: // white
       return {
-        bg: 'bg-white',
-        text: 'text-gray-900',
-        subtitle: 'text-gray-600',
-        content: 'text-gray-800',
-        noteBg: 'bg-primary-50',
-        noteTitle: 'text-primary-950',
-        noteContent: 'text-gray-700',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-gray-900",
+        subtitle: "text-gray-600",
+        content: "text-gray-800",
+        noteBg: "bg-primary-50",
+        noteTitle: "text-primary-950",
+        noteContent: "text-gray-700",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
-        timelineBorder: 'border-primary-200',
-        timelineDot: 'bg-primary-400',
-        labelBg: 'bg-primary-100',
-        labelText: 'text-primary-950',
-        itemText: 'text-gray-500',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
+        timelineBorder: "border-primary-200",
+        timelineDot: "bg-primary-400",
+        labelBg: "bg-primary-100",
+        labelText: "text-primary-950",
+        itemText: "text-gray-500",
       };
   }
 });
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  } else if (target === '_blank') {
-    window.open(url, '_blank');
+  } else if (target === "_blank") {
+    window.open(url, "_blank");
   } else {
     window.location.href = url;
   }
 };
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -117,7 +117,7 @@ const blockSettingsRef = ref();
 const editableLinksRef = ref();
 
 const moveContentItem = (
-  collection: 'items' | 'notes',
+  collection: "items" | "notes",
   index: number,
   direction: number,
 ) => {
@@ -129,7 +129,7 @@ const moveContentItem = (
   model.content[collection] = items;
 };
 
-const removeContentItem = (collection: 'items' | 'notes', index: number) => {
+const removeContentItem = (collection: "items" | "notes", index: number) => {
   const items = [...(model.content[collection] || [])];
   items.splice(index, 1);
   model.content[collection] = items;
@@ -150,7 +150,12 @@ defineExpose({
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div :class="['prose mx-auto max-w-4xl ', themeClasses.content]">
-        <h3 :class="['text-center text-2xl font-bold sm:text-3xl', themeClasses.text]">
+        <h3
+          :class="[
+            'text-center text-2xl font-bold sm:text-3xl',
+            themeClasses.text,
+          ]"
+        >
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -445,6 +450,6 @@ defineExpose({
 }
 
 :deep(.editor-prose p:empty)::before {
-  content: '\00a0'; /* non-breaking space */
+  content: "\00a0"; /* non-breaking space */
 }
 </style>

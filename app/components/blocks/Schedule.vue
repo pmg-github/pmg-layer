@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
@@ -7,8 +7,8 @@ import {
   BlocksSharedEditableText,
   BlocksSharedItemControls,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
-import { computed } from 'vue';
+} from "../block-editor";
+import { computed } from "vue";
 
 const props = defineProps<{
   editable?: boolean;
@@ -25,75 +25,75 @@ const props = defineProps<{
     }[];
     footer?: string;
   };
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
 }>();
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        subtitle: 'text-white',
-        content: 'text-white',
+        bg: "bg-primary-900",
+        text: "text-white",
+        subtitle: "text-white",
+        content: "text-white",
         // Schedule rows always sit on a white card, including in dark blocks.
-        itemTitle: 'text-primary-950',
-        itemDesc: 'text-gray-700',
-        footer: 'text-white',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        itemTitle: "text-primary-950",
+        itemDesc: "text-gray-700",
+        footer: "text-white",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
+          "border border-white bg-transparent text-white hover:bg-white/10",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        subtitle: 'text-primary-950',
-        content: 'text-primary-900',
-        itemTitle: 'text-primary-950',
-        itemDesc: 'text-gray-700',
-        footer: 'text-gray-700',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        subtitle: "text-primary-950",
+        content: "text-primary-900",
+        itemTitle: "text-primary-950",
+        itemDesc: "text-gray-700",
+        footer: "text-gray-700",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
       };
     default: // white
       return {
-        bg: 'bg-white',
-        text: 'text-gray-900',
-        subtitle: 'text-gray-600',
-        content: 'text-gray-800',
-        itemTitle: 'text-primary-950',
-        itemDesc: 'text-gray-700',
-        footer: 'text-gray-700',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-gray-900",
+        subtitle: "text-gray-600",
+        content: "text-gray-800",
+        itemTitle: "text-primary-950",
+        itemDesc: "text-gray-700",
+        footer: "text-gray-700",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
       };
   }
 });
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: "smooth" });
     }
-  } else if (target === '_blank') {
-    window.open(url, '_blank');
+  } else if (target === "_blank") {
+    window.open(url, "_blank");
   } else {
     window.location.href = url;
   }
 };
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -104,7 +104,7 @@ defineExpose({
   openLinks: (event?: MouseEvent) => editableLinksRef.value?.open?.(event),
 });
 
-import { VueDraggableNext as Draggable } from 'vue-draggable-next';
+import { VueDraggableNext as Draggable } from "vue-draggable-next";
 
 // verwacht:
 // model.content.footer: string
@@ -221,7 +221,7 @@ import { VueDraggableNext as Draggable } from 'vue-draggable-next';
                           name="material-symbols:drag-indicator"
                         />
                         <span class="flex-1 text-sm text-gray-700">
-                          {{ label || 'Nieuw label — bewerk op het canvas' }}
+                          {{ label || "Nieuw label — bewerk op het canvas" }}
                         </span>
                         <button
                           type="button"
@@ -311,6 +311,6 @@ import { VueDraggableNext as Draggable } from 'vue-draggable-next';
 
 <style scoped>
 :deep(.editor-prose p:empty)::before {
-  content: '\00a0'; /* non-breaking space */
+  content: "\00a0"; /* non-breaking space */
 }
 </style>

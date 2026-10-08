@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, useId, watch } from 'vue';
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { computed, ref, useId, watch } from "vue";
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
   BlocksSharedEditableText,
   BlocksSharedItemControls,
   BlocksSharedSelectionFrame,
-} from '../block-editor';
+} from "../block-editor";
 
 interface QAndAItem {
   question?: string;
@@ -21,14 +21,14 @@ const props = defineProps<{
   title?: string;
   subtitle?: string;
   content?: QAndAItem[];
-  colorScheme?: 'light' | 'dark' | 'white';
+  colorScheme?: "light" | "dark" | "white";
 }>();
 
 const emits = defineEmits([
-  'update:props',
-  'update:title',
-  'update:subtitle',
-  'update:content',
+  "update:props",
+  "update:title",
+  "update:subtitle",
+  "update:content",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -36,7 +36,7 @@ const blockSettingsRef = ref<InstanceType<
   typeof BlocksSharedBlockSettings
 > | null>(null);
 const openIndex = ref<number | null>(0);
-const generatedId = useId().replaceAll(':', '');
+const generatedId = useId().replaceAll(":", "");
 
 const items = computed(() => props.content || []);
 const displayedItems = computed(() =>
@@ -50,38 +50,38 @@ const sectionId = computed(() => `q-and-a-${props.id || generatedId}`);
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        background: 'bg-primary-900',
-        title: 'text-white',
-        subtitle: 'text-white/80',
-        accordion: 'border-white/20 bg-white/10',
-        divider: 'divide-white/20',
-        question: 'text-white hover:bg-white/10',
-        answer: 'text-white/80',
-        icon: 'text-white/80',
+        background: "bg-primary-900",
+        title: "text-white",
+        subtitle: "text-white/80",
+        accordion: "border-white/20 bg-white/10",
+        divider: "divide-white/20",
+        question: "text-white hover:bg-white/10",
+        answer: "text-white/80",
+        icon: "text-white/80",
       };
-    case 'light':
+    case "light":
       return {
-        background: 'bg-primary-50',
-        title: 'text-primary-900',
-        subtitle: 'text-primary-950/80',
-        accordion: 'border-primary-200 bg-white',
-        divider: 'divide-primary-100',
-        question: 'text-primary-950 hover:bg-primary-50',
-        answer: 'text-gray-700',
-        icon: 'text-primary-700',
+        background: "bg-primary-50",
+        title: "text-primary-900",
+        subtitle: "text-primary-950/80",
+        accordion: "border-primary-200 bg-white",
+        divider: "divide-primary-100",
+        question: "text-primary-950 hover:bg-primary-50",
+        answer: "text-gray-700",
+        icon: "text-primary-700",
       };
     default:
       return {
-        background: 'bg-white',
-        title: 'text-primary-900',
-        subtitle: 'text-gray-600',
-        accordion: 'border-gray-200 bg-white',
-        divider: 'divide-gray-200',
-        question: 'text-gray-900 hover:bg-gray-50',
-        answer: 'text-gray-600',
-        icon: 'text-gray-500',
+        background: "bg-white",
+        title: "text-primary-900",
+        subtitle: "text-gray-600",
+        accordion: "border-gray-200 bg-white",
+        divider: "divide-gray-200",
+        question: "text-gray-900 hover:bg-gray-50",
+        answer: "text-gray-600",
+        icon: "text-gray-500",
       };
   }
 });
@@ -108,7 +108,10 @@ defineExpose({
 <template>
   <section
     :id="sectionId"
-    :class="['group relative scroll-mt-20 py-16 md:py-20', themeClasses.background]"
+    :class="[
+      'group relative scroll-mt-20 py-16 md:py-20',
+      themeClasses.background,
+    ]"
   >
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
 
@@ -210,7 +213,10 @@ defineExpose({
                 :id="`${sectionId}-answer-${index}`"
                 role="region"
                 :aria-labelledby="`${sectionId}-question-${index}`"
-                :class="['px-5 pb-5 text-sm leading-6 md:px-6 md:pb-6', themeClasses.answer]"
+                :class="[
+                  'px-5 pb-5 text-sm leading-6 md:px-6 md:pb-6',
+                  themeClasses.answer,
+                ]"
               >
                 <BlocksSharedEditableText :model-value="item.answer" rich />
               </div>

@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { useInlineBlock } from '../../composables/useInlineBlock';
+import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
   BlocksSharedEditableText,
   BlocksSharedLinkReferenceSelect,
-} from '../block-editor';
-import { computed } from 'vue';
-import { Swiper, SwiperSlide } from 'swiper/vue';
-import { Autoplay } from 'swiper/modules';
-import 'swiper/css';
-import type { FileButtonViewModel } from 'models';
+} from "../block-editor";
+import { computed } from "vue";
+import { Swiper, SwiperSlide } from "swiper/vue";
+import { Autoplay } from "swiper/modules";
+import "swiper/css";
+import type { FileButtonViewModel } from "models";
 
 interface Review {
   id: string | number;
@@ -32,7 +32,7 @@ interface ApiReview {
 }
 
 const isApiReview = (review: unknown): review is ApiReview =>
-  Boolean(review && typeof review === 'object');
+  Boolean(review && typeof review === "object");
 
 const props = withDefaults(
   defineProps<{
@@ -45,26 +45,26 @@ const props = withDefaults(
     content?: ApiReview[];
     autoplay?: boolean;
     pauseOnHover?: boolean;
-    colorScheme?: 'light' | 'dark' | 'white';
+    colorScheme?: "light" | "dark" | "white";
     visibleFrom?: string | null;
     visibleUntil?: string | null;
   }>(),
   {
     autoplay: true,
     pauseOnHover: true,
-    colorScheme: 'white',
+    colorScheme: "white",
   },
 );
 
 const emits = defineEmits([
-  'update:props',
-  'update:settings',
-  'update:title',
-  'update:subtitle',
-  'update:content',
-  'update:links',
-  'update:kicker',
-  'delete',
+  "update:props",
+  "update:settings",
+  "update:title",
+  "update:subtitle",
+  "update:content",
+  "update:links",
+  "update:kicker",
+  "delete",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
@@ -74,33 +74,33 @@ const selectedLinkIndex = ref<number | null>(null);
 const scheduleEnabled = ref(Boolean(props.visibleFrom || props.visibleUntil));
 
 const getInitials = (firstName?: string, lastName?: string) =>
-  `${firstName?.trim().charAt(0) || ''}${lastName?.trim().charAt(0) || ''}`.toUpperCase() ||
-  '?';
+  `${firstName?.trim().charAt(0) || ""}${lastName?.trim().charAt(0) || ""}`.toUpperCase() ||
+  "?";
 
 const fallbackReviews: Review[] = [
   {
     id: 1,
     sourceIndex: 0,
-    name: 'John Doe',
-    initials: 'JD',
+    name: "John Doe",
+    initials: "JD",
     rating: 5,
-    text: 'Excellent service and great quality products. Highly recommended!',
+    text: "Excellent service and great quality products. Highly recommended!",
   },
   {
     id: 2,
     sourceIndex: 1,
-    name: 'Jane Smith',
-    initials: 'JS',
+    name: "Jane Smith",
+    initials: "JS",
     rating: 4.5,
-    text: 'Very satisfied with the purchase. Fast delivery and good customer support.',
+    text: "Very satisfied with the purchase. Fast delivery and good customer support.",
   },
   {
     id: 3,
     sourceIndex: 2,
-    name: 'Mike Johnson',
-    initials: 'MJ',
+    name: "Mike Johnson",
+    initials: "MJ",
     rating: 5,
-    text: 'Outstanding experience! The team was professional and helpful throughout.',
+    text: "Outstanding experience! The team was professional and helpful throughout.",
   },
 ];
 
@@ -118,11 +118,11 @@ const transformedReviews = computed<Review[]>(() => {
         id: sourceIndex + 1,
         sourceIndex,
         name:
-          `${apiReview.firstName || ''} ${apiReview.lastName || ''}`.trim() ||
-          'Nieuwe review',
+          `${apiReview.firstName || ""} ${apiReview.lastName || ""}`.trim() ||
+          "Nieuwe review",
         initials: getInitials(apiReview.firstName, apiReview.lastName),
         rating: Number(apiReview.rating) || 0,
-        text: apiReview.text || '',
+        text: apiReview.text || "",
         title: apiReview.title,
       },
     ];
@@ -143,60 +143,60 @@ const getStars = (rating: number) => {
 };
 
 const makeHalfStarClipId = (base: string | number) =>
-  `half-star-${String(base).replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  `half-star-${String(base).replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
 const themeClasses = computed(() => {
   switch (model.colorScheme || props.colorScheme) {
-    case 'dark':
+    case "dark":
       return {
-        bg: 'bg-primary-900',
-        text: 'text-white',
-        card: 'bg-white text-primary-900',
-        button: 'bg-white text-primary-950 hover:bg-primary-50',
+        bg: "bg-primary-900",
+        text: "text-white",
+        card: "bg-white text-primary-900",
+        button: "bg-white text-primary-950 hover:bg-primary-50",
         secondaryButton:
-          'border border-white bg-transparent text-white hover:bg-white/10',
-        star: 'text-amber-400',
-        ratingBg: 'bg-amber-50 text-amber-700',
-        quote: 'text-primary-900',
-        name: 'text-primary-900',
-        title: 'text-primary-950',
-        avatarBg: 'bg-primary-900',
-        icon: 'text-primary-950',
-        navButton: 'bg-white text-primary-950 hover:bg-primary-50',
+          "border border-white bg-transparent text-white hover:bg-white/10",
+        star: "text-amber-400",
+        ratingBg: "bg-amber-50 text-amber-700",
+        quote: "text-primary-900",
+        name: "text-primary-900",
+        title: "text-primary-950",
+        avatarBg: "bg-primary-900",
+        icon: "text-primary-950",
+        navButton: "bg-white text-primary-950 hover:bg-primary-50",
       };
-    case 'light':
+    case "light":
       return {
-        bg: 'bg-primary-50',
-        text: 'text-primary-900',
-        card: 'bg-white text-primary-900',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-primary-50",
+        text: "text-primary-900",
+        card: "bg-white text-primary-900",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100',
-        navButton: 'bg-white text-primary-950 hover:bg-primary-50',
-        star: 'text-amber-400',
-        ratingBg: 'bg-amber-50 text-amber-700',
-        quote: 'text-primary-900',
-        name: 'text-primary-900',
-        title: 'text-primary-950',
-        avatarBg: 'bg-primary-900',
-        icon: 'text-primary-950',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-100",
+        navButton: "bg-white text-primary-950 hover:bg-primary-50",
+        star: "text-amber-400",
+        ratingBg: "bg-amber-50 text-amber-700",
+        quote: "text-primary-900",
+        name: "text-primary-900",
+        title: "text-primary-950",
+        avatarBg: "bg-primary-900",
+        icon: "text-primary-950",
       };
     default:
       return {
-        bg: 'bg-white',
-        text: 'text-primary-900',
-        card: 'bg-white text-primary-900',
-        button: 'bg-primary-900 text-white hover:bg-primary-950',
+        bg: "bg-white",
+        text: "text-primary-900",
+        card: "bg-white text-primary-900",
+        button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
-          'border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50',
-        navButton: 'bg-white text-primary-950 hover:bg-primary-50',
-        star: 'text-amber-400',
-        ratingBg: 'bg-amber-50 text-amber-700',
-        quote: 'text-primary-900',
-        name: 'text-primary-900',
-        title: 'text-primary-950',
-        avatarBg: 'bg-primary-900',
-        icon: 'text-primary-950',
+          "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
+        navButton: "bg-white text-primary-950 hover:bg-primary-50",
+        star: "text-amber-400",
+        ratingBg: "bg-amber-50 text-amber-700",
+        quote: "text-primary-900",
+        name: "text-primary-900",
+        title: "text-primary-950",
+        avatarBg: "bg-primary-900",
+        icon: "text-primary-950",
       };
   }
 });
@@ -205,21 +205,21 @@ const addReview = () => {
   model.content = [
     ...(model.content || []),
     {
-      title: '',
+      title: "",
       rating: 5,
-      text: '',
-      firstName: '',
-      lastName: '',
+      text: "",
+      firstName: "",
+      lastName: "",
       photo: null,
     },
   ];
 };
 
 const setRating = (index: number, value: string) => {
-  const parsed = Number(value.replace(',', '.'));
+  const parsed = Number(value.replace(",", "."));
   if (!model.content?.[index]) return;
   update(
-    ['content', index, 'rating'],
+    ["content", index, "rating"],
     Number.isFinite(parsed) ? Math.min(5, Math.max(0, parsed)) : 0,
   );
 };
@@ -235,7 +235,7 @@ const openSettings = () => {
 };
 
 const openLinkEditor = (index?: number) => {
-  if (typeof index === 'number') {
+  if (typeof index === "number") {
     selectedLinkIndex.value = index;
     linkPanelOpen.value = true;
     return;
@@ -262,8 +262,8 @@ const addButton = () => {
   if (model.links.length >= 2) return;
 
   model.links.push({
-    text: 'Nieuwe knop',
-    url: '#',
+    text: "Nieuwe knop",
+    url: "#",
     target: null,
   });
   selectedLinkIndex.value = model.links.length - 1;
@@ -280,14 +280,14 @@ const removeActiveButton = () => {
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
 
-  if (url.startsWith('#')) {
+  if (url.startsWith("#")) {
     const el = document.querySelector(url);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (el) el.scrollIntoView({ behavior: "smooth" });
     return;
   }
 
-  if (target === '_blank') {
-    window.open(url, '_blank', 'noopener,noreferrer');
+  if (target === "_blank") {
+    window.open(url, "_blank", "noopener,noreferrer");
     return;
   }
 
@@ -297,7 +297,7 @@ const handleAnchorClick = (url: string, target?: string | null) => {
 const setScheduleEnabled = (enabled: boolean) => {
   scheduleEnabled.value = enabled;
   if (!enabled) {
-    emits('update:settings', {
+    emits("update:settings", {
       visibleFrom: null,
       visibleUntil: null,
     });
@@ -305,11 +305,11 @@ const setScheduleEnabled = (enabled: boolean) => {
 };
 
 const updateVisibleFrom = (value: string) => {
-  emits('update:settings', { visibleFrom: value || null });
+  emits("update:settings", { visibleFrom: value || null });
 };
 
 const updateVisibleUntil = (value: string) => {
-  emits('update:settings', { visibleUntil: value || null });
+  emits("update:settings", { visibleUntil: value || null });
 };
 
 watch(
@@ -497,7 +497,12 @@ defineExpose({
         <!-- Header -->
         <div class="mb-8 flex items-start justify-between">
           <div class="mx-auto max-w-4xl text-center">
-            <h3 :class="['text-center text-2xl font-bold sm:text-3xl', themeClasses.text]">
+            <h3
+              :class="[
+                'text-center text-2xl font-bold sm:text-3xl',
+                themeClasses.text,
+              ]"
+            >
               <BlocksSharedEditableText
                 :editable="editable"
                 v-if="editable"
@@ -938,6 +943,6 @@ defineExpose({
 
 <style scoped>
 :deep(.editor-prose p:empty)::before {
-  content: '\00a0'; /* non-breaking space */
+  content: "\00a0"; /* non-breaking space */
 }
 </style>
