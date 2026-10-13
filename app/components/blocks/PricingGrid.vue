@@ -21,6 +21,7 @@ const props = defineProps<{
   subtitle?: string;
   content?: {
     title?: string;
+    description?: string;
     label?: {
       text: string;
       color?: "yellow" | "red" | "green" | "pink" | "orange" | null;
@@ -173,6 +174,20 @@ function updateCardButton(index: number, card: any, links: any[]) {
     buttonTarget: link?.target || "_self",
   });
 }
+
+function addBenefit(index: number, card: any) {
+  update(["content", index, "benefits"], [
+    ...(card.benefits || []),
+    { label: "", included: true },
+  ]);
+}
+
+function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
+  update(
+    ["content", cardIndex, "benefits"],
+    (card.benefits || []).filter((_: unknown, index: number) => index !== benefitIndex),
+  );
+}
 </script>
 
 <template>
@@ -291,6 +306,19 @@ function updateCardButton(index: number, card: any, links: any[]) {
               /><template v-else>{{ card.title }}</template>
             </h3>
 
+            <div
+              v-if="editable || card.description"
+              class="mb-4 text-sm leading-relaxed text-gray-700"
+            >
+              <BlocksSharedEditableText
+                :model-value="card.description"
+                :editable="editable"
+                rich
+                placeholder="Beschrijving toevoegen (Enter voor nieuwe regel)"
+                @update:model-value="setField(card, 'description', $event)"
+              />
+            </div>
+
             <div v-if="card.tags?.length" class="mb-2 flex flex-wrap gap-1">
               <span
                 v-for="(tag, tagIndex) in card.tags"
@@ -304,52 +332,85 @@ function updateCardButton(index: number, card: any, links: any[]) {
               /></span>
             </div>
 
-            <ul
-              v-if="card.benefits?.length"
-              class="mb-6 flex min-h-[120px] flex-col gap-2"
-            >
+            <ul v-if="card.benefits?.length" class="mb-3 flex flex-col gap-2">
               <li
                 v-for="(benefit, benefitIndex) in card.benefits"
                 :key="benefitIndex"
-                class="flex items-center gap-2"
+                class="flex items-start gap-2"
               >
+                <button
+                  v-if="editable"
+                  type="button"
+                  class="flex size-6 shrink-0 items-center justify-center rounded hover:bg-gray-100"
+                  :aria-label="benefit.included ? 'Wijzig naar kruisje' : 'Wijzig naar vinkje'"
+                  :title="benefit.included ? 'Wijzig naar kruisje' : 'Wijzig naar vinkje'"
+                  @click.stop="setField(benefit, 'included', !benefit.included)"
+                >
+                  <Icon
+                    :name="benefit.included ? 'material-symbols:check-rounded' : 'material-symbols:cancel-outline'"
+                    :class="benefit.included ? 'text-green-500' : 'text-red-500'"
+                    class="size-5"
+                  />
+                </button>
                 <Icon
-                  :name="
-                    benefit.included
-                      ? 'material-symbols:check-rounded'
-                      : 'material-symbols:cancel-outline'
-                  "
+                  v-else
+                  :name="benefit.included ? 'material-symbols:check-rounded' : 'material-symbols:cancel-outline'"
                   :class="benefit.included ? 'text-green-500' : 'text-red-500'"
-                  class="h-5 w-5 flex-shrink-0"
+                  class="mt-0.5 size-5 shrink-0"
                 />
-                <span class="text-sm"
-                  ><BlocksSharedEditableText
+                <div class="min-w-0 flex-1 text-sm leading-relaxed">
+                  <BlocksSharedEditableText
                     :model-value="benefit.label"
                     :editable="editable"
                     rich
+                    placeholder="Voordeel toevoegen (Enter voor nieuwe regel)"
                     @update:model-value="setField(benefit, 'label', $event)"
-                /></span>
+                  />
+                </div>
+                <button
+                  v-if="editable"
+                  type="button"
+                  class="flex size-6 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-red-50 hover:text-red-600"
+                  title="Voordeel verwijderen"
+                  aria-label="Voordeel verwijderen"
+                  @click.stop="removeBenefit(i, card, benefitIndex)"
+                >
+                  <Icon name="material-symbols:close-rounded" class="size-4" />
+                </button>
               </li>
             </ul>
 
-            <div class="mb-2 mt-auto">
-              <span class="text-3xl font-bold tracking-tight text-primary-950">
+            <button
+              v-if="editable"
+              type="button"
+              class="mb-6 flex items-center gap-1.5 self-start rounded-md px-2 py-1 text-sm font-medium text-primary-900 hover:bg-primary-50"
+              @click.stop="addBenefit(i, card)"
+            >
+              <Icon name="material-symbols:add-rounded" class="size-4" />
+              Voordeel toevoegen
+            </button>
+
+            <div v-if="editable || card.price || card.priceNote" class="mb-2 mt-auto">
+              <div v-if="editable" class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Prijs</div>
+              <div class="text-3xl font-bold tracking-tight text-primary-950">
                 <BlocksSharedEditableText
                   :editable="editable"
                   v-if="editable"
                   :model-value="card.price"
+                  placeholder="€ 0"
                   @update:model-value="setField(card, 'price', $event)"
                 /><template v-else>{{ card.price }}</template>
-              </span>
-              <span
+              </div>
+              <div
                 v-if="editable || card.priceNote"
-                class="ml-2 text-sm text-gray-500"
+                class="mt-1 text-sm text-gray-500"
                 ><BlocksSharedEditableText
                   :editable="editable"
                   v-if="editable"
                   :model-value="card.priceNote"
+                  placeholder="Bijvoorbeeld: per maand"
                   @update:model-value="setField(card, 'priceNote', $event)"
-                /><template v-else>{{ card.priceNote }}</template></span
+                /><template v-else>{{ card.priceNote }}</template></div
               >
             </div>
 
@@ -389,6 +450,7 @@ function updateCardButton(index: number, card: any, links: any[]) {
               ...(model.content || []),
               {
                 title: '',
+                description: '',
                 label: { text: '', color: null },
                 tags: [],
                 benefits: [],
