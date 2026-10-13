@@ -503,12 +503,13 @@ defineExpose({
 
       <div
         class="mx-auto h-full max-w-screen-md px-4 py-16 sm:px-6 md:py-20 lg:px-8"
-        data-block-padding :style="blockPaddingStyle(model.padding)"
+        data-block-padding
+        :style="blockPaddingStyle(model.padding)"
       >
         <!-- Header -->
         <div class="mb-8 flex items-start justify-between">
           <div class="mx-auto max-w-4xl text-center">
-            <h3
+            <h2
               :class="[
                 'text-center text-2xl font-bold sm:text-3xl',
                 themeClasses.text,
@@ -521,7 +522,7 @@ defineExpose({
                 placeholder="Titel toevoegen"
                 @update:model-value="update(['title'], $event)"
               /><template v-else>{{ model.title }}</template>
-            </h3>
+            </h2>
             <p :class="['text-center text-xl', themeClasses.text]">
               <BlocksSharedEditableText
                 :editable="editable"
@@ -759,7 +760,7 @@ defineExpose({
                       {{ review.initials }}
                     </div>
                     <div>
-                      <h4 class="font-semibold" :class="themeClasses.name">
+                      <p class="font-semibold" :class="themeClasses.name">
                         <template v-if="editable"
                           ><BlocksSharedEditableText
                             :model-value="
@@ -787,7 +788,7 @@ defineExpose({
                               )
                             " /></template
                         ><template v-else>{{ review.name }}</template>
-                      </h4>
+                      </p>
                       <p
                         v-if="editable || review.title"
                         class="text-xs font-medium"

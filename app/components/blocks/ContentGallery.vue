@@ -172,12 +172,18 @@ const removeActiveButton = () => {
 </script>
 <template>
   <section
-    data-block-padding :style="blockPaddingStyle(model.padding)"
+    data-block-padding
+    :style="blockPaddingStyle(model.padding)"
     :id="props.id || undefined"
     :class="[themeClasses.bg, 'group relative py-16 md:py-20']"
     :aria-labelledby="(props.id || 'contentgallery') + '-title'"
   >
-    <PaddingHandles :editable="editable" :selected="selected" :padding="model.padding" @update:padding="update(['padding'], $event)" />
+    <PaddingHandles
+      :editable="editable"
+      :selected="selected"
+      :padding="model.padding"
+      @update:padding="update(['padding'], $event)"
+    />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div

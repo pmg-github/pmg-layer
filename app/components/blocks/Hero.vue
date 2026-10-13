@@ -71,8 +71,11 @@ const imageUrl = computed(() => {
   const fallback = model.content.imageUrl;
   return typeof image === "string"
     ? image
-    : image?.url || image?.imageUrl || image?.fileUrl ||
-        (typeof fallback === "string" ? fallback : fallback?.url) || "";
+    : image?.url ||
+        image?.imageUrl ||
+        image?.fileUrl ||
+        (typeof fallback === "string" ? fallback : fallback?.url) ||
+        "";
 });
 
 const backgroundImageUrl = computed(() => {
@@ -97,13 +100,15 @@ const inlineUpdateImage = (payload: any) => {
   update(["content"], {
     ...model.content,
     image,
-    imageUrl: typeof image === "string" ? image : image.url || image.imageUrl || image.fileUrl,
+    imageUrl:
+      typeof image === "string"
+        ? image
+        : image.url || image.imageUrl || image.fileUrl,
     isVideo: 0,
   });
 };
 
-const inlineUpdateSelectedImage = (images: any[]) =>
-  inlineUpdateImage(images);
+const inlineUpdateSelectedImage = (images: any[]) => inlineUpdateImage(images);
 
 const inlineClearImage = () => {
   update(["content"], {
@@ -160,7 +165,9 @@ const addButton = () => {
 
 const removeActiveButton = () => {
   if (selectedLinkIndex.value === null || !model.links) return;
-  const links = model.links.filter((_: any, index: number) => index !== selectedLinkIndex.value);
+  const links = model.links.filter(
+    (_: any, index: number) => index !== selectedLinkIndex.value,
+  );
   update(["links"], links);
   selectedLinkIndex.value = links.length ? 0 : null;
   if (!links.length) linkPanelOpen.value = false;
@@ -414,7 +421,7 @@ defineExpose({
 
       <!-- Hero content -->
       <div
-        class="relative z-20 mx-auto flex h-full w-full max-w-screen-2xl flex-col items-start justify-end px-4 py-8 sm:py-12"
+        class="relative z-20 mx-auto flex h-full w-full max-w-screen-xl flex-col items-start justify-end px-4 py-8 sm:px-6 sm:py-12 lg:px-8"
         :style="blockPaddingStyle(props.padding)"
       >
         <div class="flex w-full flex-col md:flex-row">
@@ -485,7 +492,9 @@ defineExpose({
                     :editable="editable"
                     :model-value="link.text"
                     placeholder="Knoptekst"
-                    @update:model-value="update(['links', Number(idx), 'text'], $event)"
+                    @update:model-value="
+                      update(['links', Number(idx), 'text'], $event)
+                    "
                   />
                   <template v-else>{{ link.text }}</template>
                 </a>
@@ -502,12 +511,19 @@ defineExpose({
                 />
                 <PMGInput
                   :model-value="activeLink.url"
-                  @update:model-value="setActiveLinkField('url', String($event ?? ''))"
+                  @update:model-value="
+                    setActiveLinkField('url', String($event ?? ''))
+                  "
                   type="url"
                   placeholder="https://... of #sectie"
                   class="min-w-0 flex-1"
                 />
-                <BlocksSharedLinkReferenceSelect :model-value="activeLink.url" @update:model-value="setActiveLinkField('url', String($event ?? ''))" />
+                <BlocksSharedLinkReferenceSelect
+                  :model-value="activeLink.url"
+                  @update:model-value="
+                    setActiveLinkField('url', String($event ?? ''))
+                  "
+                />
                 <PMGButton
                   type="button"
                   variant="ghost"
@@ -522,7 +538,10 @@ defineExpose({
                   title="Openen in nieuw tabblad"
                   aria-label="Openen in nieuw tabblad"
                   @click="
-                    setActiveLinkField('target', activeLink.target === '_blank' ? null : '_blank')
+                    setActiveLinkField(
+                      'target',
+                      activeLink.target === '_blank' ? null : '_blank',
+                    )
                   "
                 />
                 <PMGButton

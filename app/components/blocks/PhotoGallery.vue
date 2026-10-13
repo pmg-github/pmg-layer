@@ -120,15 +120,21 @@ defineExpose({
 
 <template>
   <section
-    data-block-padding :style="blockPaddingStyle(model.padding)"
+    data-block-padding
+    :style="blockPaddingStyle(model.padding)"
     :id="props.id"
     :class="[themeClasses.bg, 'group relative py-16 md:py-20']"
   >
-    <PaddingHandles :editable="editable" :selected="selected" :padding="model.padding" @update:padding="update(['padding'], $event)" />
+    <PaddingHandles
+      :editable="editable"
+      :selected="selected"
+      :padding="model.padding"
+      @update:padding="update(['padding'], $event)"
+    />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-4xl text-center">
-        <h3
+        <h2
           :class="[
             'text-center text-2xl font-bold sm:text-3xl',
             themeClasses.text,
@@ -141,7 +147,7 @@ defineExpose({
             placeholder="Titel toevoegen"
             @update:model-value="setField(props, 'title', $event)"
           /><template v-else>{{ props.title }}</template>
-        </h3>
+        </h2>
         <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]">
           <BlocksSharedEditableText
             :editable="editable"

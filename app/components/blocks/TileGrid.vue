@@ -174,15 +174,21 @@ function addTile() {
 
 <template>
   <section
-    data-block-padding :style="blockPaddingStyle(model.padding)"
+    data-block-padding
+    :style="blockPaddingStyle(model.padding)"
     :id="props.id"
     :class="['group relative scroll-mt-20 py-16 md:py-20', themeClasses.bg]"
   >
-    <PaddingHandles :editable="editable" :selected="selected" :padding="model.padding" @update:padding="update(['padding'], $event)" />
+    <PaddingHandles
+      :editable="editable"
+      :selected="selected"
+      :padding="model.padding"
+      @update:padding="update(['padding'], $event)"
+    />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-4xl text-center">
-        <h3
+        <h2
           :class="[
             'text-center text-2xl font-bold sm:text-3xl',
             themeClasses.text,
@@ -195,7 +201,7 @@ function addTile() {
             placeholder="Titel toevoegen"
             @update:model-value="update(['title'], $event)"
           /><template v-else>{{ title }}</template>
-        </h3>
+        </h2>
         <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]">
           <BlocksSharedEditableText
             :editable="editable"

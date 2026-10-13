@@ -235,16 +235,25 @@ const getAllVideoCodes = (...args: any[]) =>
 
 <template>
   <section :class="[theme.surface, 'tabs-block group relative']">
-    <PaddingHandles :editable="editable" :selected="selected" :padding="model.padding" @update:padding="update(['padding'], $event)" />
+    <PaddingHandles
+      :editable="editable"
+      :selected="selected"
+      :padding="model.padding"
+      @update:padding="update(['padding'], $event)"
+    />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="mx-auto max-w-screen-xl py-16 md:py-20" data-block-padding :style="blockPaddingStyle(model.padding)">
+    <div
+      class="mx-auto max-w-screen-xl py-16 md:py-20"
+      data-block-padding
+      :style="blockPaddingStyle(model.padding)"
+    >
       <!-- Frame -->
       <!-- Header / Tabs -->
       <TabsRoot v-model="activeValue" as="div">
         <div class="w-full px-4 sm:px-6 lg:px-8">
           <div class="flex gap-4">
             <div class="mx-auto max-w-4xl text-center">
-              <h3
+              <h2
                 :class="[
                   'text-center text-2xl font-bold sm:text-3xl',
                   theme.heading,
@@ -257,7 +266,7 @@ const getAllVideoCodes = (...args: any[]) =>
                   placeholder="Titel toevoegen"
                   @update:model-value="update(['title'], $event)"
                 /><template v-else>{{ title }}</template>
-              </h3>
+              </h2>
               <p :class="['mb-8 text-center text-xl', theme.muted]">
                 <BlocksSharedEditableText
                   :editable="editable"

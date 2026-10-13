@@ -150,12 +150,21 @@ defineExpose({
 </script>
 
 <template>
-  <section :class="[themeClasses.bg, 'group relative py-16 md:py-20']" data-block-padding :style="blockPaddingStyle(model.padding)">
-    <PaddingHandles :editable="editable" :selected="selected" :padding="model.padding" @update:padding="update(['padding'], $event)" />
+  <section
+    :class="[themeClasses.bg, 'group relative py-16 md:py-20']"
+    data-block-padding
+    :style="blockPaddingStyle(model.padding)"
+  >
+    <PaddingHandles
+      :editable="editable"
+      :selected="selected"
+      :padding="model.padding"
+      @update:padding="update(['padding'], $event)"
+    />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div :class="['prose mx-auto max-w-4xl ', themeClasses.content]">
-        <h3
+        <h2
           :class="[
             'text-center text-2xl font-bold sm:text-3xl',
             themeClasses.text,
@@ -168,7 +177,7 @@ defineExpose({
             placeholder="Titel toevoegen"
             @update:model-value="update(['title'], $event)"
           /><template v-else>{{ title }}</template>
-        </h3>
+        </h2>
         <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]">
           <BlocksSharedEditableText
             :editable="editable"
@@ -211,14 +220,13 @@ defineExpose({
               class="editor-prose"
               :class="['mb-4 font-normal', themeClasses.itemText, 'text-base']"
             >
-              <strong
+              <h3 class="m-0 text-base font-semibold"
                 ><BlocksSharedEditableText
                   :editable="editable"
                   v-if="editable"
                   :model-value="item.title"
                   @update:model-value="setField(item, 'title', $event)"
-                /><template v-else>{{ item.title }}</template></strong
-              ><br />
+                /><template v-else>{{ item.title }}</template></h3>
 
               <div class="text-sm">
                 <BlocksSharedEditableText
@@ -305,14 +313,14 @@ defineExpose({
               themeClasses.noteBg,
             ]"
           >
-            <h4 :class="['mb-4 text-lg font-semibold', themeClasses.noteTitle]">
+            <h3 :class="['mb-4 text-lg font-semibold', themeClasses.noteTitle]">
               <BlocksSharedEditableText
                 :editable="editable"
                 v-if="editable"
                 :model-value="note?.title"
                 @update:model-value="setField(note, 'title', $event)"
               /><template v-else>{{ note?.title }}</template>
-            </h4>
+            </h3>
             <div :class="[themeClasses.noteContent]">
               <BlocksSharedEditableText
                 :model-value="note?.content"
