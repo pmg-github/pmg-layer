@@ -4,6 +4,7 @@ import { useFetchCampaigns } from "../../composables/useFetchCampaigns";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
+  PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedSelectionFrame,
@@ -142,6 +143,7 @@ const gridStyle = computed(() => ({
 
 const emits = defineEmits([
   "update:props",
+  "update:padding",
   "update:title",
   "update:subtitle",
   "update:content",
@@ -164,11 +166,12 @@ defineExpose({
 
 <template>
   <section
-    :style="blockPaddingStyle(props.padding)"
+    data-block-padding :style="blockPaddingStyle(model.padding)"
     :id="props.id"
     class="group relative scroll-mt-20"
     :class="[themeClasses.bg, 'py-16 md:py-20']"
   >
+    <PaddingHandles :editable="editable" :selected="selected" :padding="model.padding" @update:padding="update(['padding'], $event)" />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div
       v-if="editable || campaignData"

@@ -3,6 +3,7 @@ import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
+  PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedSelectionFrame,
@@ -40,6 +41,7 @@ const props = defineProps<{
 const emits = defineEmits([
   "update:modelValue",
   "update:props",
+  "update:padding",
   "update:title",
   "update:subtitle",
   "update:content",
@@ -233,8 +235,9 @@ const getAllVideoCodes = (...args: any[]) =>
 
 <template>
   <section :class="[theme.surface, 'tabs-block group relative']">
+    <PaddingHandles :editable="editable" :selected="selected" :padding="model.padding" @update:padding="update(['padding'], $event)" />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="mx-auto max-w-screen-xl py-16 md:py-20" :style="blockPaddingStyle(props.padding)">
+    <div class="mx-auto max-w-screen-xl py-16 md:py-20" data-block-padding :style="blockPaddingStyle(model.padding)">
       <!-- Frame -->
       <!-- Header / Tabs -->
       <TabsRoot v-model="activeValue" as="div">

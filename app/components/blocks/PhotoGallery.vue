@@ -3,6 +3,7 @@ import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
+  PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedImageManager,
@@ -98,6 +99,7 @@ function thumbnailOnError(e: Event) {
 
 const emits = defineEmits([
   "update:props",
+  "update:padding",
   "update:title",
   "update:subtitle",
   "update:content",
@@ -118,10 +120,11 @@ defineExpose({
 
 <template>
   <section
-    :style="blockPaddingStyle(props.padding)"
+    data-block-padding :style="blockPaddingStyle(model.padding)"
     :id="props.id"
     :class="[themeClasses.bg, 'group relative py-16 md:py-20']"
   >
+    <PaddingHandles :editable="editable" :selected="selected" :padding="model.padding" @update:padding="update(['padding'], $event)" />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-4xl text-center">

@@ -4,6 +4,7 @@ import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedItemControls,
@@ -91,6 +92,7 @@ const handleAnchorClick = (url: string, target?: string | null) => {
 
 const emits = defineEmits([
   "update:props",
+  "update:padding",
   "update:title",
   "update:subtitle",
   "update:content",
@@ -115,10 +117,11 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
 
 <template>
   <section
-    :style="blockPaddingStyle(props.padding)"
+    data-block-padding :style="blockPaddingStyle(model.padding)"
     :id="id"
     :class="['group relative scroll-m-16 py-16 md:py-20', themeClasses.bg]"
   >
+    <PaddingHandles :editable="editable" :selected="selected" :padding="model.padding" @update:padding="update(['padding'], $event)" />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto max-w-screen-lg">

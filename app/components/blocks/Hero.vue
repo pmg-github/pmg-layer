@@ -52,6 +52,10 @@ const activeLink = computed(() =>
     ? undefined
     : model.links?.[selectedLinkIndex.value],
 );
+const setActiveLinkField = (field: "url" | "target", value: string | null) => {
+  if (selectedLinkIndex.value === null) return;
+  update(["links", selectedLinkIndex.value, field], value);
+};
 const resizeState = ref<{ startY: number; startHeight: number } | null>(null);
 
 const heightPresets = [
@@ -62,9 +66,19 @@ const heightPresets = [
 
 const heroHeight = computed(() => model.content.height || "100dvh");
 
+const imageUrl = computed(() => {
+  const image = model.content.image;
+  const fallback = model.content.imageUrl;
+  return typeof image === "string"
+    ? image
+    : image?.url || image?.imageUrl || image?.fileUrl ||
+        (typeof fallback === "string" ? fallback : fallback?.url) || "";
+});
+
 const backgroundImageUrl = computed(() => {
-  const src = model.content.image?.url || model.content.imageUrl;
+  const src = imageUrl.value;
   if (!src) return "";
+  if (src.startsWith("blob:") || src.startsWith("data:")) return src;
   const separator = src.includes("?") ? "&" : "?";
   return `${src}${separator}width=2000`;
 });
@@ -75,21 +89,21 @@ const backgroundPosition = computed(() => {
   return `${x}% ${y}%`;
 });
 
-const inlineImageSource = computed(
-  () => model.content.image?.url || model.content.imageUrl,
-);
+const inlineImageSource = imageUrl;
 
-const inlineUpdateImage = (image: any) => {
+const inlineUpdateImage = (payload: any) => {
+  const image = Array.isArray(payload) ? payload[0] : payload?.image || payload;
   if (!image) return;
   update(["content"], {
     ...model.content,
     image,
-    imageUrl: typeof image === "string" ? image : image.url,
+    imageUrl: typeof image === "string" ? image : image.url || image.imageUrl || image.fileUrl,
+    isVideo: 0,
   });
 };
 
 const inlineUpdateSelectedImage = (images: any[]) =>
-  inlineUpdateImage(images[0]);
+  inlineUpdateImage(images);
 
 const inlineClearImage = () => {
   update(["content"], {
@@ -130,28 +144,30 @@ const handleLinksRowFocusOut = (event: FocusEvent) => {
 };
 
 const addButton = () => {
-  if (!model.links) model.links = [];
-  if (model.links.length >= 2) return;
+  const links = [...(model.links || [])];
+  if (links.length >= 2) return;
 
-  model.links.push({
+  links.push({
     text: "Nieuwe knop",
     url: "#",
     target: null,
   });
-  selectedLinkIndex.value = model.links.length - 1;
+  update(["links"], links);
+  selectedLinkIndex.value = links.length - 1;
   linkPanelOpen.value = true;
   blockSettingsRef.value?.close?.();
 };
 
 const removeActiveButton = () => {
   if (selectedLinkIndex.value === null || !model.links) return;
-  model.links.splice(selectedLinkIndex.value, 1);
-  selectedLinkIndex.value = model.links.length ? 0 : null;
-  if (!model.links.length) linkPanelOpen.value = false;
+  const links = model.links.filter((_: any, index: number) => index !== selectedLinkIndex.value);
+  update(["links"], links);
+  selectedLinkIndex.value = links.length ? 0 : null;
+  if (!links.length) linkPanelOpen.value = false;
 };
 
 const setHeightPreset = (height: string) => {
-  model.content.height = height;
+  update(["content", "height"], height);
 };
 
 const handleAnchorClick = (url: string, target?: string | null) => {
@@ -178,7 +194,7 @@ const onResizeMove = (event: PointerEvent) => {
     window.innerHeight,
     Math.max(380, resizeState.value.startHeight + delta),
   );
-  model.content.height = `${Math.round(nextHeight)}px`;
+  update(["content", "height"], `${Math.round(nextHeight)}px`);
 };
 
 const stopResize = () => {
@@ -485,12 +501,13 @@ defineExpose({
                   class="size-4 shrink-0 text-gray-400"
                 />
                 <PMGInput
-                  v-model="activeLink.url"
+                  :model-value="activeLink.url"
+                  @update:model-value="setActiveLinkField('url', String($event ?? ''))"
                   type="url"
                   placeholder="https://... of #sectie"
                   class="min-w-0 flex-1"
                 />
-                <BlocksSharedLinkReferenceSelect v-model="activeLink.url" />
+                <BlocksSharedLinkReferenceSelect :model-value="activeLink.url" @update:model-value="setActiveLinkField('url', String($event ?? ''))" />
                 <PMGButton
                   type="button"
                   variant="ghost"
@@ -505,8 +522,7 @@ defineExpose({
                   title="Openen in nieuw tabblad"
                   aria-label="Openen in nieuw tabblad"
                   @click="
-                    activeLink.target =
-                      activeLink.target === '_blank' ? null : '_blank'
+                    setActiveLinkField('target', activeLink.target === '_blank' ? null : '_blank')
                   "
                 />
                 <PMGButton

@@ -1,5 +1,6 @@
 export { default as BlockEditorProvider } from "./Provider.vue";
 export { default as BlockEditorScope } from "./Scope.vue";
+export { default as PaddingHandles } from "./PaddingHandles.vue";
 export type { BlockEditorComponents, BlockEditorPanelState } from "./context";
 
 export { default as BlocksSharedAddItem } from "./AddItem.vue";

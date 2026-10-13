@@ -4,6 +4,7 @@ import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  PaddingHandles,
   BlocksSharedEditableText,
   BlocksSharedLinkReferenceSelect,
 } from "../block-editor";
@@ -60,6 +61,7 @@ const props = withDefaults(
 
 const emits = defineEmits([
   "update:props",
+  "update:padding",
   "update:settings",
   "update:title",
   "update:subtitle",
@@ -478,6 +480,12 @@ defineExpose({
     </BlocksSharedBlockSettings>
 
     <section :id="props.id" class="group relative isolate" aria-label="Reviews">
+      <PaddingHandles
+        :editable="editable"
+        :selected="selected"
+        :padding="model.padding"
+        @update:padding="update(['padding'], $event)"
+      />
       <div
         v-if="editable"
         class="pointer-events-none absolute inset-0 z-10 transition-shadow"
@@ -495,7 +503,7 @@ defineExpose({
 
       <div
         class="mx-auto h-full max-w-screen-md px-4 py-16 sm:px-6 md:py-20 lg:px-8"
-        :style="blockPaddingStyle(props.padding)"
+        data-block-padding :style="blockPaddingStyle(model.padding)"
       >
         <!-- Header -->
         <div class="mb-8 flex items-start justify-between">

@@ -3,10 +3,12 @@ export interface BlockPadding {
   bottom?: number | null;
 }
 
+export const MIN_BLOCK_PADDING = 32;
+
 export function blockPaddingStyle(padding?: BlockPadding | null) {
   const pixels = (value?: number | null) =>
     typeof value === 'number' && Number.isFinite(value)
-      ? `${Math.min(320, Math.max(0, value))}px`
+      ? `${Math.min(320, Math.max(MIN_BLOCK_PADDING, value))}px`
       : undefined;
 
   return {

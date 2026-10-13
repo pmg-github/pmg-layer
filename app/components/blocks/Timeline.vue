@@ -4,6 +4,7 @@ import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
   BlocksSharedSelectionFrame,
@@ -107,6 +108,7 @@ const handleAnchorClick = (url: string, target?: string | null) => {
 
 const emits = defineEmits([
   "update:props",
+  "update:padding",
   "update:title",
   "update:subtitle",
   "update:content",
@@ -148,7 +150,8 @@ defineExpose({
 </script>
 
 <template>
-  <section :class="[themeClasses.bg, 'group relative py-16 md:py-20']" :style="blockPaddingStyle(props.padding)">
+  <section :class="[themeClasses.bg, 'group relative py-16 md:py-20']" data-block-padding :style="blockPaddingStyle(model.padding)">
+    <PaddingHandles :editable="editable" :selected="selected" :padding="model.padding" @update:padding="update(['padding'], $event)" />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div :class="['prose mx-auto max-w-4xl ', themeClasses.content]">
