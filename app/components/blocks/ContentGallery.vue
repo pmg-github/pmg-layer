@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
@@ -15,6 +16,7 @@ const { locale } = useI18n();
 
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   id?: string;
   links?: { url: string; text: string; target?: string }[];
@@ -168,6 +170,7 @@ const removeActiveButton = () => {
 </script>
 <template>
   <section
+    :style="blockPaddingStyle(props.padding)"
     :id="props.id || undefined"
     :class="[themeClasses.bg, 'group relative py-16 md:py-20']"
     :aria-labelledby="(props.id || 'contentgallery') + '-title'"

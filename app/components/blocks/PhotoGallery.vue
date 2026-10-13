@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
@@ -13,6 +14,7 @@ import type { FileButtonViewModel } from "models";
 
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   id?: string;
   content: string[] | FileButtonViewModel[];
@@ -116,6 +118,7 @@ defineExpose({
 
 <template>
   <section
+    :style="blockPaddingStyle(props.padding)"
     :id="props.id"
     :class="[themeClasses.bg, 'group relative py-16 md:py-20']"
   >

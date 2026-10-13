@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useFetchCampaigns } from "../../composables/useFetchCampaigns";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -20,6 +21,7 @@ type CampaignOption = { key: string; value: number };
 
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   content?: { campaign: CampaignOption };
   colorScheme?: "light" | "dark" | "white";
@@ -162,6 +164,7 @@ defineExpose({
 
 <template>
   <section
+    :style="blockPaddingStyle(props.padding)"
     :id="props.id"
     class="group relative scroll-mt-20"
     :class="[themeClasses.bg, 'py-16 md:py-20']"

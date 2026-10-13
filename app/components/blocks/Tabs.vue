@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
@@ -13,6 +14,7 @@ const { locale } = useI18n();
 
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   id?: string;
   content: {
@@ -232,7 +234,7 @@ const getAllVideoCodes = (...args: any[]) =>
 <template>
   <section :class="[theme.surface, 'tabs-block group relative']">
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="mx-auto max-w-screen-xl py-16 md:py-20">
+    <div class="mx-auto max-w-screen-xl py-16 md:py-20" :style="blockPaddingStyle(props.padding)">
       <!-- Frame -->
       <!-- Header / Tabs -->
       <TabsRoot v-model="activeValue" as="div">

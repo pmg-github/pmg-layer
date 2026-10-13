@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
@@ -19,6 +20,7 @@ interface Feature {
 
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   id?: string;
   title?: string;
@@ -106,6 +108,7 @@ defineExpose({
 
 <template>
   <section
+    :style="blockPaddingStyle(props.padding)"
     :class="[themeClasses.bg, 'group relative py-16 md:py-20']"
     aria-labelledby="content-title"
   >

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import { responsiveTileGridClass } from "../../utils/responsiveTileGrid";
 import {
@@ -11,6 +12,7 @@ import {
 } from "../block-editor";
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   links?: { url: string; text: string; target?: string }[];
   id?: string;
@@ -173,6 +175,7 @@ function updateCardButton(index: number, card: any, links: any[]) {
 
 <template>
   <section
+    :style="blockPaddingStyle(props.padding)"
     :id="props.id"
     :class="['group relative scroll-mt-20 py-16 md:py-20', themeClasses.bg]"
   >

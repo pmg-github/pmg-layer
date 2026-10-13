@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
@@ -12,6 +13,7 @@ import { computed } from "vue";
 
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   id?: string;
   title?: string;
@@ -113,6 +115,7 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
 
 <template>
   <section
+    :style="blockPaddingStyle(props.padding)"
     :id="id"
     :class="['group relative scroll-m-16 py-16 md:py-20', themeClasses.bg]"
   >

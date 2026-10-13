@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
@@ -7,6 +8,7 @@ import {
 } from "../block-editor";
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   id?: string;
   title?: string;
@@ -39,7 +41,7 @@ const emits = defineEmits([
   "update:kicker",
 ]);
 
-const { model, setField, update } = useInlineBlock(props, emits);
+const { model, update } = useInlineBlock(props, emits);
 
 const heroEl = ref<HTMLElement | null>(null);
 const blockSettingsRef = ref();
@@ -79,16 +81,22 @@ const inlineImageSource = computed(
 
 const inlineUpdateImage = (image: any) => {
   if (!image) return;
-  model.content.image = image;
-  model.content.imageUrl = image.url;
+  update(["content"], {
+    ...model.content,
+    image,
+    imageUrl: typeof image === "string" ? image : image.url,
+  });
 };
 
 const inlineUpdateSelectedImage = (images: any[]) =>
   inlineUpdateImage(images[0]);
 
 const inlineClearImage = () => {
-  model.content.image = null;
-  model.content.imageUrl = undefined;
+  update(["content"], {
+    ...model.content,
+    image: null,
+    imageUrl: null,
+  });
 };
 
 const openMediaPanel = () => {
@@ -391,6 +399,7 @@ defineExpose({
       <!-- Hero content -->
       <div
         class="relative z-20 mx-auto flex h-full w-full max-w-screen-2xl flex-col items-start justify-end px-4 py-8 sm:py-12"
+        :style="blockPaddingStyle(props.padding)"
       >
         <div class="flex w-full flex-col md:flex-row">
           <div class="ml-0 mt-4 flex flex-col text-left md:mt-0 md:items-start">
@@ -460,7 +469,7 @@ defineExpose({
                     :editable="editable"
                     :model-value="link.text"
                     placeholder="Knoptekst"
-                    @update:model-value="setField(link, 'text', $event)"
+                    @update:model-value="update(['links', Number(idx), 'text'], $event)"
                   />
                   <template v-else>{{ link.text }}</template>
                 </a>

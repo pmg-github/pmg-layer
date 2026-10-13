@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
@@ -37,6 +38,7 @@ interface WinnerItem {
 const props = withDefaults(
   defineProps<{
     editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
     id?: string;
     links?: WinnerLink[];
@@ -264,6 +266,7 @@ async function addWinner() {
 
 <template>
   <section
+    :style="blockPaddingStyle(props.padding)"
     :id="id"
     :class="[
       'group relative scroll-mt-20 overflow-hidden py-16 md:py-20',

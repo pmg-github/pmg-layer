@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
@@ -11,6 +12,7 @@ import { computed } from "vue";
 
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   id?: string;
   title?: string;
@@ -146,7 +148,7 @@ defineExpose({
 </script>
 
 <template>
-  <section :class="[themeClasses.bg, 'group relative py-16 md:py-20']">
+  <section :class="[themeClasses.bg, 'group relative py-16 md:py-20']" :style="blockPaddingStyle(props.padding)">
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
       <div :class="['prose mx-auto max-w-4xl ', themeClasses.content]">

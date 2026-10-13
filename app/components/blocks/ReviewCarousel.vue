@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
@@ -37,6 +38,7 @@ const isApiReview = (review: unknown): review is ApiReview =>
 const props = withDefaults(
   defineProps<{
     editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
     id?: string;
     links?: { url: string; text: string; target?: string | null }[];
@@ -493,6 +495,7 @@ defineExpose({
 
       <div
         class="mx-auto h-full max-w-screen-md px-4 py-16 sm:px-6 md:py-20 lg:px-8"
+        :style="blockPaddingStyle(props.padding)"
       >
         <!-- Header -->
         <div class="mb-8 flex items-start justify-between">

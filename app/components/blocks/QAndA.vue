@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { computed, ref, useId, watch } from "vue";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -16,6 +17,7 @@ interface QAndAItem {
 
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   id?: string | number;
   title?: string;
@@ -107,6 +109,7 @@ defineExpose({
 
 <template>
   <section
+    :style="blockPaddingStyle(props.padding)"
     :id="sectionId"
     :class="[
       'group relative scroll-mt-20 py-16 md:py-20',

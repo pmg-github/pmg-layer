@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
@@ -10,6 +11,7 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 
 const props = defineProps<{
   editable?: boolean;
+  padding?: { top?: number; bottom?: number } | null;
   selected?: boolean;
   id?: string;
   links?: { url: string; text: string; target?: string }[];
@@ -133,6 +135,7 @@ defineExpose({
 
 <template>
   <section
+    :style="blockPaddingStyle(props.padding)"
     :id="props.id"
     :class="['group relative scroll-m-16 py-16 md:py-20', themeClasses.bg]"
   >
