@@ -35,6 +35,7 @@ const props = defineProps<{
     buttonTarget?: string;
   }[];
   colorScheme?: "light" | "dark" | "white";
+  alignment?: "left" | "center" | "right";
 }>();
 
 const borderColor = (color?: string | null) => ({
@@ -95,12 +96,40 @@ const emits = defineEmits([
   "update:content",
   "update:links",
   "update:kicker",
+  "update:alignment",
 ]);
 
 const { model, setField, update } = useInlineBlock(props, emits);
 const gridClass = computed(() =>
   responsiveTileGridClass(props.content?.length ?? 0, 3),
 );
+const cardAlignment = computed(() =>
+  props.alignment === "center" || props.alignment === "right"
+    ? props.alignment
+    : "left",
+);
+const cardAlignmentClass = computed(() =>
+  ({ left: "text-left", center: "text-center", right: "text-right" })[
+    cardAlignment.value
+  ],
+);
+const cardJustifyClass = computed(() =>
+  ({
+    left: "justify-start",
+    center: "justify-center",
+    right: "justify-end",
+  })[cardAlignment.value],
+);
+const addButtonAlignmentClass = computed(() =>
+  ({ left: "self-start", center: "self-center", right: "self-end" })[
+    cardAlignment.value
+  ],
+);
+const alignmentOptions = [
+  { value: "left", label: "Links", icon: "material-symbols:format-align-left" },
+  { value: "center", label: "Gecentreerd", icon: "material-symbols:format-align-center" },
+  { value: "right", label: "Rechts", icon: "material-symbols:format-align-right" },
+] as const;
 const blockSettingsRef = ref();
 const editableLinksRef = ref();
 const openBadgeColorIndex = ref<number | null>(null);
@@ -296,7 +325,7 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
             </div>
           </div>
 
-          <div class="flex flex-1 flex-col">
+          <div :class="['flex flex-1 flex-col', cardAlignmentClass]">
             <h3 class="mb-2 text-2xl font-bold uppercase text-gray-900">
               <BlocksSharedEditableText
                 :editable="editable"
@@ -319,7 +348,7 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
               />
             </div>
 
-            <div v-if="card.tags?.length" class="mb-2 flex flex-wrap gap-1">
+            <div v-if="card.tags?.length" :class="['mb-2 flex flex-wrap gap-1', cardJustifyClass]">
               <span
                 v-for="(tag, tagIndex) in card.tags"
                 :key="tagIndex"
@@ -336,7 +365,7 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
               <li
                 v-for="(benefit, benefitIndex) in card.benefits"
                 :key="benefitIndex"
-                class="flex items-start gap-2"
+                :class="['flex items-start gap-2', cardJustifyClass]"
               >
                 <button
                   v-if="editable"
@@ -383,7 +412,8 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
             <button
               v-if="editable"
               type="button"
-              class="mb-6 flex items-center gap-1.5 self-start rounded-md px-2 py-1 text-sm font-medium text-primary-900 hover:bg-primary-50"
+              class="mb-6 flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium text-primary-900 hover:bg-primary-50"
+              :class="addButtonAlignmentClass"
               @click.stop="addBenefit(i, card)"
             >
               <Icon name="material-symbols:add-rounded" class="size-4" />
@@ -473,8 +503,25 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
-    <p class="text-sm text-gray-500">
-      Prijskaarten beheer je rechtstreeks in het blok.
-    </p>
+    <div class="space-y-4">
+      <div class="space-y-2">
+        <span class="block text-xs font-medium text-gray-600">Tekstuitlijning in kaarten</span>
+        <div class="inline-flex rounded-lg bg-gray-100 p-1" role="group" aria-label="Tekstuitlijning in kaarten">
+          <button
+            v-for="option in alignmentOptions"
+            :key="option.value"
+            type="button"
+            class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition"
+            :class="cardAlignment === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'"
+            :aria-pressed="cardAlignment === option.value"
+            @click="model.alignment = option.value"
+          >
+            <Icon :name="option.icon" class="size-4" />
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
+      <p class="text-sm text-gray-500">Prijskaarten beheer je rechtstreeks in het blok.</p>
+    </div>
   </BlocksSharedBlockSettings>
 </template>
