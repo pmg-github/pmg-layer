@@ -230,6 +230,11 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
     ),
   );
 }
+
+function shouldShowEuroPrefix(price?: string) {
+  const value = price?.trim() ?? "";
+  return /^-?\d/.test(value) && !/[€$£¥]|\bEUR\b/i.test(value);
+}
 </script>
 
 <template>
@@ -464,7 +469,13 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
               >
                 Prijs
               </div>
-              <div class="text-3xl font-bold tracking-tight text-primary-950">
+              <div
+                :class="[
+                  'flex items-baseline gap-1 text-3xl font-bold tracking-tight text-primary-950',
+                  cardJustifyClass,
+                ]"
+              >
+                <span v-if="shouldShowEuroPrefix(card.price)">€</span>
                 <BlocksSharedEditableText
                   :editable="editable"
                   v-if="editable"
