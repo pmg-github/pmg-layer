@@ -5,6 +5,7 @@ import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
   PaddingHandles,
   BlocksSharedEditableText,
   BlocksSharedItemControls,
@@ -23,6 +24,7 @@ const props = defineProps<{
   id?: string | number;
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   content?: QAndAItem[];
   colorScheme?: "light" | "dark" | "white";
 }>();
@@ -32,6 +34,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
 ]);
 
@@ -129,7 +132,7 @@ defineExpose({
 
     <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
       <div class="text-center">
-        <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.title]">
+        <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.title]" :style="{ textAlign: props.headerAlignment || 'center' }">
           <BlocksSharedEditableText
             v-if="editable"
             :editable="editable"
@@ -140,7 +143,7 @@ defineExpose({
           <template v-else>{{ title }}</template>
         </h2>
 
-        <p :class="['mt-3 text-xl', themeClasses.subtitle]">
+        <p :class="['mt-3 text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
           <BlocksSharedEditableText
             v-if="editable"
             :editable="editable"
@@ -226,7 +229,7 @@ defineExpose({
                 role="region"
                 :aria-labelledby="`${sectionId}-question-${index}`"
                 :class="[
-                  'px-5 pb-5 text-sm leading-6 md:px-6 md:pb-6',
+                  'flex min-h-24 items-center justify-center p-5 text-center text-sm leading-6 md:p-6',
                   themeClasses.answer,
                 ]"
               >
@@ -258,6 +261,10 @@ defineExpose({
     label="Q&A-instellingen"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'center'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <p class="text-sm text-gray-500">
       Vragen en antwoorden beheer je rechtstreeks in het blok.
     </p>

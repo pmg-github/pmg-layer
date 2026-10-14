@@ -3,6 +3,7 @@ import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
   PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
@@ -18,6 +19,7 @@ const props = defineProps<{
   links?: { url: string; text: string; target?: string }[];
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   content?: string;
   colorScheme?: "light" | "dark" | "white";
 }>();
@@ -73,6 +75,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -151,7 +154,7 @@ defineExpose({
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="container">
       <div class="mx-auto max-w-screen-lg">
-        <h2 :class="['mb-8 text-2xl font-bold sm:text-3xl', themeClasses.text]">
+        <h2 :class="['mb-8 text-2xl font-bold sm:text-3xl', themeClasses.text]" :style="{ textAlign: props.headerAlignment || 'left' }">
           <BlocksSharedEditableText
             v-if="editable"
             :editable="editable"
@@ -164,6 +167,7 @@ defineExpose({
         <p
           v-if="editable || subtitle"
           :class="['mb-8 text-xl', themeClasses.subtitle]"
+        :style="{ textAlign: props.headerAlignment || 'left' }"
         >
           <BlocksSharedEditableText
             v-if="editable"
@@ -282,6 +286,10 @@ defineExpose({
     label="Blokinstellingen"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'left'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <div class="space-y-5">
       <section>
         <label class="block">

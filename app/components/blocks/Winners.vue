@@ -4,6 +4,8 @@ import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
+  BlocksSharedCardAlignment,
   PaddingHandles,
   BlocksSharedEditableImage,
   BlocksSharedEditableLinks,
@@ -46,8 +48,10 @@ const props = withDefaults(
     kicker?: string;
     title?: string;
     subtitle?: string;
+    headerAlignment?: "left" | "center" | "right";
     content?: WinnerItem[];
     colorScheme?: "light" | "dark" | "white";
+    alignment?: "left" | "center" | "right";
   }>(),
   {
     links: () => [],
@@ -103,6 +107,15 @@ const themes = {
 } as const;
 
 const theme = computed(() => themes[colorScheme.value]);
+
+const cardAlignment = computed(() =>
+  props.alignment === "left" || props.alignment === "right" ? props.alignment : "center",
+);
+const cardAlignmentClass = computed(() => ({
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+})[cardAlignment.value]);
 
 const primaryLink = computed(() => links.value[0]);
 
@@ -227,6 +240,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -315,6 +329,7 @@ async function addWinner() {
               'max-w-full text-5xl font-black leading-[0.92] [overflow-wrap:anywhere] sm:text-6xl',
               theme.heading,
             ]"
+          :style="{ textAlign: props.headerAlignment || 'left' }"
           >
             <BlocksSharedEditableText
               :model-value="title"
@@ -331,7 +346,13 @@ async function addWinner() {
             :class="[
               'mt-5 max-w-md text-xl font-bold leading-8',
               theme.subtitle,
+              props.headerAlignment === 'center'
+                ? 'mx-auto'
+                : props.headerAlignment === 'right'
+                  ? 'ml-auto'
+                  : '',
             ]"
+          :style="{ textAlign: props.headerAlignment || 'left' }"
           >
             <BlocksSharedEditableText
               v-if="editable"
@@ -518,7 +539,7 @@ async function addWinner() {
                     </div>
 
                     <!-- Card content -->
-                    <div class="p-6 text-center">
+                    <div :class="['p-6', cardAlignmentClass]">
                       <!-- Company -->
                       <span
                         class="text-sm font-medium uppercase text-primary-950"
@@ -634,7 +655,15 @@ async function addWinner() {
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'left'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <div class="space-y-3">
+      <BlocksSharedCardAlignment
+        :model-value="cardAlignment"
+        @update:model-value="model.alignment = $event"
+      />
       <p class="text-sm text-gray-500">
         Winnaars beheer je rechtstreeks in het blok.
       </p>

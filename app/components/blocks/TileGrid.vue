@@ -4,6 +4,7 @@ import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
   PaddingHandles,
   BlocksSharedEditableIcon,
   BlocksSharedEditableLinks,
@@ -22,6 +23,7 @@ const props = defineProps<{
   links?: { url: string; text: string; target?: string }[];
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   content?: {
     tiles?: Array<{
       icon?: string;
@@ -141,6 +143,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -193,6 +196,7 @@ function addTile() {
             'text-center text-2xl font-bold sm:text-3xl',
             themeClasses.text,
           ]"
+        :style="{ textAlign: props.headerAlignment || 'center' }"
         >
           <BlocksSharedEditableText
             :editable="editable"
@@ -202,7 +206,7 @@ function addTile() {
             @update:model-value="update(['title'], $event)"
           /><template v-else>{{ title }}</template>
         </h2>
-        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]">
+        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -371,6 +375,10 @@ function addTile() {
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'center'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <div class="flex flex-col space-y-4">
       <div class="space-y-2">
         <span class="block text-xs font-medium text-gray-600"

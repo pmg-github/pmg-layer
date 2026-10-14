@@ -5,6 +5,7 @@ import { responsiveTileGridClass } from "../../utils/responsiveTileGrid";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
   PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
@@ -19,6 +20,7 @@ const props = defineProps<{
   id?: string;
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   content?: {
     title?: string;
     description?: string;
@@ -93,6 +95,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -258,6 +261,7 @@ function shouldShowEuroPrefix(price?: string) {
             'text-center text-2xl font-bold sm:text-3xl',
             themeClasses.text,
           ]"
+        :style="{ textAlign: props.headerAlignment || 'center' }"
         >
           <BlocksSharedEditableText
             :editable="editable"
@@ -267,7 +271,7 @@ function shouldShowEuroPrefix(price?: string) {
             @update:model-value="update(['title'], $event)"
           /><template v-else>{{ title }}</template>
         </h2>
-        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]">
+        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -511,7 +515,7 @@ function shouldShowEuroPrefix(price?: string) {
               v-else-if="card.buttonLabel"
               :href="card.buttonUrl || undefined"
               :target="card.buttonTarget || '_self'"
-              class="mt-2 block w-full rounded-md bg-primary-900 px-6 py-3 text-center text-lg font-bold uppercase text-white shadow transition-colors hover:bg-primary-950"
+              class="mt-2 block w-full rounded-md bg-primary-900 px-6 py-3 text-center text-lg font-bold normal-case text-white shadow transition-colors hover:bg-primary-950"
             >
               {{ card.buttonLabel }}
             </a>
@@ -557,6 +561,10 @@ function shouldShowEuroPrefix(price?: string) {
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'center'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <div class="space-y-4">
       <div class="space-y-2">
         <span class="block text-xs font-medium text-gray-600"

@@ -4,6 +4,7 @@ import { useFetchCampaigns } from "../../composables/useFetchCampaigns";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
   PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
@@ -28,6 +29,7 @@ const props = defineProps<{
   colorScheme?: "light" | "dark" | "white";
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   links?: { url: string; text: string; target?: string }[];
   id?: string;
 }>();
@@ -146,6 +148,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -187,7 +190,7 @@ defineExpose({
       <div class="flex flex-col justify-center">
         <!-- Title -->
         <div class="text-center">
-          <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.text]">
+          <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.text]" :style="{ textAlign: props.headerAlignment || 'center' }">
             <BlocksSharedEditableText
               v-if="editable"
               :model-value="props.title"
@@ -202,6 +205,7 @@ defineExpose({
           <p
             v-if="editable || props.subtitle || campaignData?.subtitle"
             :class="['mt-4 text-lg', themeClasses.subtitle]"
+          :style="{ textAlign: props.headerAlignment || 'center' }"
           >
             <BlocksSharedEditableText
               v-if="editable"
@@ -284,6 +288,10 @@ defineExpose({
     label="Blokinstellingen"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'center'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <label class="mb-1 block text-xs font-medium text-gray-600">Campagne</label>
     <PMGSelect
       :name="`target-campaign-${props.id}`"

@@ -31,7 +31,7 @@ const iconOnly = computed(() => !slots.default);
   <button
     :type="type"
     :disabled="isDisabled"
-    class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border font-medium leading-none transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+    class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border font-medium leading-none normal-case transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
     :class="[
       size === 'sm' && !iconOnly && 'min-h-[1.75rem] px-2.5 py-1 text-xs',
       size === 'md' && !iconOnly && 'min-h-[2.25rem] px-3 py-1.5 text-sm',

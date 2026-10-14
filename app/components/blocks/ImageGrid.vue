@@ -3,6 +3,7 @@ import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
   PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
@@ -22,6 +23,7 @@ const props = defineProps<{
   links?: { url: string; text: string; target?: string }[];
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   content?: {
     tiles?: Array<{
       icon?: string;
@@ -33,7 +35,7 @@ const props = defineProps<{
       link?: { url: string; target?: string };
     }>;
     columns?: number;
-    alignment?: "center" | "left";
+    alignment?: "left" | "center" | "right";
   };
   colorScheme?: "light" | "dark" | "white";
   language?: string;
@@ -57,10 +59,12 @@ const cols = computed(() =>
   Math.min(4, Math.max(1, props.content?.columns ?? 3)),
 );
 const contentAlignment = computed(() =>
-  props.content?.alignment === "left" ? "left" : "center",
+  props.content?.alignment === "left" || props.content?.alignment === "right"
+    ? props.content.alignment
+    : "center",
 );
 const contentAlignmentClass = computed(() =>
-  contentAlignment.value === "center" ? "text-center" : "text-left",
+  ({ left: "text-left", center: "text-center", right: "text-right" })[contentAlignment.value],
 );
 const gridClass = computed(() =>
   responsiveTileGridClass(props.content?.tiles?.length ?? 0, cols.value),
@@ -124,6 +128,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -185,6 +190,7 @@ const tileImageUrl = (tile: any) => {
             'text-center text-2xl font-bold sm:text-3xl',
             themeClasses.text,
           ]"
+        :style="{ textAlign: props.headerAlignment || 'center' }"
         >
           <BlocksSharedEditableText
             :editable="editable"
@@ -194,7 +200,7 @@ const tileImageUrl = (tile: any) => {
             @update:model-value="update(['title'], $event)"
           /><template v-else>{{ title }}</template>
         </h2>
-        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]">
+        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -312,6 +318,10 @@ const tileImageUrl = (tile: any) => {
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'center'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <div class="flex flex-col space-y-4">
       <div class="space-y-2">
         <span class="block text-xs font-medium text-gray-600"
@@ -333,6 +343,11 @@ const tileImageUrl = (tile: any) => {
                 value: 'left',
                 label: 'Links',
                 icon: 'material-symbols:format-align-left',
+              },
+              {
+                value: 'right',
+                label: 'Rechts',
+                icon: 'material-symbols:format-align-right',
               },
             ]"
             :key="option.value"

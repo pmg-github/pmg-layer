@@ -4,6 +4,8 @@ import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
+  BlocksSharedCardAlignment,
   PaddingHandles,
   BlocksSharedEditableText,
   BlocksSharedLinkReferenceSelect,
@@ -11,6 +13,7 @@ import {
 import { computed } from "vue";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { Autoplay } from "swiper/modules";
+import type { Swiper as SwiperInstance } from "swiper";
 import "swiper/css";
 import type { FileButtonViewModel } from "models";
 
@@ -45,9 +48,11 @@ const props = withDefaults(
     links?: { url: string; text: string; target?: string | null }[];
     title?: string;
     subtitle?: string;
+    headerAlignment?: "left" | "center" | "right";
     content?: ApiReview[];
     autoplay?: boolean;
     pauseOnHover?: boolean;
+    alignment?: "left" | "center" | "right";
     colorScheme?: "light" | "dark" | "white";
     visibleFrom?: string | null;
     visibleUntil?: string | null;
@@ -65,17 +70,19 @@ const emits = defineEmits([
   "update:settings",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
   "delete",
 ]);
 
-const { model, setField, update } = useInlineBlock(props, emits);
+const { model, update } = useInlineBlock(props, emits);
 const blockSettingsRef = ref();
 const linkPanelOpen = ref(false);
 const selectedLinkIndex = ref<number | null>(null);
 const scheduleEnabled = ref(Boolean(props.visibleFrom || props.visibleUntil));
+const swiperInstance = shallowRef<SwiperInstance | null>(null);
 
 const getInitials = (firstName?: string, lastName?: string) =>
   `${firstName?.trim().charAt(0) || ""}${lastName?.trim().charAt(0) || ""}`.toUpperCase() ||
@@ -138,6 +145,20 @@ const list = computed<Review[]>(() =>
     ? transformedReviews.value
     : fallbackReviews,
 );
+
+const cardAlignment = computed(() =>
+  props.alignment === "center" || props.alignment === "right" ? props.alignment : "left",
+);
+const cardAlignmentClass = computed(() => ({
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+})[cardAlignment.value]);
+const cardJustifyClass = computed(() => ({
+  left: "justify-start",
+  center: "justify-center",
+  right: "justify-end",
+})[cardAlignment.value]);
 
 const getStars = (rating: number) => {
   const full = Math.floor(rating);
@@ -349,7 +370,17 @@ defineExpose({
       hide-trigger
       @delete="emits('delete')"
     >
+      <BlocksSharedHeaderAlignment
+        :model-value="props.headerAlignment || 'center'"
+        @update:model-value="update(['headerAlignment'], $event)"
+      />
       <div class="space-y-5">
+        <section>
+          <BlocksSharedCardAlignment
+            :model-value="cardAlignment"
+            @update:model-value="model.alignment = $event"
+          />
+        </section>
         <section>
           <h4 class="mb-2 text-xs font-semibold text-gray-600">Carousel</h4>
           <div class="space-y-2">
@@ -507,13 +538,14 @@ defineExpose({
         :style="blockPaddingStyle(model.padding)"
       >
         <!-- Header -->
-        <div class="mb-8 flex items-start justify-between">
-          <div class="mx-auto max-w-4xl text-center">
+        <div class="mb-8 flex flex-wrap items-start justify-between gap-3">
+          <div class="mx-auto w-full max-w-4xl text-center">
             <h2
               :class="[
                 'text-center text-2xl font-bold sm:text-3xl',
                 themeClasses.text,
               ]"
+            :style="{ textAlign: props.headerAlignment || 'center' }"
             >
               <BlocksSharedEditableText
                 :editable="editable"
@@ -523,7 +555,7 @@ defineExpose({
                 @update:model-value="update(['title'], $event)"
               /><template v-else>{{ model.title }}</template>
             </h2>
-            <p :class="['text-center text-xl', themeClasses.text]">
+            <p :class="['text-center text-xl', themeClasses.text]" :style="{ textAlign: props.headerAlignment || 'center' }">
               <BlocksSharedEditableText
                 :editable="editable"
                 v-if="editable"
@@ -534,12 +566,13 @@ defineExpose({
             </p>
           </div>
 
-          <div v-if="list.length > 3" class="flex gap-2">
+          <div v-if="list.length > 1" class="flex gap-2">
             <button
+              type="button"
               class="group flex rounded-full p-2 shadow-md ring-1 ring-black/10 transition-colors"
               :class="themeClasses.navButton"
               aria-label="Previous review"
-              data-swiper-prev
+              @click="swiperInstance?.slidePrev()"
             >
               <Icon
                 name="material-symbols:chevron-left"
@@ -547,10 +580,11 @@ defineExpose({
               />
             </button>
             <button
+              type="button"
               class="group flex rounded-full p-2 shadow-md ring-1 ring-black/10 transition-colors"
               :class="themeClasses.navButton"
               aria-label="Next review"
-              data-swiper-next
+              @click="swiperInstance?.slideNext()"
             >
               <Icon
                 name="material-symbols:chevron-right"
@@ -558,6 +592,15 @@ defineExpose({
               />
             </button>
           </div>
+          <button
+            v-if="editable && list.length"
+            type="button"
+            class="ml-3 inline-flex items-center gap-1 rounded-lg bg-gray-950 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-800"
+            @click="addReview"
+          >
+            <Icon name="material-symbols:add-rounded" class="size-4" />
+            Review toevoegen
+          </button>
         </div>
 
         <!-- Carousel -->
@@ -594,7 +637,9 @@ defineExpose({
             :modules="[Autoplay]"
             :slides-per-view="'auto'"
             :space-between="24"
-            loop
+            :loop="!editable && list.length > 1"
+            :observer="true"
+            :observe-parents="true"
             :autoplay="
               !props.editable && model.autoplay
                 ? {
@@ -609,23 +654,7 @@ defineExpose({
             :prevent-clicks-propagation="!editable"
             :allow-touch-move="!editable"
             class="h-80"
-            @swiper="
-              (s) => {
-                // connect our custom buttons
-                const prev = (
-                  s.el as HTMLElement
-                ).parentElement?.parentElement?.querySelector(
-                  '[data-swiper-prev]',
-                ) as HTMLElement | null;
-                const next = (
-                  s.el as HTMLElement
-                ).parentElement?.parentElement?.querySelector(
-                  '[data-swiper-next]',
-                ) as HTMLElement | null;
-                prev?.addEventListener('click', () => s.slidePrev());
-                next?.addEventListener('click', () => s.slideNext());
-              }
-            "
+            @swiper="swiperInstance = $event"
           >
             <SwiperSlide
               v-for="(review, reviewIndex) in list"
@@ -650,8 +679,8 @@ defineExpose({
                   </svg>
                 </div>
 
-                <div class="relative z-10 flex h-full flex-col p-6">
-                  <div class="mb-4 flex items-center" aria-label="Rating">
+                <div :class="['relative z-10 flex h-full flex-col p-6', cardAlignmentClass]">
+                  <div :class="['mb-4 flex items-center', cardJustifyClass]" aria-label="Rating">
                     <div
                       class="flex items-center space-x-0.5"
                       title="img"
@@ -741,17 +770,11 @@ defineExpose({
                       :model-value="review.text"
                       :editable="editable"
                       rich
-                      @update:model-value="
-                        setField(
-                          model.content[review.sourceIndex],
-                          'text',
-                          $event,
-                        )
-                      "
+                      @update:model-value="update(['content', review.sourceIndex, 'text'], $event)"
                     />
                   </blockquote>
 
-                  <footer class="mt-auto flex items-center">
+                  <footer :class="['mt-auto flex items-center', cardJustifyClass]">
                     <div
                       class="mr-4 flex size-12 shrink-0 items-center justify-center rounded-full font-semibold text-white"
                       :class="themeClasses.avatarBg"
@@ -768,25 +791,13 @@ defineExpose({
                             "
                             editable
                             placeholder="Voornaam"
-                            @update:model-value="
-                              setField(
-                                model.content[review.sourceIndex],
-                                'firstName',
-                                $event,
-                              )
-                            " /><BlocksSharedEditableText
+                            @update:model-value="update(['content', review.sourceIndex, 'firstName'], $event)" /><BlocksSharedEditableText
                             :model-value="
                               model.content?.[review.sourceIndex]?.lastName
                             "
                             editable
                             placeholder="Achternaam"
-                            @update:model-value="
-                              setField(
-                                model.content[review.sourceIndex],
-                                'lastName',
-                                $event,
-                              )
-                            " /></template
+                            @update:model-value="update(['content', review.sourceIndex, 'lastName'], $event)" /></template
                         ><template v-else>{{ review.name }}</template>
                       </p>
                       <p
@@ -799,13 +810,7 @@ defineExpose({
                           v-if="editable"
                           :model-value="review.title"
                           placeholder="Functie toevoegen"
-                          @update:model-value="
-                            setField(
-                              model.content[review.sourceIndex],
-                              'title',
-                              $event,
-                            )
-                          "
+                          @update:model-value="update(['content', review.sourceIndex, 'title'], $event)"
                         /><template v-else>{{ review.title }}</template>
                       </p>
                     </div>
@@ -869,7 +874,7 @@ defineExpose({
                 :editable="editable"
                 :model-value="link.text"
                 placeholder="Knoptekst"
-                @update:model-value="setField(link, 'text', $event)"
+                @update:model-value="update(['links', idx, 'text'], $event)"
               />
               <template v-else>{{ link.text }}</template>
             </a>

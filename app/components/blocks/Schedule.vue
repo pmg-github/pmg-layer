@@ -4,6 +4,8 @@ import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
+  BlocksSharedCardAlignment,
   PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
@@ -19,6 +21,7 @@ const props = defineProps<{
   id?: string;
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   links?: { url: string; text: string; target?: string }[];
   content: {
     items?: {
@@ -27,9 +30,25 @@ const props = defineProps<{
       description?: string | undefined | null;
     }[];
     footer?: string;
+    alignment?: "left" | "center" | "right";
   };
   colorScheme?: "light" | "dark" | "white";
 }>();
+
+const cardAlignment = computed(() => {
+  const alignment = props.content?.alignment;
+  return alignment === "center" || alignment === "right" ? alignment : "left";
+});
+const cardAlignmentClass = computed(() => ({
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+})[cardAlignment.value]);
+const cardJustifyClass = computed(() => ({
+  left: "justify-start",
+  center: "justify-center",
+  right: "justify-end",
+})[cardAlignment.value]);
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
@@ -95,6 +114,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -131,7 +151,7 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div class="container">
       <div class="mx-auto max-w-screen-lg">
-        <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.text]">
+        <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.text]" :style="{ textAlign: props.headerAlignment || 'left' }">
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -140,7 +160,7 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
             @update:model-value="update(['title'], $event)"
           /><template v-else>{{ title }}</template>
         </h2>
-        <p :class="['mb-8 text-xl', themeClasses.subtitle]">
+        <p :class="['mb-8 text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'left' }">
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -156,7 +176,7 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
               :key="index"
               class="group/item relative px-4 py-6 sm:px-6"
             >
-              <article>
+              <article :class="cardAlignmentClass">
                 <h3 :class="['text-lg font-bold', themeClasses.itemTitle]">
                   <BlocksSharedEditableText
                     :editable="editable"
@@ -167,7 +187,7 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
                 </h3>
                 <div
                   v-if="item.label"
-                  class="mt-1 flex flex-wrap items-center gap-2"
+                  :class="['mt-1 flex flex-wrap items-center gap-2', cardJustifyClass]"
                 >
                   <span
                     v-for="(label, labelIndex) in item.label"
@@ -315,6 +335,14 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'left'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
+    <BlocksSharedCardAlignment
+      :model-value="cardAlignment"
+      @update:model-value="model.content.alignment = $event"
+    />
     <p class="text-sm text-gray-500">
       Programma-items beheer je rechtstreeks in het blok.
     </p>

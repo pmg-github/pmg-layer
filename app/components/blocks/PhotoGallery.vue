@@ -3,6 +3,7 @@ import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
   PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
@@ -21,6 +22,7 @@ const props = defineProps<{
   content: string[] | FileButtonViewModel[];
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   links?: { url: string; text: string; target?: string }[];
   colorScheme?: "light" | "dark" | "white";
 }>();
@@ -102,6 +104,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -139,6 +142,7 @@ defineExpose({
             'text-center text-2xl font-bold sm:text-3xl',
             themeClasses.text,
           ]"
+        :style="{ textAlign: props.headerAlignment || 'center' }"
         >
           <BlocksSharedEditableText
             :editable="editable"
@@ -148,7 +152,7 @@ defineExpose({
             @update:model-value="setField(props, 'title', $event)"
           /><template v-else>{{ props.title }}</template>
         </h2>
-        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]">
+        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -244,6 +248,10 @@ defineExpose({
     label="Foto's beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'center'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <p class="text-sm text-gray-500">
       Foto's beheer je rechtstreeks in het blok.
     </p>

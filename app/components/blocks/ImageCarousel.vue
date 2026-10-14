@@ -3,6 +3,8 @@ import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
+  BlocksSharedCardAlignment,
   PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
@@ -27,6 +29,7 @@ const props = defineProps<{
   links?: { url: string; text: string; target?: string }[];
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   content?: {
     tiles?: Array<{
       type?: "image" | "video";
@@ -39,6 +42,7 @@ const props = defineProps<{
     }>;
     slidesPerView?: number;
     autoplay?: boolean;
+    alignment?: "left" | "center" | "right";
   };
   language?: string;
   colorScheme?: "light" | "dark" | "white";
@@ -49,6 +53,21 @@ const slidesPerView = computed(() =>
 );
 
 const carouselTiles = computed(() => props.content?.tiles || []);
+const cardAlignment = computed(() => {
+  const alignment = props.content?.alignment;
+  return alignment === "center" || alignment === "right" ? alignment : "left";
+});
+const cardAlignmentClass = computed(() => ({
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+})[cardAlignment.value]);
+const cardJustifyClass = computed(() => ({
+  left: "justify-start",
+  center: "justify-center",
+  right: "justify-end",
+})[cardAlignment.value]);
+
 const desktopSlidesPerView = computed(() =>
   Math.min(slidesPerView.value, Math.max(1, carouselTiles.value.length)),
 );
@@ -158,6 +177,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -220,6 +240,7 @@ const setSlidesPerView = (value: string | number) => {
             'text-center text-2xl font-bold sm:text-3xl',
             themeClasses.text,
           ]"
+        :style="{ textAlign: props.headerAlignment || 'center' }"
         >
           <BlocksSharedEditableText
             :editable="editable"
@@ -229,7 +250,7 @@ const setSlidesPerView = (value: string | number) => {
             @update:model-value="update(['title'], $event)"
           /><template v-else>{{ title }}</template>
         </h2>
-        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]">
+        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -288,7 +309,7 @@ const setSlidesPerView = (value: string | number) => {
             />
             <div
               v-if="editable || t?.title || t?.subtitle || t?.description"
-              class="flex flex-1 flex-col p-4"
+              :class="['flex flex-1 flex-col p-4', cardAlignmentClass]"
             >
               <h3 class="text-base font-bold leading-tight">
                 <BlocksSharedEditableText
@@ -317,7 +338,7 @@ const setSlidesPerView = (value: string | number) => {
                 />
               </div>
             </div>
-            <div v-if="editable || t?.link?.url" class="mt-auto px-4 pb-4">
+            <div v-if="editable || t?.link?.url" :class="['mt-auto flex px-4 pb-4', cardJustifyClass]">
               <span
                 class="inline-flex min-h-8 items-center rounded-md bg-primary-900 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-950"
               >
@@ -431,7 +452,15 @@ const setSlidesPerView = (value: string | number) => {
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'center'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <div class="flex flex-col space-y-4">
+      <BlocksSharedCardAlignment
+        :model-value="cardAlignment"
+        @update:model-value="model.content.alignment = $event"
+      />
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="mb-1 block text-xs font-medium text-gray-600"

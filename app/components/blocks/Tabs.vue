@@ -3,6 +3,7 @@ import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
   PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
@@ -35,6 +36,7 @@ const props = defineProps<{
   links?: { url: string; text: string; target?: string }[];
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   colorScheme?: "light" | "dark" | "white";
 }>();
 
@@ -44,6 +46,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -252,12 +255,13 @@ const getAllVideoCodes = (...args: any[]) =>
       <TabsRoot v-model="activeValue" as="div">
         <div class="w-full">
           <div class="flex gap-4">
-            <div class="mx-auto max-w-4xl text-center">
+            <div class="mx-auto w-full max-w-4xl text-center">
               <h2
                 :class="[
                   'text-center text-2xl font-bold sm:text-3xl',
                   theme.heading,
                 ]"
+              :style="{ textAlign: props.headerAlignment || 'center' }"
               >
                 <BlocksSharedEditableText
                   :editable="editable"
@@ -267,7 +271,7 @@ const getAllVideoCodes = (...args: any[]) =>
                   @update:model-value="update(['title'], $event)"
                 /><template v-else>{{ title }}</template>
               </h2>
-              <p :class="['mb-8 text-center text-xl', theme.muted]">
+              <p :class="['mb-8 text-center text-xl', theme.muted]" :style="{ textAlign: props.headerAlignment || 'center' }">
                 <BlocksSharedEditableText
                   :editable="editable"
                   v-if="editable"
@@ -560,6 +564,10 @@ const getAllVideoCodes = (...args: any[]) =>
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'center'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <p class="text-sm text-gray-500">
       Tabs beheer je rechtstreeks in het blok.
     </p>

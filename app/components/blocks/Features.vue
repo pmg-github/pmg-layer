@@ -4,6 +4,7 @@ import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
   PaddingHandles,
   BlocksSharedEditableIcon,
   BlocksSharedEditableLinks,
@@ -26,6 +27,7 @@ const props = defineProps<{
   id?: string;
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   content?: Feature[];
   colorScheme?: "light" | "dark" | "white";
   links?: { url: string; text: string; target?: string }[];
@@ -91,6 +93,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -128,6 +131,7 @@ defineExpose({
           'text-center text-2xl font-bold sm:text-3xl',
           themeClasses.text,
         ]"
+      :style="{ textAlign: props.headerAlignment || 'center' }"
       >
         <BlocksSharedEditableText
           :editable="editable"
@@ -137,7 +141,7 @@ defineExpose({
           @update:model-value="update(['title'], $event)"
         /><template v-else>{{ title }}</template>
       </h2>
-      <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]">
+      <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
         <BlocksSharedEditableText
           :editable="editable"
           v-if="editable"
@@ -261,6 +265,10 @@ defineExpose({
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'center'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <p class="text-sm text-gray-500">
       Features beheer je rechtstreeks in het blok.
     </p>

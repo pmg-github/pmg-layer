@@ -3,6 +3,7 @@ import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
   PaddingHandles,
   BlocksSharedEditableText,
   BlocksSharedImageManager,
@@ -23,6 +24,7 @@ const props = defineProps<{
   links?: { url: string; text: string; target?: string }[];
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   content?: {
     freeContent: string;
     images: Array<string | FileButtonViewModel>;
@@ -108,6 +110,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -214,6 +217,7 @@ const removeActiveButton = () => {
               'text-2xl font-bold tracking-tight sm:text-3xl',
               themeClasses.text,
             ]"
+          :style="{ textAlign: props.headerAlignment || 'left' }"
           >
             <BlocksSharedEditableText
               :editable="editable"
@@ -226,6 +230,7 @@ const removeActiveButton = () => {
           <p
             v-if="editable || props.subtitle"
             :class="['mb-4 text-xl', themeClasses.subtitle]"
+          :style="{ textAlign: props.headerAlignment || 'left' }"
           >
             <BlocksSharedEditableText
               :editable="editable"
@@ -467,6 +472,10 @@ const removeActiveButton = () => {
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'left'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
     <div class="space-y-5">
       <section>
         <h4 class="mb-2 text-xs font-semibold text-gray-600">Tekstpositie</h4>

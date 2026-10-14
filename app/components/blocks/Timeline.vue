@@ -4,6 +4,8 @@ import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  BlocksSharedHeaderAlignment,
+  BlocksSharedCardAlignment,
   PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
@@ -18,6 +20,7 @@ const props = defineProps<{
   id?: string;
   title?: string;
   subtitle?: string;
+  headerAlignment?: "left" | "center" | "right";
   colorScheme?: "light" | "dark" | "white";
   links?: { url: string; text: string; target?: string }[];
   content: {
@@ -30,8 +33,19 @@ const props = defineProps<{
       title: string;
       content: string;
     }>;
+    alignment?: "left" | "center" | "right";
   };
 }>();
+
+const cardAlignment = computed(() => {
+  const alignment = props.content?.alignment;
+  return alignment === "center" || alignment === "right" ? alignment : "left";
+});
+const cardAlignmentClass = computed(() => ({
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+})[cardAlignment.value]);
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
@@ -111,6 +125,7 @@ const emits = defineEmits([
   "update:padding",
   "update:title",
   "update:subtitle",
+  "update:headerAlignment",
   "update:content",
   "update:links",
   "update:kicker",
@@ -169,6 +184,7 @@ defineExpose({
             'text-center text-2xl font-bold sm:text-3xl',
             themeClasses.text,
           ]"
+        :style="{ textAlign: props.headerAlignment || 'center' }"
         >
           <BlocksSharedEditableText
             :editable="editable"
@@ -178,7 +194,7 @@ defineExpose({
             @update:model-value="update(['title'], $event)"
           /><template v-else>{{ title }}</template>
         </h2>
-        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]">
+        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
           <BlocksSharedEditableText
             :editable="editable"
             v-if="editable"
@@ -311,6 +327,7 @@ defineExpose({
             :class="[
               'group/timeline-note relative rounded-lg p-6',
               themeClasses.noteBg,
+              cardAlignmentClass,
             ]"
           >
             <h3 :class="['mb-4 text-lg font-semibold', themeClasses.noteTitle]">
@@ -427,6 +444,14 @@ defineExpose({
     label="Blokinstellingen / items beheren"
     hide-trigger
   >
+    <BlocksSharedHeaderAlignment
+      :model-value="props.headerAlignment || 'center'"
+      @update:model-value="update(['headerAlignment'], $event)"
+    />
+    <BlocksSharedCardAlignment
+      :model-value="cardAlignment"
+      @update:model-value="model.content.alignment = $event"
+    />
     <p class="text-sm text-gray-500">
       Tijdlijn-items en notities beheer je rechtstreeks in het blok.
     </p>
