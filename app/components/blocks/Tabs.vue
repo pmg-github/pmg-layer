@@ -243,14 +243,14 @@ const getAllVideoCodes = (...args: any[]) =>
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div
-      class="mx-auto max-w-screen-xl py-16 md:py-20"
+      class="container py-16 md:py-20"
       data-block-padding
       :style="blockPaddingStyle(model.padding)"
     >
       <!-- Frame -->
       <!-- Header / Tabs -->
       <TabsRoot v-model="activeValue" as="div">
-        <div class="w-full px-4 sm:px-6 lg:px-8">
+        <div class="w-full">
           <div class="flex gap-4">
             <div class="mx-auto max-w-4xl text-center">
               <h2
@@ -355,7 +355,7 @@ const getAllVideoCodes = (...args: any[]) =>
         </div>
 
         <!-- Panels -->
-        <div class="px-4 pb-6 sm:px-6 lg:px-8">
+        <div class="pb-6">
           <TabsContent
             v-for="(t, tabIndex) in props.content.tabs || []"
             :key="tabIndex"

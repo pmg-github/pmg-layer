@@ -284,7 +284,7 @@ async function addWinner() {
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
 
-    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+    <div class="container">
       <div class="grid items-center gap-12 xl:grid-cols-[1fr_2fr] xl:gap-6">
         <!-- Content -->
         <div class="relative z-10 max-w-xl">

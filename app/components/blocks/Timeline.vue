@@ -162,7 +162,7 @@ defineExpose({
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+    <div class="container">
       <div :class="['prose mx-auto max-w-4xl ', themeClasses.content]">
         <h2
           :class="[

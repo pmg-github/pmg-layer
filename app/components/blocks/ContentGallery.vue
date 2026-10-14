@@ -185,7 +185,7 @@ const removeActiveButton = () => {
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+    <div class="container">
       <div
         :class="[
           'grid gap-16 lg:grid-cols-2 lg:items-center',

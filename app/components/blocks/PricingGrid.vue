@@ -108,27 +108,38 @@ const cardAlignment = computed(() =>
     ? props.alignment
     : "left",
 );
-const cardAlignmentClass = computed(() =>
-  ({ left: "text-left", center: "text-center", right: "text-right" })[
-    cardAlignment.value
-  ],
+const cardAlignmentClass = computed(
+  () =>
+    ({ left: "text-left", center: "text-center", right: "text-right" })[
+      cardAlignment.value
+    ],
 );
-const cardJustifyClass = computed(() =>
-  ({
-    left: "justify-start",
-    center: "justify-center",
-    right: "justify-end",
-  })[cardAlignment.value],
+const cardJustifyClass = computed(
+  () =>
+    ({
+      left: "justify-start",
+      center: "justify-center",
+      right: "justify-end",
+    })[cardAlignment.value],
 );
-const addButtonAlignmentClass = computed(() =>
-  ({ left: "self-start", center: "self-center", right: "self-end" })[
-    cardAlignment.value
-  ],
+const addButtonAlignmentClass = computed(
+  () =>
+    ({ left: "self-start", center: "self-center", right: "self-end" })[
+      cardAlignment.value
+    ],
 );
 const alignmentOptions = [
   { value: "left", label: "Links", icon: "material-symbols:format-align-left" },
-  { value: "center", label: "Gecentreerd", icon: "material-symbols:format-align-center" },
-  { value: "right", label: "Rechts", icon: "material-symbols:format-align-right" },
+  {
+    value: "center",
+    label: "Gecentreerd",
+    icon: "material-symbols:format-align-center",
+  },
+  {
+    value: "right",
+    label: "Rechts",
+    icon: "material-symbols:format-align-right",
+  },
 ] as const;
 const blockSettingsRef = ref();
 const editableLinksRef = ref();
@@ -205,16 +216,18 @@ function updateCardButton(index: number, card: any, links: any[]) {
 }
 
 function addBenefit(index: number, card: any) {
-  update(["content", index, "benefits"], [
-    ...(card.benefits || []),
-    { label: "", included: true },
-  ]);
+  update(
+    ["content", index, "benefits"],
+    [...(card.benefits || []), { label: "", included: true }],
+  );
 }
 
 function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
   update(
     ["content", cardIndex, "benefits"],
-    (card.benefits || []).filter((_: unknown, index: number) => index !== benefitIndex),
+    (card.benefits || []).filter(
+      (_: unknown, index: number) => index !== benefitIndex,
+    ),
   );
 }
 </script>
@@ -233,7 +246,7 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+    <div class="container">
       <div class="mx-auto max-w-4xl text-center">
         <h2
           :class="[
@@ -343,12 +356,15 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
                 :model-value="card.description"
                 :editable="editable"
                 rich
-                placeholder="Beschrijving toevoegen (Enter voor nieuwe regel)"
+                placeholder="Beschrijving toevoegen"
                 @update:model-value="setField(card, 'description', $event)"
               />
             </div>
 
-            <div v-if="card.tags?.length" :class="['mb-2 flex flex-wrap gap-1', cardJustifyClass]">
+            <div
+              v-if="card.tags?.length"
+              :class="['mb-2 flex flex-wrap gap-1', cardJustifyClass]"
+            >
               <span
                 v-for="(tag, tagIndex) in card.tags"
                 :key="tagIndex"
@@ -371,19 +387,37 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
                   v-if="editable"
                   type="button"
                   class="flex size-6 shrink-0 items-center justify-center rounded hover:bg-gray-100"
-                  :aria-label="benefit.included ? 'Wijzig naar kruisje' : 'Wijzig naar vinkje'"
-                  :title="benefit.included ? 'Wijzig naar kruisje' : 'Wijzig naar vinkje'"
+                  :aria-label="
+                    benefit.included
+                      ? 'Wijzig naar kruisje'
+                      : 'Wijzig naar vinkje'
+                  "
+                  :title="
+                    benefit.included
+                      ? 'Wijzig naar kruisje'
+                      : 'Wijzig naar vinkje'
+                  "
                   @click.stop="setField(benefit, 'included', !benefit.included)"
                 >
                   <Icon
-                    :name="benefit.included ? 'material-symbols:check-rounded' : 'material-symbols:cancel-outline'"
-                    :class="benefit.included ? 'text-green-500' : 'text-red-500'"
+                    :name="
+                      benefit.included
+                        ? 'material-symbols:check-rounded'
+                        : 'material-symbols:cancel-outline'
+                    "
+                    :class="
+                      benefit.included ? 'text-green-500' : 'text-red-500'
+                    "
                     class="size-5"
                   />
                 </button>
                 <Icon
                   v-else
-                  :name="benefit.included ? 'material-symbols:check-rounded' : 'material-symbols:cancel-outline'"
+                  :name="
+                    benefit.included
+                      ? 'material-symbols:check-rounded'
+                      : 'material-symbols:cancel-outline'
+                  "
                   :class="benefit.included ? 'text-green-500' : 'text-red-500'"
                   class="mt-0.5 size-5 shrink-0"
                 />
@@ -392,7 +426,7 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
                     :model-value="benefit.label"
                     :editable="editable"
                     rich
-                    placeholder="Voordeel toevoegen (Enter voor nieuwe regel)"
+                    placeholder="Voordeel toevoegen"
                     @update:model-value="setField(benefit, 'label', $event)"
                   />
                 </div>
@@ -420,8 +454,16 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
               Voordeel toevoegen
             </button>
 
-            <div v-if="editable || card.price || card.priceNote" class="mb-2 mt-auto">
-              <div v-if="editable" class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Prijs</div>
+            <div
+              v-if="editable || card.price || card.priceNote"
+              class="mb-2 mt-auto"
+            >
+              <div
+                v-if="editable"
+                class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500"
+              >
+                Prijs
+              </div>
               <div class="text-3xl font-bold tracking-tight text-primary-950">
                 <BlocksSharedEditableText
                   :editable="editable"
@@ -434,14 +476,15 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
               <div
                 v-if="editable || card.priceNote"
                 class="mt-1 text-sm text-gray-500"
-                ><BlocksSharedEditableText
+              >
+                <BlocksSharedEditableText
                   :editable="editable"
                   v-if="editable"
                   :model-value="card.priceNote"
                   placeholder="Bijvoorbeeld: per maand"
                   @update:model-value="setField(card, 'priceNote', $event)"
-                /><template v-else>{{ card.priceNote }}</template></div
-              >
+                /><template v-else>{{ card.priceNote }}</template>
+              </div>
             </div>
 
             <BlocksSharedEditableLinks
@@ -505,14 +548,24 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
   >
     <div class="space-y-4">
       <div class="space-y-2">
-        <span class="block text-xs font-medium text-gray-600">Tekstuitlijning in kaarten</span>
-        <div class="inline-flex rounded-lg bg-gray-100 p-1" role="group" aria-label="Tekstuitlijning in kaarten">
+        <span class="block text-xs font-medium text-gray-600"
+          >Tekstuitlijning in kaarten</span
+        >
+        <div
+          class="inline-flex rounded-lg bg-gray-100 p-1"
+          role="group"
+          aria-label="Tekstuitlijning in kaarten"
+        >
           <button
             v-for="option in alignmentOptions"
             :key="option.value"
             type="button"
             class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition"
-            :class="cardAlignment === option.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'"
+            :class="
+              cardAlignment === option.value
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            "
             :aria-pressed="cardAlignment === option.value"
             @click="model.alignment = option.value"
           >
@@ -521,7 +574,9 @@ function removeBenefit(cardIndex: number, card: any, benefitIndex: number) {
           </button>
         </div>
       </div>
-      <p class="text-sm text-gray-500">Prijskaarten beheer je rechtstreeks in het blok.</p>
+      <p class="text-sm text-gray-500">
+        Prijskaarten beheer je rechtstreeks in het blok.
+      </p>
     </div>
   </BlocksSharedBlockSettings>
 </template>

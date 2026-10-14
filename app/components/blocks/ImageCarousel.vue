@@ -213,7 +213,7 @@ const setSlidesPerView = (value: string | number) => {
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="w-full px-4 sm:px-6 lg:px-8">
+    <div class="container">
       <div class="mx-auto max-w-4xl text-center">
         <h2
           :class="[
@@ -380,7 +380,7 @@ const setSlidesPerView = (value: string | number) => {
       </div>
 
       <div
-        class="mx-auto mt-6 flex w-full max-w-screen-xl flex-col justify-center space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0 md:mt-8"
+        class="mt-6 flex w-full flex-col justify-center space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0 md:mt-8"
       >
         <BlocksSharedEditableLinks
           v-if="editable"

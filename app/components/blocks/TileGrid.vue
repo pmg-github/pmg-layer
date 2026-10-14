@@ -186,7 +186,7 @@ function addTile() {
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+    <div class="container">
       <div class="mx-auto max-w-4xl text-center">
         <h2
           :class="[

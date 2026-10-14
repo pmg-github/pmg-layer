@@ -182,7 +182,7 @@ defineExpose({
     <div
       v-if="editable || campaignData"
       :key="campaignData?.id"
-      class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8"
+      class="container"
     >
       <div class="flex flex-col justify-center">
         <!-- Title -->
@@ -245,7 +245,7 @@ defineExpose({
 
     <!-- Links -->
     <div
-      class="mx-auto mt-8 flex max-w-screen-xl flex-col justify-center gap-3 px-4 sm:flex-row sm:px-6 lg:px-8"
+      class="container mt-8 flex flex-col justify-center gap-3 sm:flex-row"
     >
       <BlocksSharedEditableLinks
         v-if="editable"

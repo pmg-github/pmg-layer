@@ -421,7 +421,7 @@ defineExpose({
 
       <!-- Hero content -->
       <div
-        class="relative z-20 mx-auto flex h-full w-full max-w-screen-xl flex-col items-start justify-end px-4 py-8 sm:px-6 sm:py-12 lg:px-8"
+        class="relative z-20 container flex h-full flex-col items-start justify-end py-8 sm:py-12"
         :style="blockPaddingStyle(props.padding)"
       >
         <div class="flex w-full flex-col md:flex-row">
@@ -441,7 +441,7 @@ defineExpose({
             </p>
 
             <h1
-              class="mt-2 text-4xl font-extrabold text-white [text-shadow:0px_0px_12px_rgba(0,0,0,1)] md:text-5xl lg:text-6xl"
+              class="mt-2 text-4xl font-bold text-white [text-shadow:0px_0px_12px_rgba(0,0,0,1)] md:text-5xl lg:text-6xl"
             >
               <BlocksSharedEditableText
                 :model-value="model.title"

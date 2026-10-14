@@ -122,7 +122,7 @@ defineExpose({
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+    <div class="container">
       <h2
         :class="[
           'text-center text-2xl font-bold sm:text-3xl',
