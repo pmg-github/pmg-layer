@@ -110,7 +110,7 @@ const themeClasses = computed(() => {
 
 const campaignItems = computed(
   () =>
-    campaignData.value?.items?.filter((item: any) => item.logoUrl !== null) ||
+    campaignData.value?.items?.filter((item: any) => item.name || item.logoUrl) ||
     [],
 );
 
@@ -233,15 +233,17 @@ defineExpose({
             :target="item.url ? '_blank' : undefined"
             :rel="item.url ? 'noopener noreferrer' : undefined"
             :class="[
-              'flex aspect-square w-full max-w-72 items-center justify-center rounded-lg bg-white p-6 transition-transform duration-200',
+              'flex aspect-square w-full max-w-72 flex-col items-center justify-center gap-4 rounded-lg bg-white p-6 text-center transition-transform duration-200',
               item.url ? 'cursor-pointer hover:-translate-y-1' : '',
             ]"
           >
             <img
+              v-if="item.logoUrl"
               :src="item.logoUrl"
               :alt="item.name"
-              class="max-h-full max-w-full object-contain"
+              class="max-h-[70%] max-w-full object-contain"
             />
+            <span class="text-sm font-medium text-gray-800">{{ item.name }}</span>
           </component>
         </div>
       </div>
