@@ -333,6 +333,7 @@ onUnmounted(() => {
       :open="isOpen"
       :model-value="undefined"
       :ignore-filter="true"
+      :open-on-click="true"
       :disabled="disabled"
       @update:open="onOpenChange"
     >

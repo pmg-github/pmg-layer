@@ -110,8 +110,9 @@ const themeClasses = computed(() => {
 
 const campaignItems = computed(
   () =>
-    campaignData.value?.items?.filter((item: any) => item.name || item.logoUrl) ||
-    [],
+    campaignData.value?.items?.filter(
+      (item: any) => item.name || item.logoUrl,
+    ) || [],
 );
 
 const maxItemsPerRow = computed(() => {
@@ -190,7 +191,10 @@ defineExpose({
       <div class="flex flex-col justify-center">
         <!-- Title -->
         <div class="text-center">
-          <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.text]" :style="{ textAlign: props.headerAlignment || 'center' }">
+          <h2
+            :class="['text-2xl font-bold sm:text-3xl', themeClasses.text]"
+            :style="{ textAlign: props.headerAlignment || 'center' }"
+          >
             <BlocksSharedEditableText
               v-if="editable"
               :model-value="props.title"
@@ -205,7 +209,7 @@ defineExpose({
           <p
             v-if="editable || props.subtitle || campaignData?.subtitle"
             :class="['mt-4 text-lg', themeClasses.subtitle]"
-          :style="{ textAlign: props.headerAlignment || 'center' }"
+            :style="{ textAlign: props.headerAlignment || 'center' }"
           >
             <BlocksSharedEditableText
               v-if="editable"
@@ -243,16 +247,16 @@ defineExpose({
               :alt="item.name"
               class="max-h-[70%] max-w-full object-contain"
             />
-            <span class="text-sm font-medium text-gray-800">{{ item.name }}</span>
+            <span class="text-sm font-medium text-gray-800">{{
+              item.name
+            }}</span>
           </component>
         </div>
       </div>
     </div>
 
     <!-- Links -->
-    <div
-      class="container mt-8 flex flex-col justify-center gap-3 sm:flex-row"
-    >
+    <div class="container mt-8 flex flex-col justify-center gap-3 sm:flex-row">
       <BlocksSharedEditableLinks
         v-if="editable"
         ref="editableLinksRef"
