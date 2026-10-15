@@ -15,9 +15,6 @@ const { getCampaign } = useFetchCampaigns();
 
 const sentenceCase = (value?: string) =>
   value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
-// Campaign choices are only requested by the dashboard settings panel.
-const getCampaigns = (...args: any[]) =>
-  useFetchFilters().getCampaigns(...args);
 
 type CampaignOption = { key: string; value: number };
 
@@ -34,6 +31,8 @@ const props = defineProps<{
   id?: string;
 }>();
 
+const campaignFilters = props.editable ? useFetchFilters() : null;
+
 const { data: campaign } = useAsyncData(
   `campaign-${props.content?.campaign?.value}`,
   () => {
@@ -47,7 +46,8 @@ const { data: campaign } = useAsyncData(
 const fetchCampaignOptions = async (
   query: string,
 ): Promise<CampaignOption[]> => {
-  const options = await getCampaigns({ query });
+  if (!campaignFilters) return [];
+  const options = await campaignFilters.getCampaigns({ query });
   return options.filter(
     (campaignOption): campaignOption is CampaignOption =>
       typeof campaignOption.key === "string" &&
