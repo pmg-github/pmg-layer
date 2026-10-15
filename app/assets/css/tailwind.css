@@ -1,7 +1,8 @@
+@import "./fonts.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 @layer components {
   .ProseMirror [data-node-view-wrapper].ProseMirror-selectednode {

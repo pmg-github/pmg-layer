@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import BlockHeading from "./shared/BlockHeading.vue";
+import ShadowContent from "./shared/ShadowContent.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -89,8 +90,42 @@ const { model, update } = useInlineBlock(props, emits);
 const blockSettingsRef = ref();
 const editableLinksRef = ref();
 const contentMode = ref<"preview" | "html">("html");
+// Preserve legacy document styles and embedded pages that need a browsing context.
+const useDocumentFrame = computed(() => {
+  if (
+    /<!doctype\s+html\b|<(?:html|head|body|base|link|meta|iframe|object|embed)\b/i.test(
+      props.content,
+    )
+  )
+    return true;
+  return Array.from(
+    props.content.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi),
+  ).some(([, css]) =>
+    /:root\b|(?:^|[{},\s])(?:html|body)(?=[\s{.#:[>+~])/i.test(css),
+  );
+});
 const renderedContentRef = ref<HTMLIFrameElement | null>(null);
 let contentResizeObserver: ResizeObserver | null = null;
+
+function inheritRenderedTypography(
+  frame: HTMLIFrameElement,
+  document: Document,
+) {
+  const typography = getComputedStyle(frame.parentElement || frame);
+  const fonts = document.createElement("link");
+  fonts.rel = "stylesheet";
+  fonts.href = new URL("../../assets/css/fonts.css", import.meta.url).href;
+  fonts.addEventListener("load", resizeRenderedContent, { once: true });
+  const defaults = document.createElement("style");
+  defaults.textContent = `:where(body) {
+    margin: 0;
+    font-family: ${typography.fontFamily};
+    font-size: ${typography.fontSize};
+    line-height: ${typography.lineHeight};
+    color: ${typography.color};
+  }`;
+  document.head.prepend(fonts, defaults);
+}
 
 function stopObservingRenderedContent() {
   contentResizeObserver?.disconnect();
@@ -117,6 +152,7 @@ function observeRenderedContent() {
   const document = frame?.contentDocument;
   if (!frame || !document) return;
 
+  inheritRenderedTypography(frame, document);
   frame.style.height = "256px";
   resizeRenderedContent();
   contentResizeObserver = new ResizeObserver(resizeRenderedContent);
@@ -133,6 +169,9 @@ watch(
   () => [props.content, contentMode.value],
   () => nextTick(resizeRenderedContent),
 );
+watch(renderedContentRef, (frame) => {
+  if (!frame) stopObservingRenderedContent();
+});
 
 onBeforeUnmount(stopObservingRenderedContent);
 
@@ -169,7 +208,11 @@ defineExpose({
           @update:subtitle="update(['subtitle'], $event)"
         />
 
-        <div v-if="editable || props.content" class="max-w-none">
+        <div
+          v-if="editable || props.content"
+          class="max-w-none"
+          :class="themeClasses.content"
+        >
           <div
             v-if="editable"
             class="mb-2 flex items-center justify-between gap-3"
@@ -220,6 +263,11 @@ defineExpose({
             @input="
               update(['content'], ($event.target as HTMLTextAreaElement).value)
             "
+          />
+          <ShadowContent
+            v-else-if="props.content && !useDocumentFrame"
+            :html="props.content"
+            :editable="editable"
           />
           <iframe
             v-else-if="props.content"
