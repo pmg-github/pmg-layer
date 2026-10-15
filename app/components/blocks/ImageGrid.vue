@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import MediaFrame from "./shared/MediaFrame.vue";
+import MediaPlaceholder from "./shared/MediaPlaceholder.vue";
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
@@ -219,7 +221,18 @@ const tileImageUrl = (tile: any) => {
         />
       </div>
 
-      <div :class="gridClass">
+      <div
+        v-if="editable && !props.content?.tiles?.length"
+        class="h-56 overflow-hidden rounded-xl"
+      >
+        <MediaPlaceholder
+          label="Afbeeldingen toevoegen"
+          description="Voeg afbeeldingen of video's toe aan dit blok."
+          action-label="Media beheren"
+          @action="imageManagerRef?.open?.()"
+        />
+      </div>
+      <div v-else :class="gridClass">
         <component
           :is="editable || !t?.link?.url?.trim() ? 'div' : 'a'"
           v-for="(t, i) in props.content?.tiles || []"
@@ -228,18 +241,33 @@ const tileImageUrl = (tile: any) => {
           :href="t?.link?.url ? t.link.url : undefined"
           :target="t?.link?.target || '_self'"
         >
-          <img
-            v-if="tileImageUrl(t) && t?.type !== 'video'"
-            :src="tileImageUrl(t)"
-            :alt="t?.title || ''"
-            class="block aspect-[4/3] w-full object-cover"
-          />
-          <PMGVideoPlayer
-            v-else-if="t?.type === 'video' && t?.videoCode?.value"
-            :key="t.videoCode.value"
-            :video-id="t.videoCode.value"
-            :language="props.language || locale"
-          />
+          <MediaFrame
+            :empty="
+              t?.type === 'video' ? !t?.videoCode?.value : !tileImageUrl(t)
+            "
+            :editable="editable"
+            :kind="t?.type === 'video' ? 'video' : 'image'"
+            ratio="photo"
+          >
+            <img
+              v-if="t?.type !== 'video'"
+              :src="tileImageUrl(t)"
+              :alt="t?.title || ''"
+              class="h-full w-full object-cover"
+            />
+            <PMGVideoPlayer
+              v-else
+              :key="t.videoCode?.value"
+              :video-id="t.videoCode?.value"
+              :language="props.language || locale"
+            />
+            <template #empty
+              ><MediaPlaceholder
+                :kind="t?.type === 'video' ? 'video' : 'image'"
+                action-label="Media beheren"
+                @action="imageManagerRef?.open?.()"
+            /></template>
+          </MediaFrame>
           <div
             v-if="editable || t?.title || t?.subtitle || t?.description"
             :class="['p-6', contentAlignmentClass]"

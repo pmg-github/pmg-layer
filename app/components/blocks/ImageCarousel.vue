@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import MediaFrame from "./shared/MediaFrame.vue";
+import MediaPlaceholder from "./shared/MediaPlaceholder.vue";
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
@@ -295,18 +297,33 @@ const setSlidesPerView = (value: string | number | null) => {
             :href="t?.link?.url || undefined"
             :target="t?.link?.target || '_self'"
           >
-            <img
-              v-if="slideImageUrl(t) && t?.type !== 'video'"
-              :src="slideImageUrl(t)"
-              :alt="t?.title || ''"
-              class="aspect-[16/9] w-full object-cover"
-            />
-            <PMGVideoPlayer
-              v-else-if="t?.type === 'video' && t?.videoCode?.value"
-              :key="t.videoCode?.value"
-              :video-id="t.videoCode.value"
-              :language="props.language || locale"
-            />
+            <MediaFrame
+              :empty="
+                t?.type === 'video' ? !t?.videoCode?.value : !slideImageUrl(t)
+              "
+              :editable="editable"
+              :kind="t?.type === 'video' ? 'video' : 'image'"
+              ratio="video"
+            >
+              <img
+                v-if="t?.type !== 'video'"
+                :src="slideImageUrl(t)"
+                :alt="t?.title || ''"
+                class="h-full w-full bg-white object-contain p-4"
+              />
+              <PMGVideoPlayer
+                v-else
+                :key="t.videoCode?.value"
+                :video-id="t.videoCode?.value"
+                :language="props.language || locale"
+              />
+              <template #empty
+                ><MediaPlaceholder
+                  :kind="t?.type === 'video' ? 'video' : 'image'"
+                  action-label="Media beheren"
+                  @action="imageManagerRef?.open?.()"
+              /></template>
+            </MediaFrame>
             <div
               v-if="editable || t?.title || t?.subtitle || t?.description"
               :class="['flex flex-1 flex-col p-6', cardAlignmentClass]"
@@ -392,15 +409,14 @@ const setSlidesPerView = (value: string | number | null) => {
 
       <div
         v-if="editable && !carouselTiles.length"
-        class="flex min-h-48 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary-200 bg-primary-50/50 p-8 text-center text-primary-950"
+        class="h-56 overflow-hidden rounded-xl"
       >
-        <Icon
-          name="material-symbols:view-carousel-outline-rounded"
-          class="size-8"
+        <MediaPlaceholder
+          label="Afbeeldingen toevoegen"
+          description="Logo's worden volledig weergegeven, zonder bijsnijden."
+          action-label="Media beheren"
+          @action="imageManagerRef?.open?.()"
         />
-        <p class="text-sm font-semibold">
-          Voeg afbeeldingen toe via de mediaknop in de bloktoolbar.
-        </p>
       </div>
 
       <div

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MediaFrame from "./shared/MediaFrame.vue";
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
@@ -437,9 +438,9 @@ const getAllVideoCodes = (...args: any[]) =>
               <div
                 v-if="
                   editable ||
-                  t.imageUrl ||
-                  t.image ||
-                  (t.type === 'video' && t.videoCode?.value)
+                  (t.type === 'video'
+                    ? t.videoCode?.value
+                    : inlineTabImageSource(t))
                 "
                 class="flex items-center md:col-span-2"
               >
@@ -462,7 +463,9 @@ const getAllVideoCodes = (...args: any[]) =>
                             ? 'bg-primary-900 text-white'
                             : 'text-gray-600 hover:bg-gray-100'
                         "
-                        @click.stop="t.type = 'image'"
+                        @click.stop="
+                          update(['content', 'tabs', tabIndex, 'type'], 'image')
+                        "
                       >
                         Afbeelding
                       </button>
@@ -474,24 +477,35 @@ const getAllVideoCodes = (...args: any[]) =>
                             ? 'bg-primary-900 text-white'
                             : 'text-gray-600 hover:bg-gray-100'
                         "
-                        @click.stop="t.type = 'video'"
+                        @click.stop="
+                          update(['content', 'tabs', tabIndex, 'type'], 'video')
+                        "
                       >
                         Video
                       </button>
                     </div>
                   </div>
 
-                  <PMGVideoPlayer
-                    v-if="t.type === 'video' && t.videoCode?.value"
-                    :key="t.videoCode?.value"
-                    :video-id="t.videoCode.value"
-                    :language="props.language || locale"
-                  />
+                  <MediaFrame
+                    v-if="t.type === 'video'"
+                    :editable="editable"
+                    :empty="!t.videoCode?.value"
+                    kind="video"
+                    ratio="fixed"
+                    class="rounded-lg"
+                    ><PMGVideoPlayer
+                      :key="t.videoCode?.value"
+                      :video-id="t.videoCode?.value"
+                      :language="props.language || locale"
+                  /></MediaFrame>
                   <SharedInputSelect
                     v-if="editable && t.type === 'video'"
                     :name="`tab-video-code-${tabIndex}`"
                     :fetch-data="(e) => getAllVideoCodes(e)"
-                    v-model:selected="t.videoCode"
+                    :selected="t.videoCode"
+                    @update:selected="
+                      update(['content', 'tabs', tabIndex, 'videoCode'], $event)
+                    "
                     search-in-data
                     placeholder="Zoek op jobnummer of titel..."
                   />

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MediaPlaceholder from "./shared/MediaPlaceholder.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -381,7 +382,7 @@ defineExpose({
     >
       <!-- Background -->
       <div
-        v-if="model.content.isVideo"
+        v-if="model.content.isVideo && model.content.videoUrl"
         class="absolute inset-0 z-0 bg-cover bg-center"
       >
         <video
@@ -395,7 +396,7 @@ defineExpose({
       </div>
 
       <div
-        v-else
+        v-else-if="!model.content.isVideo"
         class="absolute inset-0 z-0 bg-cover bg-center"
         :style="{
           backgroundImage: backgroundImageUrl
@@ -422,6 +423,19 @@ defineExpose({
         "
       ></div>
 
+      <div
+        v-if="
+          editable &&
+          (model.content.isVideo ? !model.content.videoUrl : !imageUrl)
+        "
+        class="absolute left-1/2 top-16 z-20 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 overflow-hidden rounded-xl"
+      >
+        <MediaPlaceholder
+          :kind="model.content.isVideo ? 'video' : 'image'"
+          action-label="Achtergrond instellen"
+          @action="openMediaPanel"
+        />
+      </div>
       <!-- Hero content -->
       <div
         class="relative z-20 container flex h-full flex-col items-start justify-end py-8 sm:py-12"

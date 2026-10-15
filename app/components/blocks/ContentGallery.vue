@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import MediaFrame from "./shared/MediaFrame.vue";
+import MediaPlaceholder from "./shared/MediaPlaceholder.vue";
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
@@ -357,15 +359,29 @@ const removeActiveButton = () => {
           class="space-y-4"
           :class="props.content?.layout ? 'lg:order-1' : 'lg:order-2'"
         >
-          <PMGVideoPlayer
+          <MediaFrame
             v-if="props.content?.type === 'video'"
-            :video-id="props.content?.videoCode?.value"
-            :language="props.language || locale"
-            :key="props.content?.videoCode?.value"
-          />
+            :empty="!props.content?.videoCode?.value"
+            :editable="editable"
+            kind="video"
+            class="rounded-xl"
+          >
+            <PMGVideoPlayer
+              :video-id="props.content?.videoCode?.value"
+              :language="props.language || locale"
+              :key="props.content?.videoCode?.value"
+            />
+            <template #empty
+              ><MediaPlaceholder
+                kind="video"
+                description="Selecteer een video via de blokinstellingen."
+                action-label="Video kiezen"
+                @action="blockSettingsRef?.open?.()"
+            /></template>
+          </MediaFrame>
 
           <div
-            v-else-if="props.content?.images && props.content?.images.length"
+            v-else-if="props.content?.images && props.content?.images?.length"
             class="grid gap-4"
             :class="[
               props.content.images.length > 1
@@ -378,7 +394,7 @@ const removeActiveButton = () => {
               class="cursor-zoom-in overflow-hidden"
               :class="[
                 props.content.images.length === 1
-                  ? 'rounded-3xl'
+                  ? 'aspect-video rounded-xl'
                   : 'h-full min-h-[240px] rounded-lg',
               ]"
               @click.prevent="openFromParent(0)"
@@ -434,10 +450,23 @@ const removeActiveButton = () => {
               </button>
             </div>
           </div>
+          <MediaFrame
+            v-else
+            :empty="true"
+            :editable="editable"
+            class="rounded-xl"
+            ><template #empty
+              ><MediaPlaceholder
+                description="Voeg afbeeldingen toe aan dit blok."
+                action-label="Afbeeldingen kiezen"
+                @action="imageManagerRef?.open?.()" /></template
+          ></MediaFrame>
           <!-- hidden PhotoGallery instance used only for the lightbox; we control it via ref -->
         </aside>
         <ContentLightbox
-          v-if="props.content?.type !== 'video' && props.content?.images.length"
+          v-if="
+            props.content?.type !== 'video' && props.content?.images?.length
+          "
           ref="pg"
           :images="imageUrls"
           :title="props.title"

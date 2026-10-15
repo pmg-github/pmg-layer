@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MediaPlaceholder from "./shared/MediaPlaceholder.vue";
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
@@ -153,7 +154,20 @@ defineExpose({
         />
       </div>
 
-      <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div
+        v-if="editable && !displayed.length"
+        class="h-56 overflow-hidden rounded-xl"
+      >
+        <MediaPlaceholder
+          label="Afbeeldingen toevoegen"
+          action-label="Afbeeldingen kiezen"
+          @action="imageManagerRef?.open?.()"
+        />
+      </div>
+      <div
+        v-else
+        class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+      >
         <div v-for="(img, i) in displayed" :key="i" class="relative">
           <button
             type="button"
