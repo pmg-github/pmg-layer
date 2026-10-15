@@ -218,8 +218,14 @@ const createImageSlide = (image: FileButtonViewModel) => ({
   link: { url: "", text: "", target: "_self" },
 });
 
-const updateSlideLinkText = (tile: any, text: string) => {
-  setField(tile, "link", { ...tile.link, text });
+const updateSlideLink = (
+  index: number,
+  links: { url: string; text?: string; target?: string }[],
+) => {
+  update(
+    ["content", "tiles", index, "link"],
+    links[0] || { url: "", text: "", target: "_self" },
+  );
 };
 
 const setSlidesPerView = (value: string | number | null) => {
@@ -359,17 +365,19 @@ const setSlidesPerView = (value: string | number | null) => {
               v-if="editable || (t?.link?.url?.trim() && t?.link?.text?.trim())"
               :class="['mt-auto flex px-6 pb-6', cardJustifyClass]"
             >
+              <BlocksSharedEditableLinks
+                v-if="editable"
+                :model-value="t?.link?.url || t?.link?.text ? [t.link] : []"
+                :max="1"
+                color-scheme="white"
+                title="Carrousellink"
+                @update:model-value="updateSlideLink(i, $event)"
+              />
               <span
+                v-else
                 class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 bg-primary-900 text-white hover:bg-primary-950"
               >
-                <BlocksSharedEditableText
-                  v-if="editable"
-                  :editable="editable"
-                  :model-value="t?.link?.text"
-                  placeholder="Knoptekst"
-                  @update:model-value="updateSlideLinkText(t, $event)"
-                />
-                <template v-else>{{ t?.link?.text }}</template>
+                {{ t?.link?.text }}
               </span>
             </div>
           </component>
