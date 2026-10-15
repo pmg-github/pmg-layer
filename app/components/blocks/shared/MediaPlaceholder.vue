@@ -43,9 +43,18 @@ const title = computed(
       <button
         v-if="actionLabel"
         type="button"
-        class="mt-1 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-blue-700 shadow-sm ring-1 ring-gray-200 transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        class="mt-1 inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-5 text-gray-700 transition hover:border-gray-400 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         @click.stop.prevent="emit('action')"
       >
+        <Icon
+          :name="
+            kind === 'video'
+              ? 'material-symbols:video-library-outline-rounded'
+              : 'material-symbols:photo-library-outline-rounded'
+          "
+          class="size-4 shrink-0"
+          aria-hidden="true"
+        />
         {{ actionLabel }}
       </button>
     </slot>

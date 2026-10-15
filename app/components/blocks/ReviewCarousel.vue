@@ -561,41 +561,46 @@ defineExpose({
             />
           </div>
 
-          <div v-if="list.length > 1" class="mb-6 flex gap-2">
+          <div
+            v-if="editable || list.length > 1"
+            class="mb-6 flex w-full items-center gap-3"
+          >
+            <div v-if="list.length > 1" class="flex gap-2">
+              <button
+                type="button"
+                class="group flex rounded-full p-2 shadow-md ring-1 ring-black/10 transition-colors"
+                :class="themeClasses.navButton"
+                aria-label="Previous review"
+                @click="swiperInstance?.slidePrev()"
+              >
+                <Icon
+                  name="material-symbols:chevron-left"
+                  class="h-5 w-5 transition group-hover:-translate-x-0.5"
+                />
+              </button>
+              <button
+                type="button"
+                class="group flex rounded-full p-2 shadow-md ring-1 ring-black/10 transition-colors"
+                :class="themeClasses.navButton"
+                aria-label="Next review"
+                @click="swiperInstance?.slideNext()"
+              >
+                <Icon
+                  name="material-symbols:chevron-right"
+                  class="h-5 w-5 transition group-hover:translate-x-0.5"
+                />
+              </button>
+            </div>
             <button
+              v-if="editable"
               type="button"
-              class="group flex rounded-full p-2 shadow-md ring-1 ring-black/10 transition-colors"
-              :class="themeClasses.navButton"
-              aria-label="Previous review"
-              @click="swiperInstance?.slidePrev()"
+              class="ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg bg-gray-950 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-800"
+              @click="addReview"
             >
-              <Icon
-                name="material-symbols:chevron-left"
-                class="h-5 w-5 transition group-hover:-translate-x-0.5"
-              />
-            </button>
-            <button
-              type="button"
-              class="group flex rounded-full p-2 shadow-md ring-1 ring-black/10 transition-colors"
-              :class="themeClasses.navButton"
-              aria-label="Next review"
-              @click="swiperInstance?.slideNext()"
-            >
-              <Icon
-                name="material-symbols:chevron-right"
-                class="h-5 w-5 transition group-hover:translate-x-0.5"
-              />
+              <Icon name="material-symbols:add-rounded" class="size-4" />
+              Review toevoegen
             </button>
           </div>
-          <button
-            v-if="editable && list.length"
-            type="button"
-            class="ml-3 inline-flex items-center gap-1 rounded-lg bg-gray-950 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-800"
-            @click="addReview"
-          >
-            <Icon name="material-symbols:add-rounded" class="size-4" />
-            Review toevoegen
-          </button>
         </div>
 
         <!-- Carousel -->
@@ -617,14 +622,6 @@ defineExpose({
               Voeg een review toe en bewerk de tekst daarna rechtstreeks op de
               kaart.
             </p>
-            <button
-              type="button"
-              class="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-gray-950 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-800"
-              @click="addReview"
-            >
-              <Icon name="material-symbols:add-rounded" class="size-4" />
-              Review toevoegen
-            </button>
           </div>
 
           <Swiper
