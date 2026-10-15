@@ -169,7 +169,7 @@ function addTile() {
       title: "",
       subtitle: "",
       description: "",
-      links: [{ url: "", text: "", target: "_self" }],
+      links: [],
     },
   ];
 }
@@ -304,7 +304,7 @@ function addTile() {
               @update:model-value="setField(t, 'links', $event)"
             />
             <a
-              v-else-if="t?.links && t.links[0]"
+              v-else-if="t?.links?.[0]?.url?.trim() && t?.links?.[0]?.text?.trim()"
               :href="t.links[0].url"
               :target="t.links[0].target || '_self'"
               class="flex items-center justify-center gap-2 rounded-full bg-primary-900 px-8 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-primary-950 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
@@ -316,13 +316,6 @@ function addTile() {
                 @update:model-value="setField(t.links[0], 'text', $event)"
               /><template v-else>{{ t.links[0].text }}</template>
             </a>
-            <!-- <button
-              v-else
-              class="flex items-center justify-center gap-2 rounded-full px-8 py-2 text-sm font-semibold shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
-              :class="themeClasses.button"
-            >
-              <Translate translate-key="action.readMore" />
-            </button> -->
           </div>
         </div>
 

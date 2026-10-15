@@ -12,7 +12,6 @@ import {
 } from "../block-editor";
 import type { FileButtonViewModel } from "models";
 import { computed } from "vue";
-import { responsiveTileGridClass } from "../../utils/responsiveTileGrid";
 const { locale } = useI18n();
 
 const props = defineProps<{
@@ -27,7 +26,9 @@ const props = defineProps<{
   content?: {
     tiles?: Array<{
       icon?: string;
+      type?: "image" | "video";
       image: FileButtonViewModel;
+      videoCode?: { value: string; key: string } | null;
       // links?: { url: string; text: string; target?: string }[];
       title?: string;
       subtitle?: string;
@@ -55,9 +56,14 @@ const handleAnchorClick = (url: string, target?: string | null) => {
   }
 };
 
-const cols = computed(() =>
-  Math.min(4, Math.max(1, props.content?.columns ?? 3)),
-);
+const normalizeColumns = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return 3;
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? Math.min(4, Math.max(1, Math.trunc(number)))
+    : 3;
+};
+const cols = computed(() => normalizeColumns(props.content?.columns));
 const contentAlignment = computed(() =>
   props.content?.alignment === "left" || props.content?.alignment === "right"
     ? props.content.alignment
@@ -66,9 +72,17 @@ const contentAlignment = computed(() =>
 const contentAlignmentClass = computed(() =>
   ({ left: "text-left", center: "text-center", right: "text-right" })[contentAlignment.value],
 );
-const gridClass = computed(() =>
-  responsiveTileGridClass(props.content?.tiles?.length ?? 0, cols.value),
-);
+const columnClasses: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-1 sm:grid-cols-2",
+  3: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3",
+  4: "grid-cols-1 sm:grid-cols-2 md:grid-cols-4",
+};
+const gridClass = computed(() => `grid gap-6 ${columnClasses[cols.value]}`);
+
+const setColumns = (value: string | number | null) => {
+  update(["content", "columns"], normalizeColumns(value));
+};
 
 const cardClass = computed(
   () => "flex flex-col rounded-lg bg-white overflow-hidden",
@@ -213,7 +227,7 @@ const tileImageUrl = (tile: any) => {
 
       <div :class="gridClass">
         <component
-          :is="editable ? 'div' : 'a'"
+          :is="editable || !t?.link?.url?.trim() ? 'div' : 'a'"
           v-for="(t, i) in props.content?.tiles || []"
           :key="i"
           :class="['relative', cardClass, themeClasses.card]"
@@ -223,7 +237,8 @@ const tileImageUrl = (tile: any) => {
           <img
             v-if="tileImageUrl(t) && t?.type !== 'video'"
             :src="tileImageUrl(t)"
-            class="w-full"
+            :alt="t?.title || ''"
+            class="block aspect-[4/3] w-full object-cover"
           />
           <PMGVideoPlayer
             v-else-if="t?.type === 'video' && t?.videoCode?.value"
@@ -370,7 +385,14 @@ const tileImageUrl = (tile: any) => {
         <label class="mb-1 block text-xs font-medium text-gray-600"
           >Aantal kolommen</label
         >
-        <SharedInput type="number" v-model="model.content.columns" />
+        <SharedInput
+          type="number"
+          min="1"
+          max="4"
+          step="1"
+          :model-value="cols"
+          @update:model-value="setColumns"
+        />
       </div>
     </div>
   </BlocksSharedBlockSettings>

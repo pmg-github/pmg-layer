@@ -49,7 +49,7 @@ const props = defineProps<{
 }>();
 
 const slidesPerView = computed(() =>
-  Math.min(6, Math.max(1, props.content?.slidesPerView ?? 6)),
+  Math.min(6, Math.max(1, props.content?.slidesPerView ?? 3)),
 );
 
 const carouselTiles = computed(() => props.content?.tiles || []);
@@ -68,9 +68,6 @@ const cardJustifyClass = computed(() => ({
   right: "justify-end",
 })[cardAlignment.value]);
 
-const desktopSlidesPerView = computed(() =>
-  Math.min(slidesPerView.value, Math.max(1, carouselTiles.value.length)),
-);
 const canNavigate = computed(() => carouselTiles.value.length > 1);
 const canLoop = computed(
   () => carouselTiles.value.length > slidesPerView.value,
@@ -203,18 +200,21 @@ const createImageSlide = (image: FileButtonViewModel) => ({
   title: "",
   subtitle: "",
   description: "",
-  link: { url: "", text: "Lees meer", target: "_self" },
+  link: { url: "", text: "", target: "_self" },
 });
 
 const updateSlideLinkText = (tile: any, text: string) => {
   setField(tile, "link", { ...tile.link, text });
 };
 
-const setSlidesPerView = (value: string | number) => {
+const setSlidesPerView = (value: string | number | null) => {
   const requested = Number(value);
   model.content.slidesPerView = Math.min(
     6,
-    Math.max(1, Number.isFinite(requested) ? Math.round(requested) : 1),
+    Math.max(
+      1,
+      value !== null && Number.isFinite(requested) ? Math.round(requested) : 3,
+    ),
   );
 };
 </script>
@@ -271,9 +271,10 @@ const setSlidesPerView = (value: string | number) => {
         :observer="true"
         :observe-parents="true"
         :watch-overflow="true"
+        :center-insufficient-slides="true"
         :breakpoints="{
-          640: { slidesPerView: Math.min(desktopSlidesPerView, 3) },
-          1024: { slidesPerView: desktopSlidesPerView },
+          640: { slidesPerView: Math.min(slidesPerView, 3) },
+          1024: { slidesPerView },
         }"
         class="image-carousel w-full"
         @swiper="setSwiper"
@@ -287,7 +288,7 @@ const setSlidesPerView = (value: string | number) => {
           class="relative"
         >
           <component
-            :is="editable ? 'div' : 'a'"
+            :is="editable || !t?.link?.url?.trim() ? 'div' : 'a'"
             :class="[
               'flex h-full flex-col overflow-hidden rounded-lg',
               themeClasses.card,
@@ -338,7 +339,7 @@ const setSlidesPerView = (value: string | number) => {
                 />
               </div>
             </div>
-            <div v-if="editable || t?.link?.url" :class="['mt-auto flex px-4 pb-4', cardJustifyClass]">
+            <div v-if="editable || (t?.link?.url?.trim() && t?.link?.text?.trim())" :class="['mt-auto flex px-4 pb-4', cardJustifyClass]">
               <span
                 class="inline-flex min-h-8 items-center rounded-md bg-primary-900 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-950"
               >
@@ -349,7 +350,7 @@ const setSlidesPerView = (value: string | number) => {
                   placeholder="Knoptekst"
                   @update:model-value="updateSlideLinkText(t, $event)"
                 />
-                <template v-else>{{ t?.link?.text || "Lees meer" }}</template>
+                <template v-else>{{ t?.link?.text }}</template>
               </span>
             </div>
           </component>
