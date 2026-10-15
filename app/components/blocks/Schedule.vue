@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -14,41 +15,50 @@ import {
 } from "../block-editor";
 import { computed } from "vue";
 
-const props = defineProps<{
-  editable?: boolean;
-  padding?: { top?: number; bottom?: number } | null;
-  selected?: boolean;
-  id?: string;
-  title?: string;
-  subtitle?: string;
-  headerAlignment?: "left" | "center" | "right";
-  links?: { url: string; text: string; target?: string }[];
-  content: {
-    items?: {
-      title: string;
-      label?: Array<string>;
-      description?: string | undefined | null;
-    }[];
-    footer?: string;
-    alignment?: "left" | "center" | "right";
-  };
-  colorScheme?: "light" | "dark" | "white";
-}>();
+const props = withDefaults(
+  defineProps<{
+    editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
+    selected?: boolean;
+    id?: string;
+    title?: string;
+    subtitle?: string;
+    headerAlignment?: "left" | "center" | "right";
+    links?: { url: string; text: string; target?: string }[];
+    content: {
+      items?: {
+        title: string;
+        label?: Array<string>;
+        description?: string | undefined | null;
+      }[];
+      footer?: string;
+      alignment?: "left" | "center" | "right";
+    };
+    colorScheme?: "light" | "dark" | "white";
+  }>(),
+  { content: () => ({ items: [], footer: "" }) },
+);
 
 const cardAlignment = computed(() => {
   const alignment = props.content?.alignment;
   return alignment === "center" || alignment === "right" ? alignment : "left";
 });
-const cardAlignmentClass = computed(() => ({
-  left: "text-left",
-  center: "text-center",
-  right: "text-right",
-})[cardAlignment.value]);
-const cardJustifyClass = computed(() => ({
-  left: "justify-start",
-  center: "justify-center",
-  right: "justify-end",
-})[cardAlignment.value]);
+const cardAlignmentClass = computed(
+  () =>
+    ({
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
+    })[cardAlignment.value],
+);
+const cardJustifyClass = computed(
+  () =>
+    ({
+      left: "justify-start",
+      center: "justify-center",
+      right: "justify-end",
+    })[cardAlignment.value],
+);
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
@@ -149,28 +159,22 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="container">
+    <div class="container min-w-0">
       <div class="mx-auto max-w-screen-lg">
-        <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.text]" :style="{ textAlign: props.headerAlignment || 'left' }">
-          <BlocksSharedEditableText
-            :editable="editable"
-            v-if="editable"
-            :model-value="title"
-            placeholder="Titel toevoegen"
-            @update:model-value="update(['title'], $event)"
-          /><template v-else>{{ title }}</template>
-        </h2>
-        <p :class="['mb-8 text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'left' }">
-          <BlocksSharedEditableText
-            :editable="editable"
-            v-if="editable"
-            :model-value="subtitle"
-            placeholder="Subtitel toevoegen"
-            @update:model-value="update(['subtitle'], $event)"
-          /><template v-else>{{ subtitle }}</template>
-        </p>
+        <BlockHeading
+          :title="props.title"
+          :subtitle="props.subtitle"
+          :editable="editable"
+          :alignment="props.headerAlignment || 'left'"
+          :title-class="themeClasses.text"
+          :subtitle-class="themeClasses.subtitle"
+          @update:title="update(['title'], $event)"
+          @update:subtitle="update(['subtitle'], $event)"
+        />
         <div :class="['prose max-w-none', themeClasses.content]">
-          <ul class="divide-y divide-gray-100 rounded-md bg-white">
+          <ul
+            class="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+          >
             <li
               v-for="(item, index) in content.items"
               :key="index"
@@ -187,7 +191,10 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
                 </h3>
                 <div
                   v-if="item.label"
-                  :class="['mt-1 flex flex-wrap items-center gap-2', cardJustifyClass]"
+                  :class="[
+                    'mt-1 flex flex-wrap items-center gap-2',
+                    cardJustifyClass,
+                  ]"
                 >
                   <span
                     v-for="(label, labelIndex) in item.label"
@@ -294,6 +301,7 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
           </p>
         </div>
         <div
+          v-if="editable || props.links?.length"
           class="mt-6 flex w-full flex-col justify-center space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0 md:mt-8"
         >
           <BlocksSharedEditableLinks
@@ -310,7 +318,7 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
               :key="idx"
               :href="l.url"
               :target="l.target || '_self'"
-              class="rounded-full px-12 py-3 text-center font-medium transition-colors"
+              class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
               :class="
                 idx === 0 ? themeClasses.button : themeClasses.secondaryButton
               "

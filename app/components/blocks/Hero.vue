@@ -6,30 +6,33 @@ import {
   BlocksSharedEditableText,
   BlocksSharedLinkReferenceSelect,
 } from "../block-editor";
-const props = defineProps<{
-  editable?: boolean;
-  padding?: { top?: number; bottom?: number } | null;
-  selected?: boolean;
-  id?: string;
-  title?: string;
-  subtitle?: string;
-  visibleFrom?: string | null;
-  visibleUntil?: string | null;
-  links?: { url: string; text: string; target?: string | null }[];
-  content: {
-    height?: string;
-    image?: any;
-    imageUrl?: string;
-    imagePosition?: { x?: number; y?: number };
-    isVideo?: number;
-    showPartners?: boolean;
-    videoUrl?: string;
-    sponsors?: Array<
-      string | { src?: string; url?: string; name?: string; link?: string }
-    >;
-    kicker: string;
-  };
-}>();
+const props = withDefaults(
+  defineProps<{
+    editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
+    selected?: boolean;
+    id?: string;
+    title?: string;
+    subtitle?: string;
+    visibleFrom?: string | null;
+    visibleUntil?: string | null;
+    links?: { url: string; text: string; target?: string | null }[];
+    content: {
+      height?: string;
+      image?: any;
+      imageUrl?: string;
+      imagePosition?: { x?: number; y?: number };
+      isVideo?: number;
+      showPartners?: boolean;
+      videoUrl?: string;
+      sponsors?: Array<
+        string | { src?: string; url?: string; name?: string; link?: string }
+      >;
+      kicker: string;
+    };
+  }>(),
+  { content: () => ({ kicker: "" }) },
+);
 
 const emits = defineEmits([
   "update:props",
@@ -441,7 +444,7 @@ defineExpose({
             </p>
 
             <h1
-              class="mt-2 text-4xl font-bold text-white [text-shadow:0px_0px_12px_rgba(0,0,0,1)] md:text-5xl lg:text-6xl"
+              class="mt-3 max-w-5xl break-words text-4xl font-bold leading-tight tracking-tight text-white [text-shadow:0px_0px_12px_rgba(0,0,0,1)] md:text-5xl lg:text-6xl"
             >
               <BlocksSharedEditableText
                 :model-value="model.title"
@@ -453,7 +456,7 @@ defineExpose({
 
             <div
               v-if="editable || model.subtitle"
-              class="text-xl font-medium text-gray-200 [text-shadow:0px_0px_12px_rgba(0,0,0,1)]"
+              class="mt-3 max-w-3xl break-words text-base leading-relaxed text-gray-200 sm:text-lg [text-shadow:0px_0px_12px_rgba(0,0,0,1)]"
             >
               <BlocksSharedEditableText
                 :model-value="model.subtitle"
@@ -465,6 +468,7 @@ defineExpose({
 
             <!-- Keep the real buttons visible while editing -->
             <div
+              v-if="editable || props.links?.length"
               class="relative mt-6 flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap md:mt-8"
               @focusout="handleLinksRowFocusOut"
             >
@@ -477,7 +481,7 @@ defineExpose({
                 <a
                   :href="link.url || '#'"
                   :target="link.target || '_self'"
-                  class="block rounded-full px-12 py-3 text-center font-medium text-white transition-colors"
+                  class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 text-white"
                   :class="
                     idx === 0
                       ? 'bg-primary-900 hover:bg-primary-950'

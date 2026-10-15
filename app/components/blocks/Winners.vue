@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -109,13 +110,18 @@ const themes = {
 const theme = computed(() => themes[colorScheme.value]);
 
 const cardAlignment = computed(() =>
-  props.alignment === "left" || props.alignment === "right" ? props.alignment : "center",
+  props.alignment === "left" || props.alignment === "right"
+    ? props.alignment
+    : "center",
 );
-const cardAlignmentClass = computed(() => ({
-  left: "text-left",
-  center: "text-center",
-  right: "text-right",
-})[cardAlignment.value]);
+const cardAlignmentClass = computed(
+  () =>
+    ({
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
+    })[cardAlignment.value],
+);
 
 const primaryLink = computed(() => links.value[0]);
 
@@ -298,7 +304,7 @@ async function addWinner() {
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
 
-    <div class="container">
+    <div class="container min-w-0">
       <div class="grid items-center gap-12 xl:grid-cols-[1fr_2fr] xl:gap-6">
         <!-- Content -->
         <div class="relative z-10 max-w-xl">
@@ -324,48 +330,17 @@ async function addWinner() {
           </p>
 
           <!-- Title -->
-          <h2
-            :class="[
-              'max-w-full text-5xl font-black leading-[0.92] [overflow-wrap:anywhere] sm:text-6xl',
-              theme.heading,
-            ]"
-          :style="{ textAlign: props.headerAlignment || 'left' }"
-          >
-            <BlocksSharedEditableText
-              :model-value="title"
-              :editable="editable"
-              rich
-              placeholder="Titel toevoegen"
-              @update:model-value="update(['title'], $event)"
-            />
-          </h2>
-
-          <!-- Subtitle -->
-          <p
-            v-if="editable || subtitle"
-            :class="[
-              'mt-5 max-w-md text-xl font-bold leading-8',
-              theme.subtitle,
-              props.headerAlignment === 'center'
-                ? 'mx-auto'
-                : props.headerAlignment === 'right'
-                  ? 'ml-auto'
-                  : '',
-            ]"
-          :style="{ textAlign: props.headerAlignment || 'left' }"
-          >
-            <BlocksSharedEditableText
-              v-if="editable"
-              :editable="editable"
-              :model-value="subtitle"
-              placeholder="Subtitel toevoegen"
-              @update:model-value="update(['subtitle'], $event)"
-            />
-
-            <template v-else>
-              {{ subtitle }}
-            </template>
-          </p>
+          <BlockHeading
+            :title="props.title"
+            :subtitle="props.subtitle"
+            :editable="editable"
+            :alignment="props.headerAlignment || 'left'"
+            :title-class="theme.heading"
+            :subtitle-class="theme.subtitle"
+            rich-title
+            @update:title="update(['title'], $event)"
+            @update:subtitle="update(['subtitle'], $event)"
+          />
 
           <!-- Link editor -->
           <BlocksSharedEditableLinks
@@ -476,7 +451,7 @@ async function addWinner() {
                   class="group/item relative !flex !justify-center"
                 >
                   <article
-                    class="winner-card w-[min(22rem,78vw)] overflow-hidden rounded-lg border border-gray-300 bg-white/95"
+                    class="winner-card w-[min(22rem,78vw)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
                     @click="setActive(index)"
                   >
                     <!-- Image -->

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { computed, ref, useId, watch } from "vue";
 import { useInlineBlock } from "../../composables/useInlineBlock";
@@ -17,17 +18,20 @@ interface QAndAItem {
   answer?: string;
 }
 
-const props = defineProps<{
-  editable?: boolean;
-  padding?: { top?: number; bottom?: number } | null;
-  selected?: boolean;
-  id?: string | number;
-  title?: string;
-  subtitle?: string;
-  headerAlignment?: "left" | "center" | "right";
-  content?: QAndAItem[];
-  colorScheme?: "light" | "dark" | "white";
-}>();
+const props = withDefaults(
+  defineProps<{
+    editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
+    selected?: boolean;
+    id?: string | number;
+    title?: string;
+    subtitle?: string;
+    headerAlignment?: "left" | "center" | "right";
+    content?: QAndAItem[];
+    colorScheme?: "light" | "dark" | "white";
+  }>(),
+  { content: () => [] },
+);
 
 const emits = defineEmits([
   "update:props",
@@ -116,7 +120,7 @@ defineExpose({
   <section
     data-block-padding
     :style="blockPaddingStyle(model.padding)"
-    :id="sectionId"
+    :id="props.id || sectionId"
     :class="[
       'group relative scroll-mt-20 py-16 md:py-20',
       themeClasses.background,
@@ -130,35 +134,24 @@ defineExpose({
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
 
-    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <div class="container min-w-0">
       <div class="text-center">
-        <h2 :class="['text-2xl font-bold sm:text-3xl', themeClasses.title]" :style="{ textAlign: props.headerAlignment || 'center' }">
-          <BlocksSharedEditableText
-            v-if="editable"
-            :editable="editable"
-            :model-value="title"
-            placeholder="Titel toevoegen"
-            @update:model-value="update(['title'], $event)"
-          />
-          <template v-else>{{ title }}</template>
-        </h2>
-
-        <p :class="['mt-3 text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
-          <BlocksSharedEditableText
-            v-if="editable"
-            :editable="editable"
-            :model-value="subtitle"
-            placeholder="Subtitel toevoegen"
-            @update:model-value="update(['subtitle'], $event)"
-          />
-          <template v-else>{{ subtitle }}</template>
-        </p>
+        <BlockHeading
+          :title="props.title"
+          :subtitle="props.subtitle"
+          :editable="editable"
+          :alignment="props.headerAlignment || 'center'"
+          :title-class="themeClasses.title"
+          :subtitle-class="themeClasses.subtitle"
+          @update:title="update(['title'], $event)"
+          @update:subtitle="update(['subtitle'], $event)"
+        />
       </div>
 
       <div
         v-if="displayedItems.length || editable"
         :class="[
-          'mt-10 overflow-hidden rounded-lg border shadow-sm',
+          'mx-auto max-w-4xl overflow-hidden rounded-xl border shadow-sm',
           themeClasses.accordion,
         ]"
       >
@@ -192,7 +185,7 @@ defineExpose({
               <BlocksSharedItemControls
                 v-if="selected"
                 label="Vraag en antwoord bewerken"
-                direction="horizontal"
+                direction="vertical"
                 :items="model.content"
                 :index="index"
                 @update:items="model.content = $event"
@@ -229,7 +222,7 @@ defineExpose({
                 role="region"
                 :aria-labelledby="`${sectionId}-question-${index}`"
                 :class="[
-                  'flex min-h-24 items-center justify-center p-5 text-center text-sm leading-6 md:p-6',
+                  'px-5 pb-5 text-left text-sm leading-6 md:px-6 md:pb-6',
                   themeClasses.answer,
                 ]"
               >

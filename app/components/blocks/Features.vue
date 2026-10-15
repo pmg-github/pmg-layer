@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -20,18 +21,21 @@ interface Feature {
   subtitle?: string;
 }
 
-const props = defineProps<{
-  editable?: boolean;
-  padding?: { top?: number; bottom?: number } | null;
-  selected?: boolean;
-  id?: string;
-  title?: string;
-  subtitle?: string;
-  headerAlignment?: "left" | "center" | "right";
-  content?: Feature[];
-  colorScheme?: "light" | "dark" | "white";
-  links?: { url: string; text: string; target?: string }[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
+    selected?: boolean;
+    id?: string;
+    title?: string;
+    subtitle?: string;
+    headerAlignment?: "left" | "center" | "right";
+    content?: Feature[];
+    colorScheme?: "light" | "dark" | "white";
+    links?: { url: string; text: string; target?: string }[];
+  }>(),
+  { content: () => [] },
+);
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
@@ -116,7 +120,7 @@ defineExpose({
     data-block-padding
     :style="blockPaddingStyle(model.padding)"
     :class="[themeClasses.bg, 'group relative py-16 md:py-20']"
-    aria-labelledby="content-title"
+    :id="props.id"
   >
     <PaddingHandles
       :editable="editable"
@@ -125,34 +129,20 @@ defineExpose({
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="container">
-      <h2
-        :class="[
-          'text-center text-2xl font-bold sm:text-3xl',
-          themeClasses.text,
-        ]"
-      :style="{ textAlign: props.headerAlignment || 'center' }"
-      >
-        <BlocksSharedEditableText
-          :editable="editable"
-          v-if="editable"
-          :model-value="title"
-          placeholder="Titel toevoegen"
-          @update:model-value="update(['title'], $event)"
-        /><template v-else>{{ title }}</template>
-      </h2>
-      <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
-        <BlocksSharedEditableText
-          :editable="editable"
-          v-if="editable"
-          :model-value="subtitle"
-          placeholder="Subtitel toevoegen"
-          @update:model-value="update(['subtitle'], $event)"
-        /><template v-else>{{ subtitle }}</template>
-      </p>
+    <div class="container min-w-0">
+      <BlockHeading
+        :title="props.title"
+        :subtitle="props.subtitle"
+        :editable="editable"
+        :alignment="props.headerAlignment || 'center'"
+        :title-class="themeClasses.text"
+        :subtitle-class="themeClasses.subtitle"
+        @update:title="update(['title'], $event)"
+        @update:subtitle="update(['subtitle'], $event)"
+      />
 
       <div>
-        <ul class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <li
             v-for="(f, i) in props.content || []"
             :key="i"
@@ -184,8 +174,13 @@ defineExpose({
                 aria-hidden="true"
               />
             </div>
-            <div>
-              <h3 :class="[' font-medium', themeClasses.text]">
+            <div class="min-w-0 flex-1">
+              <h3
+                :class="[
+                  'text-lg font-semibold leading-snug',
+                  themeClasses.text,
+                ]"
+              >
                 <BlocksSharedEditableText
                   :editable="editable"
                   v-if="editable"
@@ -193,7 +188,7 @@ defineExpose({
                   @update:model-value="setField(f, 'title', $event)"
                 /><template v-else>{{ f.title }}</template>
               </h3>
-              <p :class="['mt-1 text-sm', themeClasses.subtitle]">
+              <p :class="['mt-2 text-sm leading-6', themeClasses.subtitle]">
                 <BlocksSharedEditableText
                   :editable="editable"
                   v-if="editable"
@@ -225,6 +220,7 @@ defineExpose({
         </ul>
       </div>
       <div
+        v-if="editable || props.links?.length"
         class="mt-12 flex w-full flex-col justify-center space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0"
       >
         <BlocksSharedEditableLinks
@@ -241,7 +237,7 @@ defineExpose({
             :key="idx"
             :href="l.url"
             :target="l.target || '_self'"
-            class="rounded-full px-12 py-3 text-center font-medium transition-colors"
+            class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
             :class="
               idx === 0 ? themeClasses.button : themeClasses.secondaryButton
             "

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -147,18 +148,26 @@ const list = computed<Review[]>(() =>
 );
 
 const cardAlignment = computed(() =>
-  props.alignment === "center" || props.alignment === "right" ? props.alignment : "left",
+  props.alignment === "center" || props.alignment === "right"
+    ? props.alignment
+    : "left",
 );
-const cardAlignmentClass = computed(() => ({
-  left: "text-left",
-  center: "text-center",
-  right: "text-right",
-})[cardAlignment.value]);
-const cardJustifyClass = computed(() => ({
-  left: "justify-start",
-  center: "justify-center",
-  right: "justify-end",
-})[cardAlignment.value]);
+const cardAlignmentClass = computed(
+  () =>
+    ({
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
+    })[cardAlignment.value],
+);
+const cardJustifyClass = computed(
+  () =>
+    ({
+      left: "justify-start",
+      center: "justify-center",
+      right: "justify-end",
+    })[cardAlignment.value],
+);
 
 const getStars = (rating: number) => {
   const full = Math.floor(rating);
@@ -538,35 +547,21 @@ defineExpose({
         :style="blockPaddingStyle(model.padding)"
       >
         <!-- Header -->
-        <div class="mb-8 flex flex-wrap items-start justify-between gap-3">
+        <div class="flex flex-wrap items-start justify-between gap-x-3">
           <div class="mx-auto w-full max-w-4xl text-center">
-            <h2
-              :class="[
-                'text-center text-2xl font-bold sm:text-3xl',
-                themeClasses.text,
-              ]"
-            :style="{ textAlign: props.headerAlignment || 'center' }"
-            >
-              <BlocksSharedEditableText
-                :editable="editable"
-                v-if="editable"
-                :model-value="model.title"
-                placeholder="Titel toevoegen"
-                @update:model-value="update(['title'], $event)"
-              /><template v-else>{{ model.title }}</template>
-            </h2>
-            <p :class="['text-center text-xl', themeClasses.text]" :style="{ textAlign: props.headerAlignment || 'center' }">
-              <BlocksSharedEditableText
-                :editable="editable"
-                v-if="editable"
-                :model-value="model.subtitle"
-                placeholder="Subtitel toevoegen"
-                @update:model-value="update(['subtitle'], $event)"
-              /><template v-else>{{ model.subtitle }}</template>
-            </p>
+            <BlockHeading
+              :title="props.title"
+              :subtitle="props.subtitle"
+              :editable="editable"
+              :alignment="props.headerAlignment || 'center'"
+              :title-class="themeClasses.text"
+              :subtitle-class="themeClasses.text"
+              @update:title="update(['title'], $event)"
+              @update:subtitle="update(['subtitle'], $event)"
+            />
           </div>
 
-          <div v-if="list.length > 1" class="flex gap-2">
+          <div v-if="list.length > 1" class="mb-6 flex gap-2">
             <button
               type="button"
               class="group flex rounded-full p-2 shadow-md ring-1 ring-black/10 transition-colors"
@@ -662,7 +657,7 @@ defineExpose({
               class="group/review relative h-full"
             >
               <article
-                class="group relative flex h-80 w-full flex-col overflow-hidden rounded-lg border shadow-sm"
+                class="group relative flex h-80 w-full min-w-0 flex-col overflow-hidden rounded-xl border shadow-sm"
                 :class="themeClasses.card"
                 :aria-label="`Review by ${review.name}`"
               >
@@ -679,8 +674,16 @@ defineExpose({
                   </svg>
                 </div>
 
-                <div :class="['relative z-10 flex h-full flex-col p-6', cardAlignmentClass]">
-                  <div :class="['mb-4 flex items-center', cardJustifyClass]" aria-label="Rating">
+                <div
+                  :class="[
+                    'relative z-10 flex h-full flex-col p-6',
+                    cardAlignmentClass,
+                  ]"
+                >
+                  <div
+                    :class="['mb-4 flex items-center', cardJustifyClass]"
+                    aria-label="Rating"
+                  >
                     <div
                       class="flex items-center space-x-0.5"
                       title="img"
@@ -770,11 +773,15 @@ defineExpose({
                       :model-value="review.text"
                       :editable="editable"
                       rich
-                      @update:model-value="update(['content', review.sourceIndex, 'text'], $event)"
+                      @update:model-value="
+                        update(['content', review.sourceIndex, 'text'], $event)
+                      "
                     />
                   </blockquote>
 
-                  <footer :class="['mt-auto flex items-center', cardJustifyClass]">
+                  <footer
+                    :class="['mt-auto flex items-center', cardJustifyClass]"
+                  >
                     <div
                       class="mr-4 flex size-12 shrink-0 items-center justify-center rounded-full font-semibold text-white"
                       :class="themeClasses.avatarBg"
@@ -791,13 +798,23 @@ defineExpose({
                             "
                             editable
                             placeholder="Voornaam"
-                            @update:model-value="update(['content', review.sourceIndex, 'firstName'], $event)" /><BlocksSharedEditableText
+                            @update:model-value="
+                              update(
+                                ['content', review.sourceIndex, 'firstName'],
+                                $event,
+                              )
+                            " /><BlocksSharedEditableText
                             :model-value="
                               model.content?.[review.sourceIndex]?.lastName
                             "
                             editable
                             placeholder="Achternaam"
-                            @update:model-value="update(['content', review.sourceIndex, 'lastName'], $event)" /></template
+                            @update:model-value="
+                              update(
+                                ['content', review.sourceIndex, 'lastName'],
+                                $event,
+                              )
+                            " /></template
                         ><template v-else>{{ review.name }}</template>
                       </p>
                       <p
@@ -810,7 +827,12 @@ defineExpose({
                           v-if="editable"
                           :model-value="review.title"
                           placeholder="Functie toevoegen"
-                          @update:model-value="update(['content', review.sourceIndex, 'title'], $event)"
+                          @update:model-value="
+                            update(
+                              ['content', review.sourceIndex, 'title'],
+                              $event,
+                            )
+                          "
                         /><template v-else>{{ review.title }}</template>
                       </p>
                     </div>
@@ -863,7 +885,7 @@ defineExpose({
             <a
               :href="link.url || '#'"
               :target="link.target || '_self'"
-              class="block rounded-full px-12 py-3 text-center font-medium transition-colors"
+              class="block inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
               :class="
                 idx === 0 ? themeClasses.button : themeClasses.secondaryButton
               "

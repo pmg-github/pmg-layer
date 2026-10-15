@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -15,28 +16,31 @@ import {
 import { computed } from "vue";
 import { responsiveTileGridClass } from "../../utils/responsiveTileGrid";
 
-const props = defineProps<{
-  editable?: boolean;
-  padding?: { top?: number; bottom?: number } | null;
-  selected?: boolean;
-  id?: string;
-  links?: { url: string; text: string; target?: string }[];
-  title?: string;
-  subtitle?: string;
-  headerAlignment?: "left" | "center" | "right";
-  content?: {
-    tiles?: Array<{
-      icon?: string;
-      links?: { url: string; text: string; target?: string }[];
-      title?: string;
-      subtitle?: string;
-      description?: string;
-    }>;
-    columns?: number;
-    alignment?: "left" | "center" | "right";
-  };
-  colorScheme?: "light" | "dark" | "white";
-}>();
+const props = withDefaults(
+  defineProps<{
+    editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
+    selected?: boolean;
+    id?: string;
+    links?: { url: string; text: string; target?: string }[];
+    title?: string;
+    subtitle?: string;
+    headerAlignment?: "left" | "center" | "right";
+    content?: {
+      tiles?: Array<{
+        icon?: string;
+        links?: { url: string; text: string; target?: string }[];
+        title?: string;
+        subtitle?: string;
+        description?: string;
+      }>;
+      columns?: number;
+      alignment?: "left" | "center" | "right";
+    };
+    colorScheme?: "light" | "dark" | "white";
+  }>(),
+  { content: () => ({ tiles: [] }) },
+);
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
@@ -52,9 +56,13 @@ const handleAnchorClick = (url: string, target?: string | null) => {
   }
 };
 
-const cols = computed(() =>
-  Math.min(4, Math.max(1, props.content?.columns ?? 3)),
-);
+function normalizeColumns(value: unknown) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0
+    ? Math.min(4, Math.max(1, Math.round(number)))
+    : 3;
+}
+const cols = computed(() => normalizeColumns(props.content?.columns));
 const contentAlignment = computed(() => {
   const alignment = props.content?.alignment;
   return alignment === "left" || alignment === "right" ? alignment : "center";
@@ -87,7 +95,10 @@ const gridClass = computed(() =>
   responsiveTileGridClass(props.content?.tiles?.length ?? 0, cols.value),
 );
 
-const cardClass = computed(() => "flex flex-col rounded-lg bg-white p-8 ");
+const cardClass = computed(
+  () =>
+    "flex min-w-0 flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm",
+);
 
 const themeClasses = computed(() => {
   switch (props.colorScheme) {
@@ -116,7 +127,7 @@ const themeClasses = computed(() => {
         bg: "bg-white",
         text: "text-primary-900",
         subtitle: "text-gray-600",
-        card: "bg-white text-primary-900 border border-gray-200",
+        card: "bg-white text-primary-900",
         button: "bg-primary-900 text-white hover:bg-primary-950",
         secondaryButton:
           "border border-primary-900 bg-transparent text-primary-950 hover:bg-primary-50",
@@ -189,32 +200,18 @@ function addTile() {
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="container">
+    <div class="container min-w-0">
       <div class="mx-auto max-w-4xl text-center">
-        <h2
-          :class="[
-            'text-center text-2xl font-bold sm:text-3xl',
-            themeClasses.text,
-          ]"
-        :style="{ textAlign: props.headerAlignment || 'center' }"
-        >
-          <BlocksSharedEditableText
-            :editable="editable"
-            v-if="editable"
-            :model-value="title"
-            placeholder="Titel toevoegen"
-            @update:model-value="update(['title'], $event)"
-          /><template v-else>{{ title }}</template>
-        </h2>
-        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
-          <BlocksSharedEditableText
-            :editable="editable"
-            v-if="editable"
-            :model-value="subtitle"
-            placeholder="Subtitel toevoegen"
-            @update:model-value="update(['subtitle'], $event)"
-          /><template v-else>{{ subtitle }}</template>
-        </p>
+        <BlockHeading
+          :title="props.title"
+          :subtitle="props.subtitle"
+          :editable="editable"
+          :alignment="props.headerAlignment || 'center'"
+          :title-class="themeClasses.text"
+          :subtitle-class="themeClasses.subtitle"
+          @update:title="update(['title'], $event)"
+          @update:subtitle="update(['subtitle'], $event)"
+        />
       </div>
 
       <div :class="gridClass">
@@ -262,7 +259,7 @@ function addTile() {
               />
               <span class="sr-only">Icon for {{ t?.title }}</span>
             </span>
-            <h3 class="text-2xl font-bold leading-tight md:text-3xl">
+            <h3 class="text-xl font-semibold leading-snug sm:text-2xl">
               <BlocksSharedEditableText
                 :editable="editable"
                 v-if="editable"
@@ -270,7 +267,7 @@ function addTile() {
                 @update:model-value="setField(t, 'title', $event)"
               /><template v-else>{{ t?.title }}</template>
             </h3>
-            <p class="text-sm text-gray-600">
+            <p class="mt-2 text-sm leading-6 text-gray-600">
               <BlocksSharedEditableText
                 :editable="editable"
                 v-if="editable"
@@ -294,7 +291,10 @@ function addTile() {
             />
           </div>
 
-          <div :class="['mt-auto flex w-full', contentJustifyClass]">
+          <div
+            v-if="editable || t.links?.length"
+            :class="['mt-auto flex w-full', contentJustifyClass]"
+          >
             <BlocksSharedEditableLinks
               v-if="editable"
               :model-value="t.links"
@@ -304,10 +304,12 @@ function addTile() {
               @update:model-value="setField(t, 'links', $event)"
             />
             <a
-              v-else-if="t?.links?.[0]?.url?.trim() && t?.links?.[0]?.text?.trim()"
+              v-else-if="
+                t?.links?.[0]?.url?.trim() && t?.links?.[0]?.text?.trim()
+              "
               :href="t.links[0].url"
               :target="t.links[0].target || '_self'"
-              class="flex items-center justify-center gap-2 rounded-full bg-primary-900 px-8 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-primary-950 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
+              class="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-primary-900 px-6 py-3 text-center text-sm font-semibold leading-5 text-white transition-colors hover:bg-primary-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
             >
               <BlocksSharedEditableText
                 :editable="editable"
@@ -328,6 +330,7 @@ function addTile() {
       </div>
 
       <div
+        v-if="editable || props.links?.length"
         class="mt-6 flex w-full flex-col justify-center space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0 md:mt-8"
       >
         <BlocksSharedEditableLinks
@@ -344,7 +347,7 @@ function addTile() {
             :key="idx"
             :href="l.url"
             :target="l.target || '_self'"
-            class="rounded-full px-12 py-3 text-center font-medium transition-colors"
+            class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
             :class="
               idx === 0 ? themeClasses.button : themeClasses.secondaryButton
             "
@@ -420,7 +423,14 @@ function addTile() {
         <label class="mb-1 block text-xs font-medium text-gray-600"
           >Aantal kolommen</label
         >
-        <SharedInput type="number" v-model="model.content.columns" />
+        <SharedInput
+          type="number"
+          min="1"
+          max="4"
+          step="1"
+          :model-value="String(cols)"
+          @update:model-value="model.content.columns = normalizeColumns($event)"
+        />
       </div>
     </div>
   </BlocksSharedBlockSettings>

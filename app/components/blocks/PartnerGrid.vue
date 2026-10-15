@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useFetchCampaigns } from "../../composables/useFetchCampaigns";
 import { useInlineBlock } from "../../composables/useInlineBlock";
@@ -18,18 +19,21 @@ const sentenceCase = (value?: string) =>
 
 type CampaignOption = { key: string; value: number };
 
-const props = defineProps<{
-  editable?: boolean;
-  padding?: { top?: number; bottom?: number } | null;
-  selected?: boolean;
-  content?: { campaign: CampaignOption };
-  colorScheme?: "light" | "dark" | "white";
-  title?: string;
-  subtitle?: string;
-  headerAlignment?: "left" | "center" | "right";
-  links?: { url: string; text: string; target?: string }[];
-  id?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
+    selected?: boolean;
+    content?: { campaign: CampaignOption };
+    colorScheme?: "light" | "dark" | "white";
+    title?: string;
+    subtitle?: string;
+    headerAlignment?: "left" | "center" | "right";
+    links?: { url: string; text: string; target?: string }[];
+    id?: string;
+  }>(),
+  { content: () => ({}) },
+);
 
 const campaignFilters = props.editable ? useFetchFilters() : null;
 
@@ -186,47 +190,34 @@ defineExpose({
     <div
       v-if="editable || campaignData"
       :key="campaignData?.id"
-      class="container"
+      class="container min-w-0"
     >
       <div class="flex flex-col justify-center">
         <!-- Title -->
         <div class="text-center">
-          <h2
-            :class="['text-2xl font-bold sm:text-3xl', themeClasses.text]"
-            :style="{ textAlign: props.headerAlignment || 'center' }"
-          >
-            <BlocksSharedEditableText
-              v-if="editable"
-              :model-value="props.title"
+          <BlockHeading
+            :title="
               editable
-              placeholder="Titel toevoegen"
-              @update:model-value="update(['title'], $event)"
-            />
-            <template v-else>{{
-              sentenceCase(props.title || campaignData?.title)
-            }}</template>
-          </h2>
-          <p
-            v-if="editable || props.subtitle || campaignData?.subtitle"
-            :class="['mt-4 text-lg', themeClasses.subtitle]"
-            :style="{ textAlign: props.headerAlignment || 'center' }"
-          >
-            <BlocksSharedEditableText
-              v-if="editable"
-              :model-value="props.subtitle"
+                ? props.title
+                : sentenceCase(props.title || campaignData?.title)
+            "
+            :subtitle="
               editable
-              placeholder="Subtitel toevoegen"
-              @update:model-value="update(['subtitle'], $event)"
-            />
-            <template v-else>{{
-              props.subtitle || campaignData?.subtitle
-            }}</template>
-          </p>
+                ? props.subtitle
+                : props.subtitle || campaignData?.subtitle
+            "
+            :editable="editable"
+            :alignment="props.headerAlignment || 'center'"
+            :title-class="themeClasses.text"
+            :subtitle-class="themeClasses.subtitle"
+            @update:title="update(['title'], $event)"
+            @update:subtitle="update(['subtitle'], $event)"
+          />
         </div>
 
         <!-- Logos -->
         <div
-          class="mx-auto mt-10 grid w-full grid-cols-2 justify-items-center gap-2 md:[grid-template-columns:repeat(var(--desktop-columns),1fr)]"
+          class="mx-auto grid w-full grid-cols-2 justify-items-center gap-6 md:[grid-template-columns:repeat(var(--desktop-columns),1fr)]"
           :style="gridStyle"
         >
           <component
@@ -237,7 +228,7 @@ defineExpose({
             :target="item.url ? '_blank' : undefined"
             :rel="item.url ? 'noopener noreferrer' : undefined"
             :class="[
-              'flex aspect-square w-full max-w-72 flex-col items-center justify-center gap-4 rounded-lg bg-white p-6 text-center transition-transform duration-200',
+              'flex aspect-square w-full max-w-72 flex-col items-center justify-center gap-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm text-center transition-transform duration-200',
               item.url ? 'cursor-pointer hover:-translate-y-1' : '',
             ]"
           >
@@ -256,7 +247,10 @@ defineExpose({
     </div>
 
     <!-- Links -->
-    <div class="container mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+    <div
+      v-if="editable || props.links?.length"
+      class="container mt-8 flex flex-col justify-center gap-3 sm:flex-row"
+    >
       <BlocksSharedEditableLinks
         v-if="editable"
         ref="editableLinksRef"
@@ -271,7 +265,7 @@ defineExpose({
           :key="idx"
           :href="l.url"
           :target="l.target || '_self'"
-          class="rounded-full px-12 py-3 text-center font-medium transition-colors"
+          class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
           :class="
             idx === 0 ? themeClasses.button : themeClasses.secondaryButton
           "

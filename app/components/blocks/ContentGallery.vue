@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -10,32 +11,36 @@ import {
   BlocksSharedLinkReferenceSelect,
   BlocksSharedSelectionFrame,
 } from "../block-editor";
-import { computed, ref } from "vue";
+import { computed, ref, useId } from "vue";
 import ContentLightbox from "./ContentLightbox.vue";
 import type { FileButtonViewModel } from "models";
 
 const { locale } = useI18n();
+const generatedHeadingId = useId();
 
-const props = defineProps<{
-  editable?: boolean;
-  padding?: { top?: number; bottom?: number } | null;
-  selected?: boolean;
-  id?: string;
-  links?: { url: string; text: string; target?: string }[];
-  title?: string;
-  subtitle?: string;
-  headerAlignment?: "left" | "center" | "right";
-  content?: {
-    freeContent: string;
-    images: Array<string | FileButtonViewModel>;
-    layout: boolean;
-    label?: string;
-    type?: "image" | "video";
-    videoCode?: { value: string; key: string } | null;
-  };
-  language?: string;
-  colorScheme?: "light" | "dark" | "white";
-}>();
+const props = withDefaults(
+  defineProps<{
+    editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
+    selected?: boolean;
+    id?: string;
+    links?: { url: string; text: string; target?: string }[];
+    title?: string;
+    subtitle?: string;
+    headerAlignment?: "left" | "center" | "right";
+    content?: {
+      freeContent: string;
+      images: Array<string | FileButtonViewModel>;
+      layout: boolean;
+      label?: string;
+      type?: "image" | "video";
+      videoCode?: { value: string; key: string } | null;
+    };
+    language?: string;
+    colorScheme?: "light" | "dark" | "white";
+  }>(),
+  { content: () => ({ images: [], freeContent: "", layout: false }) },
+);
 
 const handleAnchorClick = (url?: string, target?: string | null) => {
   if (props.editable) return;
@@ -179,7 +184,7 @@ const removeActiveButton = () => {
     :style="blockPaddingStyle(model.padding)"
     :id="props.id || undefined"
     :class="[themeClasses.bg, 'group relative py-16 md:py-20']"
-    :aria-labelledby="(props.id || 'contentgallery') + '-title'"
+    :aria-labelledby="(props.id || generatedHeadingId) + '-title'"
   >
     <PaddingHandles
       :editable="editable"
@@ -188,10 +193,10 @@ const removeActiveButton = () => {
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="container">
+    <div class="container min-w-0">
       <div
         :class="[
-          'grid gap-16 lg:grid-cols-2 lg:items-center',
+          'grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-12',
           themeClasses.text,
         ]"
       >
@@ -211,34 +216,17 @@ const removeActiveButton = () => {
             /><template v-else>{{ props.content?.label }}</template>
           </span>
 
-          <h2
-            id="contentgallery-title"
-            :class="[
-              'text-2xl font-bold tracking-tight sm:text-3xl',
-              themeClasses.text,
-            ]"
-          :style="{ textAlign: props.headerAlignment || 'left' }"
-          >
-            <BlocksSharedEditableText
-              :editable="editable"
-              v-if="editable"
-              :model-value="title"
-              @update:model-value="update(['title'], $event)"
-            /><template v-else>{{ title }}</template>
-          </h2>
-
-          <p
-            v-if="editable || props.subtitle"
-            :class="['mb-4 text-xl', themeClasses.subtitle]"
-          :style="{ textAlign: props.headerAlignment || 'left' }"
-          >
-            <BlocksSharedEditableText
-              :editable="editable"
-              v-if="editable"
-              :model-value="props.subtitle"
-              @update:model-value="setField(props, 'subtitle', $event)"
-            /><template v-else>{{ props.subtitle }}</template>
-          </p>
+          <BlockHeading
+            :title="props.title"
+            :subtitle="props.subtitle"
+            :editable="editable"
+            :alignment="props.headerAlignment || 'left'"
+            :title-class="themeClasses.text"
+            :subtitle-class="themeClasses.subtitle"
+            :heading-id="(props.id || generatedHeadingId) + '-title'"
+            @update:title="update(['title'], $event)"
+            @update:subtitle="update(['subtitle'], $event)"
+          />
 
           <div
             v-if="editable || props.content?.freeContent"
@@ -258,6 +246,7 @@ const removeActiveButton = () => {
           </div>
 
           <div
+            v-if="editable || props.links?.length"
             class="relative mt-6 flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap md:mt-8"
             @focusout="handleLinksRowFocusOut"
           >
@@ -270,7 +259,7 @@ const removeActiveButton = () => {
               <a
                 :href="link.url || '#'"
                 :target="link.target || '_self'"
-                class="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
                 :class="
                   index === 0
                     ? themeClasses.button

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import {
@@ -14,31 +15,34 @@ import type { FileButtonViewModel } from "models";
 import { ref, watch, computed } from "vue";
 const { locale } = useI18n();
 
-const props = defineProps<{
-  editable?: boolean;
-  padding?: { top?: number; bottom?: number } | null;
-  selected?: boolean;
-  id?: string;
-  content: {
-    tabs?: Array<{
-      title: string;
-      subtitle?: string;
-      text?: string;
-      imageUrl?: string | FileButtonViewModel;
-      image?: FileButtonViewModel;
-      videoCode?: { value: string; key: string } | null;
-      type?: "image" | "video";
-      links?: Array<{ url: string; text: string; target?: string | null }>;
-    }>;
-    modelValue?: number;
-  };
-  language?: string;
-  links?: { url: string; text: string; target?: string }[];
-  title?: string;
-  subtitle?: string;
-  headerAlignment?: "left" | "center" | "right";
-  colorScheme?: "light" | "dark" | "white";
-}>();
+const props = withDefaults(
+  defineProps<{
+    editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
+    selected?: boolean;
+    id?: string;
+    content: {
+      tabs?: Array<{
+        title: string;
+        subtitle?: string;
+        text?: string;
+        imageUrl?: string | FileButtonViewModel;
+        image?: FileButtonViewModel;
+        videoCode?: { value: string; key: string } | null;
+        type?: "image" | "video";
+        links?: Array<{ url: string; text: string; target?: string | null }>;
+      }>;
+      modelValue?: number;
+    };
+    language?: string;
+    links?: { url: string; text: string; target?: string }[];
+    title?: string;
+    subtitle?: string;
+    headerAlignment?: "left" | "center" | "right";
+    colorScheme?: "light" | "dark" | "white";
+  }>(),
+  { content: () => ({ tabs: [] }) },
+);
 
 const emits = defineEmits([
   "update:modelValue",
@@ -237,7 +241,10 @@ const getAllVideoCodes = (...args: any[]) =>
 </script>
 
 <template>
-  <section :class="[theme.surface, 'tabs-block group relative']">
+  <section
+    :id="props.id"
+    :class="[theme.surface, 'tabs-block group relative scroll-mt-20']"
+  >
     <PaddingHandles
       :editable="editable"
       :selected="selected"
@@ -256,30 +263,16 @@ const getAllVideoCodes = (...args: any[]) =>
         <div class="w-full">
           <div class="flex gap-4">
             <div class="mx-auto w-full max-w-4xl text-center">
-              <h2
-                :class="[
-                  'text-center text-2xl font-bold sm:text-3xl',
-                  theme.heading,
-                ]"
-              :style="{ textAlign: props.headerAlignment || 'center' }"
-              >
-                <BlocksSharedEditableText
-                  :editable="editable"
-                  v-if="editable"
-                  :model-value="title"
-                  placeholder="Titel toevoegen"
-                  @update:model-value="update(['title'], $event)"
-                /><template v-else>{{ title }}</template>
-              </h2>
-              <p :class="['mb-8 text-center text-xl', theme.muted]" :style="{ textAlign: props.headerAlignment || 'center' }">
-                <BlocksSharedEditableText
-                  :editable="editable"
-                  v-if="editable"
-                  :model-value="subtitle"
-                  placeholder="Subtitel toevoegen"
-                  @update:model-value="update(['subtitle'], $event)"
-                /><template v-else>{{ subtitle }}</template>
-              </p>
+              <BlockHeading
+                :title="props.title"
+                :subtitle="props.subtitle"
+                :editable="editable"
+                :alignment="props.headerAlignment || 'center'"
+                :title-class="theme.heading"
+                :subtitle-class="theme.muted"
+                @update:title="update(['title'], $event)"
+                @update:subtitle="update(['subtitle'], $event)"
+              />
             </div>
           </div>
 
@@ -526,6 +519,7 @@ const getAllVideoCodes = (...args: any[]) =>
         </div>
       </TabsRoot>
       <div
+        v-if="editable || props.links?.length"
         class="mt-6 flex w-full flex-col justify-center space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0 md:mt-8"
       >
         <BlocksSharedEditableLinks
@@ -542,7 +536,7 @@ const getAllVideoCodes = (...args: any[]) =>
             :key="idx"
             :href="l.url"
             :target="l.target || '_self'"
-            class="rounded-full px-12 py-3 text-center font-medium transition-colors"
+            class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
             :class="idx === 0 ? theme.button : theme.secondaryButton"
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >

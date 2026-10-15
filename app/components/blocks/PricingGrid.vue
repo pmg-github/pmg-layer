@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import { responsiveTileGridClass } from "../../utils/responsiveTileGrid";
@@ -12,33 +13,36 @@ import {
   BlocksSharedItemControls,
   BlocksSharedSelectionFrame,
 } from "../block-editor";
-const props = defineProps<{
-  editable?: boolean;
-  padding?: { top?: number; bottom?: number } | null;
-  selected?: boolean;
-  links?: { url: string; text: string; target?: string }[];
-  id?: string;
-  title?: string;
-  subtitle?: string;
-  headerAlignment?: "left" | "center" | "right";
-  content?: {
+const props = withDefaults(
+  defineProps<{
+    editable?: boolean;
+    padding?: { top?: number; bottom?: number } | null;
+    selected?: boolean;
+    links?: { url: string; text: string; target?: string }[];
+    id?: string;
     title?: string;
-    description?: string;
-    label?: {
-      text: string;
-      color?: "yellow" | "red" | "green" | "pink" | "orange" | null;
-    };
-    tags?: string[];
-    benefits?: Array<{ label: string; included: boolean }>;
-    price?: string;
-    priceNote?: string;
-    buttonLabel?: string;
-    buttonUrl?: string;
-    buttonTarget?: string;
-  }[];
-  colorScheme?: "light" | "dark" | "white";
-  alignment?: "left" | "center" | "right";
-}>();
+    subtitle?: string;
+    headerAlignment?: "left" | "center" | "right";
+    content?: {
+      title?: string;
+      description?: string;
+      label?: {
+        text: string;
+        color?: "yellow" | "red" | "green" | "pink" | "orange" | null;
+      };
+      tags?: string[];
+      benefits?: Array<{ label: string; included: boolean }>;
+      price?: string;
+      priceNote?: string;
+      buttonLabel?: string;
+      buttonUrl?: string;
+      buttonTarget?: string;
+    }[];
+    colorScheme?: "light" | "dark" | "white";
+    alignment?: "left" | "center" | "right";
+  }>(),
+  { content: () => [] },
+);
 
 const borderColor = (color?: string | null) => ({
   "border-yellow-300": color === "yellow",
@@ -159,11 +163,6 @@ function toggleBadgeColorPicker(index: number) {
     openBadgeColorIndex.value === index ? null : index;
 }
 
-function selectBadgeColor(label: any, color: string | null) {
-  setField(label, "color", color);
-  openBadgeColorIndex.value = null;
-}
-
 function closeBadgeColorPicker(event: PointerEvent) {
   const index = openBadgeColorIndex.value;
   if (index === null) return;
@@ -254,39 +253,25 @@ function shouldShowEuroPrefix(price?: string) {
       @update:padding="update(['padding'], $event)"
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
-    <div class="container">
+    <div class="container min-w-0">
       <div class="mx-auto max-w-4xl text-center">
-        <h2
-          :class="[
-            'text-center text-2xl font-bold sm:text-3xl',
-            themeClasses.text,
-          ]"
-        :style="{ textAlign: props.headerAlignment || 'center' }"
-        >
-          <BlocksSharedEditableText
-            :editable="editable"
-            v-if="editable"
-            :model-value="title"
-            placeholder="Titel toevoegen"
-            @update:model-value="update(['title'], $event)"
-          /><template v-else>{{ title }}</template>
-        </h2>
-        <p :class="['mb-8 text-center text-xl', themeClasses.subtitle]" :style="{ textAlign: props.headerAlignment || 'center' }">
-          <BlocksSharedEditableText
-            :editable="editable"
-            v-if="editable"
-            :model-value="subtitle"
-            placeholder="Subtitel toevoegen"
-            @update:model-value="update(['subtitle'], $event)"
-          /><template v-else>{{ subtitle }}</template>
-        </p>
+        <BlockHeading
+          :title="props.title"
+          :subtitle="props.subtitle"
+          :editable="editable"
+          :alignment="props.headerAlignment || 'center'"
+          :title-class="themeClasses.text"
+          :subtitle-class="themeClasses.subtitle"
+          @update:title="update(['title'], $event)"
+          @update:subtitle="update(['subtitle'], $event)"
+        />
       </div>
 
       <div :class="gridClass">
         <div
           v-for="(card, i) in props.content || []"
           :key="i"
-          class="pricing-card group/item relative flex h-full w-full flex-col rounded-lg border-2 bg-white p-6 shadow-sm"
+          class="pricing-card group/item relative flex h-full min-w-0 w-full flex-col rounded-xl border-2 bg-white p-6 shadow-sm"
           :class="[
             borderColor(card.label?.color),
             openBadgeColorIndex === i ? 'z-50' : '',
@@ -300,8 +285,10 @@ function shouldShowEuroPrefix(price?: string) {
             <BlocksSharedEditableText
               :editable="editable"
               v-if="editable"
-              :model-value="card.label.text"
-              @update:model-value="setField(card.label, 'text', $event)"
+              :model-value="card.label?.text"
+              @update:model-value="
+                update(['content', i, 'label', 'text'], $event)
+              "
             /><template v-else>{{ card.label.text }}</template>
 
             <div
@@ -340,7 +327,8 @@ function shouldShowEuroPrefix(price?: string) {
                   :aria-label="`Badgekleur ${color.label}`"
                   :aria-pressed="card.label?.color === color.value"
                   @click.stop.prevent="
-                    selectBadgeColor(card.label, color.value)
+                    update(['content', i, 'label', 'color'], color.value);
+                    openBadgeColorIndex = null;
                   "
                 />
               </div>
@@ -348,7 +336,9 @@ function shouldShowEuroPrefix(price?: string) {
           </div>
 
           <div :class="['flex flex-1 flex-col', cardAlignmentClass]">
-            <h3 class="mb-2 text-2xl font-bold uppercase text-gray-900">
+            <h3
+              class="mb-2 text-xl font-semibold leading-snug text-gray-900 sm:text-2xl"
+            >
               <BlocksSharedEditableText
                 :editable="editable"
                 v-if="editable"
@@ -515,7 +505,7 @@ function shouldShowEuroPrefix(price?: string) {
               v-else-if="card.buttonLabel"
               :href="card.buttonUrl || undefined"
               :target="card.buttonTarget || '_self'"
-              class="mt-2 block w-full rounded-md bg-primary-900 px-6 py-3 text-center text-lg font-bold normal-case text-white shadow transition-colors hover:bg-primary-950"
+              class="mt-2 w-full inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 bg-primary-900 text-white hover:bg-primary-950"
             >
               {{ card.buttonLabel }}
             </a>
