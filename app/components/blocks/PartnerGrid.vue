@@ -11,20 +11,22 @@ import {
   BlocksSharedEditableText,
   BlocksSharedSelectionFrame,
 } from "../block-editor";
-import { computed } from "vue";
+import { computed, useId } from "vue";
+import type { CampagneViewModel } from "models";
 const { getCampaign } = useFetchCampaigns();
 
 const sentenceCase = (value?: string) =>
   value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
 
 type CampaignOption = { key: string; value: number };
+type PartnerCampaign = CampagneViewModel & { maxRow?: number | string | null };
 
 const props = withDefaults(
   defineProps<{
     editable?: boolean;
     padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
-    content?: { campaign: CampaignOption };
+    content?: { campaign?: CampaignOption | null };
     colorScheme?: "light" | "dark" | "white";
     title?: string;
     subtitle?: string;
@@ -36,15 +38,29 @@ const props = withDefaults(
 );
 
 const campaignFilters = props.editable ? useFetchFilters() : null;
+const { locale } = useI18n();
+const campaignScopeId = useId();
+const campaignId = computed(() => {
+  const value = Number(props.content?.campaign?.value);
+  return Number.isSafeInteger(value) && value > 0 ? value : null;
+});
 
-const { data: campaign } = useAsyncData(
-  `campaign-${props.content?.campaign?.value}`,
+const {
+  data: campaign,
+  status: campaignStatus,
+  error: campaignError,
+  refresh: refreshCampaign,
+} = useAsyncData(
+  computed(
+    () =>
+      `partner-campaign-${campaignScopeId}-${campaignId.value ?? "none"}-${locale.value}`,
+  ),
   () => {
-    if (props.content?.campaign?.value)
-      return getCampaign(props.content?.campaign?.value);
-    return {} as any;
+    if (campaignId.value !== null)
+      return getCampaign(campaignId.value, locale.value);
+    return null;
   },
-  { immediate: true, watch: [() => props.content?.campaign?.value] },
+  { default: () => null },
 );
 
 const fetchCampaignOptions = async (
@@ -52,16 +68,24 @@ const fetchCampaignOptions = async (
 ): Promise<CampaignOption[]> => {
   if (!campaignFilters) return [];
   const options = await campaignFilters.getCampaigns({ query });
-  return options.filter(
-    (campaignOption): campaignOption is CampaignOption =>
-      typeof campaignOption.key === "string" &&
-      typeof campaignOption.value === "number",
-  );
+  return options.flatMap((option) => {
+    const value = Number(option.value);
+    return typeof option.key === "string" &&
+      Number.isSafeInteger(value) &&
+      value > 0
+      ? [{ ...option, value }]
+      : [];
+  });
 };
 const getCampaignOptionValue = (campaignOption: CampaignOption) =>
   campaignOption;
 
-const campaignData = computed(() => (campaign.value as any) || null);
+const campaignData = computed(() => {
+  const data = campaign.value as PartnerCampaign | null;
+  return campaignId.value !== null && Number(data?.id) === campaignId.value
+    ? data
+    : null;
+});
 
 const handleAnchorClick = (url: string, target?: string | null) => {
   if (props.editable) return;
@@ -217,6 +241,36 @@ defineExpose({
 
         <!-- Logos -->
         <div
+          v-if="
+            editable &&
+            (campaignStatus === 'pending' ||
+              campaignError ||
+              !campaignItems.length)
+          "
+          class="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white px-6 py-8 text-center text-sm text-gray-600"
+          role="status"
+          aria-live="polite"
+        >
+          <template v-if="campaignStatus === 'pending'"
+            >Partners laden…</template
+          >
+          <template v-else-if="campaignError">
+            <p>De partners konden niet worden geladen.</p>
+            <button
+              type="button"
+              class="rounded-lg px-3 py-2 font-semibold text-blue-700 hover:bg-blue-50"
+              @click="refreshCampaign()"
+            >
+              Opnieuw proberen
+            </button>
+          </template>
+          <template v-else-if="campaignId === null"
+            >Selecteer een campagne via de blokinstellingen.</template
+          >
+          <template v-else>Deze campagne bevat nog geen partners.</template>
+        </div>
+        <div
+          v-else
           class="mx-auto grid w-full grid-cols-2 justify-items-center gap-6 md:[grid-template-columns:repeat(var(--desktop-columns),1fr)]"
           :style="gridStyle"
         >
@@ -292,9 +346,7 @@ defineExpose({
       :model-value="props.headerAlignment || 'center'"
       @update:model-value="update(['headerAlignment'], $event)"
     />
-    <label class="mb-1 block text-xs font-medium text-gray-600">Campagne</label>
     <PMGSelect
-      :name="`target-campaign-${props.id}`"
       v-model="selectedCampaign"
       :fetch="fetchCampaignOptions"
       label="Campagne"
@@ -306,9 +358,3 @@ defineExpose({
     />
   </BlocksSharedBlockSettings>
 </template>
-
-<style scoped>
-:global([data-reka-popper-content-wrapper]) {
-  z-index: 50 !important;
-}
-</style>
