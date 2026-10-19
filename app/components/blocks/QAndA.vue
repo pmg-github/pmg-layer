@@ -222,7 +222,7 @@ defineExpose({
                 role="region"
                 :aria-labelledby="`${sectionId}-question-${index}`"
                 :class="[
-                  'px-5 pb-5 text-left text-sm leading-6 md:px-6 md:pb-6',
+                  'p-5 text-left text-sm leading-6 md:p-6',
                   themeClasses.answer,
                 ]"
               >

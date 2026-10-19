@@ -212,7 +212,6 @@ defineExpose({
     />
     <BlocksSharedSelectionFrame :editable="editable" :selected="selected" />
     <div
-      v-if="editable || campaignData"
       :key="campaignData?.id"
       class="container min-w-0"
     >

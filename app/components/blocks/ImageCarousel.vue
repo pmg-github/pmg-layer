@@ -297,7 +297,7 @@ const setSlidesPerView = (value: string | number | null) => {
           <component
             :is="editable || !t?.link?.url?.trim() ? 'div' : 'a'"
             :class="[
-              'flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 shadow-sm',
+              'flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 shadow-sm',
               themeClasses.card,
             ]"
             :href="t?.link?.url || undefined"
@@ -519,7 +519,13 @@ const setSlidesPerView = (value: string | number | null) => {
 <style scoped>
 /* Override Swiper's default ease-in-out so slides move at constant speed */
 :deep(.image-carousel .swiper-wrapper) {
+  align-items: stretch;
   transition-timing-function: linear !important;
+}
+
+:deep(.image-carousel .swiper-slide) {
+  display: flex;
+  height: auto;
 }
 
 :deep(.image-carousel .swiper-button-prev) {
