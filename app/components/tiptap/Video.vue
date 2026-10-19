@@ -50,13 +50,12 @@ const videoId = computed(() => String(videoAttrs.value.videoId || ""));
 
 const autoplay = computed(() => Boolean(videoAttrs.value.autoplay));
 
-const muted = computed(() => Boolean(videoAttrs.value.muted));
+const muted = computed(() => autoplay.value || Boolean(videoAttrs.value.muted));
 
 const hasVideoReference = computed(() => Boolean(videoId.value.trim()));
 
 const draftVideoId = ref("");
 const draftAutoplay = ref(false);
-const draftMuted = ref(false);
 
 const resolvedVideo = ref<VideoResponse | null>(null);
 const isLoadingVideo = ref(false);
@@ -164,7 +163,6 @@ const openEditor = () => {
 
   draftVideoId.value = videoId.value;
   draftAutoplay.value = autoplay.value;
-  draftMuted.value = muted.value;
   isEditing.value = true;
 };
 
@@ -178,7 +176,7 @@ const applyVideo = () => {
   props.updateAttributes({
     videoId: trimmed,
     autoplay: draftAutoplay.value,
-    muted: draftMuted.value,
+    muted: draftAutoplay.value,
   });
 
   isEditing.value = false;
@@ -389,12 +387,7 @@ const selectNode = () => {
         <div class="flex items-center gap-6">
           <label class="inline-flex items-center gap-2 text-sm text-gray-700">
             <input v-model="draftAutoplay" type="checkbox" />
-            Autoplay
-          </label>
-
-          <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-            <input v-model="draftMuted" type="checkbox" />
-            Muted
+            Automatisch afspelen zonder geluid
           </label>
         </div>
       </div>

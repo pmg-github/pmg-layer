@@ -257,3 +257,38 @@ export default {
   ],
 } satisfies Config;
 ```
+
+## Tiptap tool / 3D block
+
+Register the Tool extension in both the editable dashboard editor and the website's
+read-only editor. Both use the same Vue node view, including its built-in picker:
+
+```ts
+import Tool from "pmg-layer/utils/extensions/tool";
+
+const editor = new Editor({
+  extensions: [StarterKit, Tool],
+  editable: true, // false on the website
+  content,
+});
+
+// Dashboard toolbar: inserts an empty block and opens the tool picker.
+editor.chain().focus().insertTool().run();
+
+// Or insert a known tool directly.
+editor.chain().focus().insertTool({ toolId: 123 }).run();
+```
+
+The node saves `{ type: "tool", attrs: { toolId: 123 } }`. It resolves current tool
+data with the consuming app's `useApi()` instance and locale through
+`GET /api/tools/search/:lang?toolId=123`. The picker uses the same endpoint with
+`term` and `limit=30`. It supports tools with a `3dUrl` and image-only tools.
+
+Editable mode shows Select/Change and Remove controls, plus an opt-in 3D preview.
+Read-only mode displays the 3D viewer directly, with an image fallback. Model
+Viewer is imported lazily in the browser; no additional plugin or remote script
+is needed. The layer config registers `model-viewer` as a Vue custom element.
+
+HTML serialization stores a `div[data-tool][data-tool-id]` marker for round trips.
+Published content must use the registered Tiptap node view to render the viewer;
+plain exported HTML does not include the interactive Vue component.

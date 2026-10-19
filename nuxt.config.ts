@@ -3,6 +3,12 @@ import { createResolver } from "@nuxt/kit";
 const { resolve } = createResolver(import.meta.url);
 
 export default defineNuxtConfig({
+  vue: {
+    compilerOptions: {
+      isCustomElement: (tag) => tag === "model-viewer",
+    },
+  },
+
   // Modules shared by every project that extends this layer
   modules: [
     "@nuxtjs/i18n",
