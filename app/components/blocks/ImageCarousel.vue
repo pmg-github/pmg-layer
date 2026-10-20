@@ -46,6 +46,7 @@ const props = withDefaults(
       }>;
       slidesPerView?: number;
       autoplay?: boolean;
+      fullWidth?: boolean;
       alignment?: "left" | "center" | "right";
     };
     language?: string;
@@ -245,7 +246,10 @@ const setSlidesPerView = (value: string | number | null) => {
     data-block-padding
     :style="blockPaddingStyle(model.padding)"
     :id="props.id"
-    :class="['group relative scroll-mt-20 py-16 md:py-20', themeClasses.bg]"
+    :class="[
+      'group relative scroll-mt-20 overflow-hidden py-16 md:py-20',
+      themeClasses.bg,
+    ]"
   >
     <PaddingHandles
       :editable="editable"
@@ -284,6 +288,7 @@ const setSlidesPerView = (value: string | number | null) => {
           1024: { slidesPerView },
         }"
         class="image-carousel w-full"
+        :style="{ overflow: props.content?.fullWidth ? 'visible' : 'hidden' }"
         @swiper="setSwiper"
         @slide-change="syncActiveSlide"
         @breakpoint="syncPaginationSteps"
@@ -485,6 +490,11 @@ const setSlidesPerView = (value: string | number | null) => {
       @update:model-value="update(['headerAlignment'], $event)"
     />
     <div class="flex flex-col space-y-4">
+      <PMGSwitch
+        :model-value="props.content?.fullWidth ?? false"
+        label="Volledige breedte"
+        @update:model-value="update(['content', 'fullWidth'], $event)"
+      />
       <BlocksSharedCardAlignment
         :model-value="cardAlignment"
         @update:model-value="model.content.alignment = $event"
