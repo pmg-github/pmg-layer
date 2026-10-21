@@ -34,13 +34,90 @@ const openModal = () => {
   isModalOpen.value = true;
 };
 
+const toEmbedUrl = (source: string): string => {
+  try {
+    const url = new URL(source);
+    const host = url.hostname.toLowerCase();
+    const isYouTubeHost = [
+      "youtu.be",
+      "www.youtu.be",
+      "youtube.com",
+      "www.youtube.com",
+      "m.youtube.com",
+      "youtube-nocookie.com",
+      "www.youtube-nocookie.com",
+    ].includes(host);
+
+    if (isYouTubeHost) {
+      const videoId =
+        host.endsWith("youtu.be")
+          ? url.pathname.split("/").filter(Boolean)[0]
+          : url.pathname === "/watch"
+            ? url.searchParams.get("v")
+            : url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/)?.[1];
+
+      if (!videoId) return source;
+
+      const embedUrl = new URL(
+        `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`,
+      );
+      const start = url.searchParams.get("start") ?? url.searchParams.get("t");
+      if (start && /^\d+$/.test(start)) {
+        embedUrl.searchParams.set("start", start);
+      }
+
+      return embedUrl.toString();
+    }
+
+    const isVimeoHost =
+      host === "vimeo.com" ||
+      host.endsWith(".vimeo.com");
+
+    if (!isVimeoHost || host === "player.vimeo.com") return source;
+
+    const pathSegments = url.pathname.split("/").filter(Boolean);
+    let videoIndex = -1;
+    for (let index = pathSegments.length - 1; index >= 0; index -= 1) {
+      const segment = pathSegments[index];
+      if (segment && /^\d+$/.test(segment)) {
+        videoIndex = index;
+        break;
+      }
+    }
+
+    if (videoIndex === -1) return source;
+
+    const videoId = pathSegments[videoIndex];
+    if (!videoId) return source;
+
+    const possiblePrivacyHash = pathSegments[videoIndex + 1];
+    const privacyHash =
+      url.searchParams.get("h") ??
+      (possiblePrivacyHash && /^[\da-z]+$/i.test(possiblePrivacyHash)
+        ? possiblePrivacyHash
+        : null);
+    const embedUrl = new URL(
+      `https://player.vimeo.com/video/${encodeURIComponent(videoId)}`,
+    );
+
+    if (privacyHash) embedUrl.searchParams.set("h", privacyHash);
+    return embedUrl.toString();
+  } catch {
+    return source;
+  }
+};
+
 const resolveSrc = (raw: string): string | null => {
   const trimmed = raw.trim();
   if (!trimmed) return null;
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  const parsed = new DOMParser().parseFromString(trimmed, "text/html");
-  const s = parsed.querySelector("iframe")?.getAttribute("src")?.trim();
-  return s && /^https?:\/\//i.test(s) ? s : null;
+  let source = trimmed;
+  if (!/^https?:\/\//i.test(source)) {
+    const parsed = new DOMParser().parseFromString(source, "text/html");
+    source = parsed.querySelector("iframe")?.getAttribute("src")?.trim() || "";
+  }
+
+  if (!/^https?:\/\//i.test(source)) return null;
+  return toEmbedUrl(source);
 };
 
 const applyEmbed = () => {
