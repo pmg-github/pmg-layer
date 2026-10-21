@@ -2,10 +2,46 @@ import { Node } from '@tiptap/core';
 import { VueNodeViewRenderer, type NodeViewProps } from '@tiptap/vue-3';
 import Accordion from '../../components/tiptap/Accordion.vue';
 
-export type AccordionItem = {
-  question: string;
-  answer: string;
+export type AccordionText = {
+  text: string;
 };
+
+export type AccordionItem = {
+  question: AccordionText;
+  answer: AccordionText;
+};
+
+function normalizeText(value: unknown): AccordionText {
+  if (typeof value === 'string') return { text: value };
+  if (typeof value === 'object' && value !== null && 'text' in value) {
+    const text = (value as { text?: unknown }).text;
+    return { text: typeof text === 'string' ? text : '' };
+  }
+  return { text: '' };
+}
+
+function normalizeItems(value: unknown): AccordionItem[] | null {
+  const items =
+    Array.isArray(value)
+      ? value
+      : typeof value === 'object' && value !== null && 'items' in value
+        ? (value as { items?: unknown }).items
+        : null;
+
+  if (!Array.isArray(items)) return null;
+
+  return items.map((item: unknown) => {
+    if (typeof item !== 'object' || item === null) {
+      return { question: { text: '' }, answer: { text: '' } };
+    }
+
+    const entry = item as { question?: unknown; answer?: unknown };
+    return {
+      question: normalizeText(entry.question),
+      answer: normalizeText(entry.answer),
+    };
+  });
+}
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -41,8 +77,8 @@ export default Node.create({
           if (!dataItems) return {};
 
           try {
-            const items = JSON.parse(dataItems);
-            return Array.isArray(items) ? { items } : {};
+            const items = normalizeItems(JSON.parse(dataItems));
+            return items ? { items } : {};
           } catch {
             return {};
           }
@@ -55,21 +91,13 @@ export default Node.create({
           if (typeof node === 'string') return false;
 
           const text = (node as HTMLElement).textContent?.trim() || '';
-          const match = text.match(/^##accordion:\s*(\[.*\])$/s);
+          const match = text.match(/^##accordion:\s*(\{.*\}|\[.*\])$/s);
 
           if (!match || !match[1]) return false;
 
           try {
-            const data = JSON.parse(match[1]);
-
-            if (!Array.isArray(data)) return false;
-
-            const items: AccordionItem[] = data.map((item: any) => ({
-              question: item.question || item.q || '',
-              answer: item.answer || item.a || '',
-            }));
-
-            return { items };
+            const items = normalizeItems(JSON.parse(match[1]));
+            return items ? { items } : false;
           } catch {
             return false;
           }
@@ -84,7 +112,9 @@ export default Node.create({
       [key: string]: unknown;
     };
 
-    const dataItems = Array.isArray(items) ? JSON.stringify(items) : '';
+    const dataItems = Array.isArray(items)
+      ? JSON.stringify({ items })
+      : '';
 
     return [
       'div',
@@ -99,7 +129,7 @@ export default Node.create({
   addCommands() {
     return {
       insertAccordion:
-        (items = [{ question: '', answer: '' }]) =>
+        (items = [{ question: { text: '' }, answer: { text: '' } }]) =>
         ({ commands }) =>
           commands.insertContent([
             { type: this.name, attrs: { items } },

@@ -11,9 +11,56 @@ import {
 import { VueDraggableNext as Draggable } from "vue-draggable-next";
 
 type AccordionItem = {
-  question: string;
-  answer: string;
+  question: { text: string };
+  answer: { text: string };
 };
+
+function normalizeText(value: unknown): { text: string } {
+  if (typeof value === "string") return { text: value };
+  if (typeof value === "object" && value !== null && "text" in value) {
+    const text = (value as { text?: unknown }).text;
+    return { text: typeof text === "string" ? text : "" };
+  }
+  return { text: "" };
+}
+
+function normalizeItems(value: unknown): AccordionItem[] {
+  const items =
+    Array.isArray(value)
+      ? value
+      : typeof value === "object" && value !== null && "items" in value
+        ? (value as { items?: unknown }).items
+        : [];
+
+  if (!Array.isArray(items)) return [];
+
+  return items.map((item: unknown) => {
+    if (typeof item !== "object" || item === null) {
+      return { question: { text: "" }, answer: { text: "" } };
+    }
+
+    const entry = item as { question?: unknown; answer?: unknown };
+    return {
+      question: normalizeText(entry.question),
+      answer: normalizeText(entry.answer),
+    };
+  });
+}
+
+function isCanonicalItem(item: unknown): item is AccordionItem {
+  if (typeof item !== "object" || item === null) return false;
+  const entry = item as { question?: unknown; answer?: unknown };
+  return (
+    typeof entry.question === "object" &&
+    entry.question !== null &&
+    "text" in entry.question &&
+    typeof entry.question.text === "string" &&
+    typeof entry.answer === "object" &&
+    entry.answer !== null &&
+    "text" in entry.answer &&
+    typeof entry.answer.text === "string"
+  );
+}
 
 const props = defineProps({
   node: { type: Object, required: true },
@@ -28,16 +75,18 @@ const isGenerating = ref(false);
 const openIndex = ref<number | null>(null);
 
 const items = computed<AccordionItem[]>({
-  get: () => props.node.attrs.items || [],
+  get: () => normalizeItems(props.node.attrs.items),
   set: (val) => props.updateAttributes({ items: val }),
 });
 
 const visibleItems = computed(() =>
-  items.value.filter((item) => item.question?.trim() && item.answer?.trim()),
+  items.value.filter(
+    (item) => item.question.text.trim() && item.answer.text.trim(),
+  ),
 );
 
 const hasItems = computed(() =>
-  items.value.some((item) => item.question?.trim()),
+  items.value.some((item) => item.question.text.trim()),
 );
 
 // Watch all attribute changes (question/answer edits, reordering, etc.) and notify TipTap
@@ -54,8 +103,12 @@ const toggleItem = (index: number) => {
 };
 
 onMounted(() => {
-  if (!props.node.attrs.items) {
-    props.updateAttributes({ items: [] });
+  const storedItems = props.node.attrs.items;
+  if (
+    !Array.isArray(storedItems) ||
+    storedItems.some((item: unknown) => !isCanonicalItem(item))
+  ) {
+    props.updateAttributes({ items: normalizeItems(storedItems) });
   }
 });
 
@@ -66,7 +119,10 @@ const handleOpenManageModal = () => {
 
 const addItem = () => {
   if (!isEditable.value) return;
-  items.value = [...items.value, { question: "", answer: "" }];
+  items.value = [
+    ...items.value,
+    { question: { text: "" }, answer: { text: "" } },
+  ];
 };
 
 const removeItem = (index: number) => {
@@ -81,7 +137,7 @@ const updateItem = (
 ) => {
   if (!isEditable.value) return;
   items.value = items.value.map((item, i) =>
-    i === index ? { ...item, [field]: value } : item,
+    i === index ? { ...item, [field]: { text: value } } : item,
   );
 };
 
@@ -96,8 +152,8 @@ const generateWithAi = async () => {
 
     const prompt =
       `Genereer 5 veelgestelde vragen met bijbehorende antwoorden op basis van de volgende tekst. ` +
-      `Antwoord uitsluitend met een JSON-array, niets anders. ` +
-      `Formaat: [{"question":"...","answer":"..."}]. ` +
+      `Antwoord uitsluitend met JSON, niets anders. ` +
+      `Formaat: {"items":[{"question":{"text":"Vraag"},"answer":{"text":"Antwoord"}}]}. ` +
       `\n\nTEKST:\n${text}`;
 
     const imports = (await import("#imports")) as any;
@@ -110,12 +166,16 @@ const generateWithAi = async () => {
     const raw = result.response.replace(/^```[\w]*\n?|\n?```$/g, "").trim();
     const parsed = JSON.parse(raw);
 
-    if (Array.isArray(parsed)) {
-      items.value = parsed.map((v: any) => ({
-        question: String(v.question ?? ""),
-        answer: String(v.answer ?? ""),
-      }));
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      !("items" in parsed) ||
+      !Array.isArray(parsed.items)
+    ) {
+      throw new Error("AI-response must contain an items array.");
     }
+
+    items.value = normalizeItems(parsed.items);
   } finally {
     isGenerating.value = false;
   }
@@ -326,7 +386,7 @@ onBeforeUnmount(() => {
               :aria-controls="`accordion-collapse-body-${index}`"
               @click="toggleItem(index)"
             >
-              {{ item.question }}
+              {{ item.question.text }}
 
               <Icon
                 :name="
@@ -349,7 +409,7 @@ onBeforeUnmount(() => {
           >
             <div class="p-4 md:p-5">
               <p class="text-sm text-gray-600">
-                {{ item.answer }}
+                {{ item.answer.text }}
               </p>
             </div>
           </div>
@@ -449,7 +509,7 @@ onBeforeUnmount(() => {
                 </div>
 
                 <input
-                  :value="item.question"
+                  :value="item.question.text"
                   type="text"
                   placeholder="Vraag"
                   class="mb-2 w-full rounded border border-gray-300 px-3 py-2 text-sm"
@@ -463,7 +523,7 @@ onBeforeUnmount(() => {
                 />
 
                 <textarea
-                  :value="item.answer"
+                  :value="item.answer.text"
                   rows="4"
                   placeholder="Antwoord"
                   class="w-full resize-none rounded border border-gray-300 px-3 py-2 text-sm"
