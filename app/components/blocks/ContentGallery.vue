@@ -287,7 +287,9 @@ const removeActiveButton = () => {
                   :editable="editable"
                   :model-value="link.text"
                   placeholder="Knoptekst"
-                  @update:model-value="setField(link, 'text', $event)"
+                  @update:model-value="
+                    update(['links', Number(index), 'text'], $event)
+                  "
                 />
                 <template v-else>{{ link.text }}</template>
               </a>
