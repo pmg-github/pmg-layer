@@ -2,6 +2,7 @@
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
+import { linkButtonStyle } from "../../utils/buttonColor";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
@@ -28,6 +29,7 @@ interface WinnerLink {
   url: string;
   text: string;
   target?: string;
+  color?: string | null;
 }
 
 interface WinnerItem {
@@ -362,6 +364,7 @@ async function addWinner() {
               'mt-6 inline-flex rounded-full px-8 py-3 text-center font-medium transition-colors',
               theme.button,
             ]"
+            :style="linkButtonStyle(primaryLink.color, 'primary')"
             @click.prevent="
               handleLinkClick(primaryLink.url, primaryLink.target)
             "

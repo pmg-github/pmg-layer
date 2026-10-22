@@ -5,6 +5,7 @@ export type { BlockEditorComponents, BlockEditorPanelState } from "./context";
 
 export { default as BlocksSharedAddItem } from "./AddItem.vue";
 export { default as BlocksSharedBlockSettings } from "./BlockSettings.vue";
+export { default as BlocksSharedButtonColorPicker } from "./ButtonColorPicker.vue";
 export { default as BlocksSharedCardAlignment } from "./CardAlignment.vue";
 export { default as BlocksSharedHeaderAlignment } from "./HeaderAlignment.vue";
 export { default as BlocksSharedEditableIcon } from "./EditableIcon.vue";

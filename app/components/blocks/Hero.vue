@@ -2,8 +2,10 @@
 import MediaPlaceholder from "./shared/MediaPlaceholder.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
+import { linkButtonStyle } from "../../utils/buttonColor";
 import {
   BlocksSharedBlockSettings,
+  BlocksSharedButtonColorPicker,
   BlocksSharedEditableText,
   BlocksSharedLinkReferenceSelect,
 } from "../block-editor";
@@ -17,7 +19,12 @@ const props = withDefaults(
     subtitle?: string;
     visibleFrom?: string | null;
     visibleUntil?: string | null;
-    links?: { url: string; text: string; target?: string | null }[];
+    links?: {
+      url: string;
+      text: string;
+      target?: string | null;
+      color?: string | null;
+    }[];
     content: {
       height?: string;
       image?: any;
@@ -56,7 +63,10 @@ const activeLink = computed(() =>
     ? undefined
     : model.links?.[selectedLinkIndex.value],
 );
-const setActiveLinkField = (field: "url" | "target", value: string | null) => {
+const setActiveLinkField = (
+  field: "url" | "target" | "color",
+  value: string | null,
+) => {
   if (selectedLinkIndex.value === null) return;
   update(["links", selectedLinkIndex.value, field], value);
 };
@@ -501,6 +511,12 @@ defineExpose({
                       ? 'bg-primary-900 hover:bg-primary-950'
                       : 'border border-white bg-transparent hover:bg-white/10'
                   "
+                  :style="
+                    linkButtonStyle(
+                      link.color,
+                      idx === 0 ? 'primary' : 'secondary',
+                    )
+                  "
                   @click.prevent="
                     handleAnchorClick(link.url || '#', link.target)
                   "
@@ -541,6 +557,10 @@ defineExpose({
                   @update:model-value="
                     setActiveLinkField('url', String($event ?? ''))
                   "
+                />
+                <BlocksSharedButtonColorPicker
+                  :model-value="activeLink.color"
+                  @update:model-value="setActiveLinkField('color', $event)"
                 />
                 <PMGButton
                   type="button"

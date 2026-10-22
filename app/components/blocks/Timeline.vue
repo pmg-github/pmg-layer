@@ -2,6 +2,7 @@
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
+import { linkButtonStyle } from "../../utils/buttonColor";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
@@ -24,7 +25,7 @@ const props = withDefaults(
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
     colorScheme?: "light" | "dark" | "white";
-    links?: { url: string; text: string; target?: string }[];
+    links?: { url: string; text: string; target?: string; color?: string | null }[];
     content: {
       items?: {
         label: number;
@@ -419,6 +420,7 @@ defineExpose({
               :class="
                 idx === 0 ? themeClasses.button : themeClasses.secondaryButton
               "
+              :style="linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')"
               @click.prevent="handleAnchorClick(l.url, l.target)"
             >
               <BlocksSharedEditableText

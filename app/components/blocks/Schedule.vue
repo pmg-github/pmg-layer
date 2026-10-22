@@ -2,6 +2,7 @@
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
+import { linkButtonStyle } from "../../utils/buttonColor";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
@@ -24,7 +25,7 @@ const props = withDefaults(
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
-    links?: { url: string; text: string; target?: string }[];
+    links?: { url: string; text: string; target?: string; color?: string | null }[];
     content: {
       items?: {
         title: string;
@@ -322,6 +323,7 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
               :class="
                 idx === 0 ? themeClasses.button : themeClasses.secondaryButton
               "
+              :style="linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')"
               @click.prevent="handleAnchorClick(l.url, l.target)"
             >
               <BlocksSharedEditableText

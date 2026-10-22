@@ -3,6 +3,7 @@ import MediaFrame from "./shared/MediaFrame.vue";
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
+import { linkButtonStyle } from "../../utils/buttonColor";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedHeaderAlignment,
@@ -31,12 +32,12 @@ const props = withDefaults(
         image?: FileButtonViewModel;
         videoCode?: { value: string; key: string } | null;
         type?: "image" | "video";
-        links?: Array<{ url: string; text: string; target?: string | null }>;
+        links?: Array<{ url: string; text: string; target?: string | null; color?: string | null }>;
       }>;
       modelValue?: number;
     };
     language?: string;
-    links?: { url: string; text: string; target?: string }[];
+    links?: { url: string; text: string; target?: string; color?: string | null }[];
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
@@ -427,6 +428,7 @@ const getAllVideoCodes = (...args: any[]) =>
                         'inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-semibold transition',
                         theme.chip,
                       ]"
+                      :style="linkButtonStyle(link.color, 'primary')"
                       @click.prevent="handleAnchorClick(link.url, link.target)"
                     >
                       {{ link.text }}
@@ -552,6 +554,7 @@ const getAllVideoCodes = (...args: any[]) =>
             :target="l.target || '_self'"
             class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
             :class="idx === 0 ? theme.button : theme.secondaryButton"
+            :style="linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')"
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >
             <BlocksSharedEditableText

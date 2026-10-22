@@ -2,9 +2,11 @@
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
+import { linkButtonStyle } from "../../utils/buttonColor";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
+  BlocksSharedButtonColorPicker,
   BlocksSharedHeaderAlignment,
   BlocksSharedCardAlignment,
   PaddingHandles,
@@ -46,7 +48,12 @@ const props = withDefaults(
     padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
     id?: string;
-    links?: { url: string; text: string; target?: string | null }[];
+    links?: {
+      url: string;
+      text: string;
+      target?: string | null;
+      color?: string | null;
+    }[];
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
@@ -886,6 +893,12 @@ defineExpose({
               :class="
                 idx === 0 ? themeClasses.button : themeClasses.secondaryButton
               "
+              :style="
+                linkButtonStyle(
+                  link.color,
+                  idx === 0 ? 'primary' : 'secondary',
+                )
+              "
               @click.prevent="handleAnchorClick(link.url || '#', link.target)"
             >
               <BlocksSharedEditableText
@@ -923,6 +936,9 @@ defineExpose({
             />
             <BlocksSharedLinkReferenceSelect
               v-model="model.links[selectedLinkIndex].url"
+            />
+            <BlocksSharedButtonColorPicker
+              v-model="model.links[selectedLinkIndex].color"
             />
             <button
               type="button"

@@ -2,6 +2,7 @@
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
+import { linkButtonStyle } from "../../utils/buttonColor";
 import {
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
@@ -22,14 +23,14 @@ const props = withDefaults(
     padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
     id?: string;
-    links?: { url: string; text: string; target?: string }[];
+    links?: { url: string; text: string; target?: string; color?: string | null }[];
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
     content?: {
       tiles?: Array<{
         icon?: string;
-        links?: { url: string; text: string; target?: string }[];
+        links?: { url: string; text: string; target?: string; color?: string | null }[];
         title?: string;
         subtitle?: string;
         description?: string;
@@ -310,6 +311,7 @@ function addTile() {
               :href="t.links[0].url"
               :target="t.links[0].target || '_self'"
               class="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-primary-900 px-6 py-3 text-center text-sm font-semibold leading-5 text-white transition-colors hover:bg-primary-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+              :style="linkButtonStyle(t.links[0].color, 'primary')"
             >
               <BlocksSharedEditableText
                 :editable="editable"
@@ -351,6 +353,7 @@ function addTile() {
             :class="
               idx === 0 ? themeClasses.button : themeClasses.secondaryButton
             "
+            :style="linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')"
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >
             <BlocksSharedEditableText

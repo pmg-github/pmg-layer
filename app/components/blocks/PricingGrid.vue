@@ -2,6 +2,7 @@
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
+import { linkButtonStyle } from "../../utils/buttonColor";
 import { responsiveTileGridClass } from "../../utils/responsiveTileGrid";
 import {
   BlocksSharedAddItem,
@@ -18,7 +19,7 @@ const props = withDefaults(
     editable?: boolean;
     padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
-    links?: { url: string; text: string; target?: string }[];
+    links?: { url: string; text: string; target?: string; color?: string | null }[];
     id?: string;
     title?: string;
     subtitle?: string;
@@ -193,7 +194,7 @@ defineExpose({
 });
 
 // Verwacht: model.content.cards[]
-// card: { title, label:{text,color}, tags[], benefits:[{label,included}], price, priceNote, buttonLabel, buttonUrl, buttonTarget }
+// card: { title, label:{text,color}, tags[], benefits:[{label,included}], price, priceNote, buttonLabel, buttonUrl, buttonTarget, buttonColor }
 
 function cardButtonLinks(card: any) {
   if (!card.buttonLabel && !card.buttonUrl) return [];
@@ -203,6 +204,7 @@ function cardButtonLinks(card: any) {
       text: card.buttonLabel || "",
       url: card.buttonUrl || "",
       target: card.buttonTarget || "_self",
+      color: card.buttonColor || null,
     },
   ];
 }
@@ -214,6 +216,7 @@ function updateCardButton(index: number, card: any, links: any[]) {
     buttonLabel: link?.text || "",
     buttonUrl: link?.url || "",
     buttonTarget: link?.target || "_self",
+    buttonColor: link?.color || null,
   });
 }
 
@@ -506,6 +509,7 @@ function shouldShowEuroPrefix(price?: string) {
               :href="card.buttonUrl || undefined"
               :target="card.buttonTarget || '_self'"
               class="mt-2 w-full inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 bg-primary-900 text-white hover:bg-primary-950"
+              :style="linkButtonStyle(card.buttonColor, 'primary')"
             >
               {{ card.buttonLabel }}
             </a>

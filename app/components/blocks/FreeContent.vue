@@ -3,6 +3,7 @@ import BlockHeading from "./shared/BlockHeading.vue";
 import ShadowContent from "./shared/ShadowContent.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
+import { linkButtonStyle } from "../../utils/buttonColor";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedHeaderAlignment,
@@ -19,7 +20,7 @@ const props = withDefaults(
     padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
     id?: string;
-    links?: { url: string; text: string; target?: string }[];
+    links?: { url: string; text: string; target?: string; color?: string | null }[];
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
@@ -309,6 +310,7 @@ defineExpose({
               :class="
                 index === 0 ? themeClasses.button : themeClasses.secondaryButton
               "
+              :style="linkButtonStyle(link.color, index === 0 ? 'primary' : 'secondary')"
               @click.prevent="handleAnchorClick(link.url, link.target)"
             >
               {{ link.text }}

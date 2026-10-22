@@ -4,6 +4,7 @@ import MediaPlaceholder from "./shared/MediaPlaceholder.vue";
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
+import { linkButtonStyle } from "../../utils/buttonColor";
 import {
   BlocksSharedBlockSettings,
   BlocksSharedHeaderAlignment,
@@ -30,7 +31,7 @@ const props = withDefaults(
     padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
     id?: string;
-    links?: { url: string; text: string; target?: string }[];
+    links?: { url: string; text: string; target?: string; color?: string | null }[];
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
@@ -42,7 +43,7 @@ const props = withDefaults(
         title?: string;
         subtitle?: string;
         description?: string;
-        link?: { url: string; text?: string; target?: string };
+        link?: { url: string; text?: string; target?: string; color?: string | null };
       }>;
       slidesPerView?: number;
       autoplay?: boolean;
@@ -381,6 +382,7 @@ const setSlidesPerView = (value: string | number | null) => {
               <span
                 v-else
                 class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 bg-primary-900 text-white hover:bg-primary-950"
+                :style="linkButtonStyle(t?.link?.color, 'primary')"
               >
                 {{ t?.link?.text }}
               </span>
@@ -455,6 +457,7 @@ const setSlidesPerView = (value: string | number | null) => {
             :class="
               idx === 0 ? themeClasses.button : themeClasses.secondaryButton
             "
+            :style="linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')"
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >
             <BlocksSharedEditableText
