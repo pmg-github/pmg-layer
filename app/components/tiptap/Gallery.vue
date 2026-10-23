@@ -647,8 +647,13 @@ onUnmounted(() => {
               class="max-h-[75vh] max-w-full object-contain"
             />
 
-            <p class="max-w-xl text-center text-sm text-white">
-              {{ activeLightboxImage?.caption || activeLightboxImage?.altText }}
+            <p
+              v-if="
+                activeLightboxImage?.caption || activeLightboxImage?.copyRight
+              "
+              class="max-w-xl text-center text-sm text-white"
+            >
+              {{ activeLightboxImage?.caption }}
               {{
                 activeLightboxImage?.copyRight
                   ? ` © ${activeLightboxImage.copyRight}`
