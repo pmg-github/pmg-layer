@@ -128,19 +128,29 @@ const onImagesSelected = async (selectedImages: FileButtonViewModel[]) => {
   const currentMap = new Map(images.value.map((image) => [image.id, image]));
   const brandNewImages = newImages.filter((image) => !currentMap.has(image.id));
 
-  if (!brandNewImages.length) {
-    props.updateAttributes({ images: newImages });
-    return;
-  }
-
-  const withCaptions = await articleStore.fetchImageCaptions(brandNewImages);
+  const withCaptions = brandNewImages.length
+    ? await articleStore.fetchImageCaptions(brandNewImages)
+    : [];
   const captionMap = new Map(
     withCaptions.map((image: { id: any }) => [image.id, image]),
   );
   props.updateAttributes({
-    images: newImages.map((image) => ({
-      ...(captionMap.get(image.id) ?? currentMap.get(image.id) ?? image),
-    })),
+    images: newImages.map((image) => {
+      const currentImage = currentMap.get(image.id);
+      const fetchedImage = captionMap.get(image.id);
+
+      return {
+        ...currentImage,
+        ...fetchedImage,
+        ...image,
+        copyRight:
+          image.copyRight || fetchedImage?.copyRight || currentImage?.copyRight || "",
+        altText:
+          image.altText || fetchedImage?.altText || currentImage?.altText || "",
+        caption:
+          image.caption || fetchedImage?.caption || currentImage?.caption || "",
+      };
+    }),
   });
 };
 
