@@ -442,8 +442,7 @@ defineExpose({
       >
         <MediaPlaceholder
           :kind="model.content.isVideo ? 'video' : 'image'"
-          action-label="Achtergrond instellen"
-          @action="openMediaPanel"
+          description="Stel de achtergrond in via de werkbalk."
         />
       </div>
       <!-- Hero content -->
