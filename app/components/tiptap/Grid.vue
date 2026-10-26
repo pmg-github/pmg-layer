@@ -184,7 +184,7 @@ const handleEditImage = async (index: number) => {
     const editedData = editedImage as BoArticleImageModel & {
       copyright?: string;
     };
-    modalImages.value[index] = {
+    const editedModel: BoArticleImageModel = {
       ...currentImage,
       ...toBoImageModel(editedImage),
       copyRight:
@@ -192,6 +192,14 @@ const handleEditImage = async (index: number) => {
         editedData.copyright ??
         currentImage.copyRight ??
         "",
+      caption: currentImage.caption,
+    };
+    const [refreshedImage] = await articleStore.fetchImageCaptions([
+      editedModel,
+    ]);
+    modalImages.value[index] = {
+      ...editedModel,
+      ...refreshedImage,
       caption: currentImage.caption,
     };
     props.updateAttributes({ images: [...modalImages.value] });
