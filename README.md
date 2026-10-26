@@ -106,11 +106,7 @@ The page blocks use the dashboard implementation as their canonical source.
 They render as normal read-only components when `editable` is omitted or false:
 
 ```vue
-<PMGFeatures
-  title="Features"
-  :content="features"
-  color-scheme="light"
-/>
+<PMGFeatures title="Features" :content="features" color-scheme="light" />
 ```
 
 The dashboard can pass `editable` and `selected` to activate the inline-editing
@@ -188,7 +184,9 @@ export const useImagePicker = () => {
 
 `pickImages()` receives optional `folderId`, `maxSelected`, `jobCode`,
 `aspectRatio`, and `currentSelection` values and must resolve to an image array.
-`editImage()` receives the selected image and an optional `folderId`. Either
+`editImage()` receives the selected image and an optional `folderId`. It must
+resolve with the edited image object, including changed metadata such as
+`copyRight` (or `copyright`), so the change is saved to the article. Either
 method may reject when the user cancels. The layer stub throws a descriptive
 error so missing integration is detected immediately.
 

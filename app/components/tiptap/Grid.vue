@@ -140,7 +140,10 @@ const onImagesSelected = async (selectedImages: FileButtonViewModel[]) => {
         ...fetchedImage,
         ...image,
         copyRight:
-          image.copyRight || fetchedImage?.copyRight || currentImage?.copyRight || "",
+          image.copyRight ||
+          fetchedImage?.copyRight ||
+          currentImage?.copyRight ||
+          "",
         altText:
           image.altText || fetchedImage?.altText || currentImage?.altText || "",
         caption:
@@ -178,9 +181,17 @@ const handleEditImage = async (index: number) => {
 
     if (!editedImage) return;
 
+    const editedData = editedImage as BoArticleImageModel & {
+      copyright?: string;
+    };
     modalImages.value[index] = {
       ...currentImage,
       ...toBoImageModel(editedImage),
+      copyRight:
+        editedData.copyRight ??
+        editedData.copyright ??
+        currentImage.copyRight ??
+        "",
       caption: currentImage.caption,
     };
     props.updateAttributes({ images: [...modalImages.value] });
