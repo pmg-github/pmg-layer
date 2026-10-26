@@ -544,7 +544,7 @@ onUnmounted(() => {
             <textarea
               v-model="image.caption"
               rows="3"
-              placeholder="Caption (optioneel)"
+              placeholder="Bijschrift / Caption (optioneel)"
               class="mt-1 w-full resize-none rounded border border-gray-300 px-2 py-1 text-xs text-gray-700"
               @input="updateImageCaption(image.id, image.caption)"
             />
