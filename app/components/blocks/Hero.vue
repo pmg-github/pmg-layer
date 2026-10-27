@@ -27,7 +27,7 @@ const props = withDefaults(
     }[];
     content: {
       height?: string;
-      tint?: boolean;
+      tint?: boolean | number;
       textShadow?: boolean;
       image?: any;
       imageUrl?: string;
@@ -81,6 +81,19 @@ const heightPresets = [
 ];
 
 const heroHeight = computed(() => model.content.height || "100dvh");
+const tintOpacity = computed(() => {
+  if (typeof model.content.tint === "number") {
+    return Math.min(100, Math.max(0, model.content.tint));
+  }
+  return model.content.tint === false ? 0 : 55;
+});
+
+const setTintOpacity = (event: Event) => {
+  update(
+    ["content", "tint"],
+    Number((event.target as HTMLInputElement).value),
+  );
+};
 
 const imageUrl = computed(() => {
   const image = model.content.image;
@@ -327,11 +340,30 @@ defineExpose({
         </section>
 
         <section class="space-y-4 border-t border-gray-100 pt-5">
-          <PMGSwitch
-            label="Tint"
-            :model-value="model.content.tint !== false"
-            @update:model-value="update(['content', 'tint'], $event)"
-          />
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <label for="hero-tint-opacity" class="text-gray-700">
+                Intensiteit
+              </label>
+              <output
+                for="hero-tint-opacity"
+                class="font-medium tabular-nums text-gray-600"
+              >
+                {{ tintOpacity }}%
+              </output>
+            </div>
+            <input
+              id="hero-tint-opacity"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              :value="tintOpacity"
+              class="h-2 w-full cursor-pointer accent-gray-900"
+              aria-label="Tint intensiteit"
+              @input="setTintOpacity"
+            />
+          </div>
           <PMGSwitch
             label="Tekstschaduw"
             :model-value="model.content.textShadow === true"
@@ -434,8 +466,9 @@ defineExpose({
       ></div>
 
       <div
-        v-if="model.content.tint !== false"
-        class="pointer-events-none absolute inset-0 z-10 bg-gray-950/55"
+        v-if="tintOpacity > 0"
+        class="pointer-events-none absolute inset-0 z-10 bg-gray-950"
+        :style="{ opacity: tintOpacity / 100 }"
       ></div>
 
       <!-- Editor selection frame -->
@@ -485,7 +518,8 @@ defineExpose({
             <h1
               class="mt-3 max-w-5xl break-words text-4xl font-bold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl"
               :class="{
-                '[text-shadow:0px_0px_12px_rgba(0,0,0,1)]': model.content.textShadow === true,
+                '[text-shadow:0px_0px_12px_rgba(0,0,0,1)]':
+                  model.content.textShadow === true,
               }"
             >
               <BlocksSharedEditableText
@@ -501,7 +535,8 @@ defineExpose({
               v-if="editable || model.subtitle"
               class="mt-3 max-w-3xl break-words text-base leading-relaxed text-gray-200 sm:text-lg"
               :class="{
-                '[text-shadow:0px_0px_12px_rgba(0,0,0,1)]': model.content.textShadow === true,
+                '[text-shadow:0px_0px_12px_rgba(0,0,0,1)]':
+                  model.content.textShadow === true,
               }"
             >
               <BlocksSharedEditableText
