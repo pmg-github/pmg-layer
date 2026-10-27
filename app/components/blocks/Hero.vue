@@ -27,6 +27,8 @@ const props = withDefaults(
     }[];
     content: {
       height?: string;
+      tint?: boolean;
+      textShadow?: boolean;
       image?: any;
       imageUrl?: string;
       imagePosition?: { x?: number; y?: number };
@@ -324,6 +326,19 @@ defineExpose({
           </div>
         </section>
 
+        <section class="space-y-4 border-t border-gray-100 pt-5">
+          <PMGSwitch
+            label="Tint"
+            :model-value="model.content.tint !== false"
+            @update:model-value="update(['content', 'tint'], $event)"
+          />
+          <PMGSwitch
+            label="Tekstschaduw"
+            :model-value="model.content.textShadow === true"
+            @update:model-value="update(['content', 'textShadow'], $event)"
+          />
+        </section>
+
         <section class="border-t border-gray-100 pt-5">
           <h4 class="mb-2 text-xs font-semibold text-gray-600">Hoogte</h4>
           <div class="grid grid-cols-3 gap-2">
@@ -419,6 +434,7 @@ defineExpose({
       ></div>
 
       <div
+        v-if="model.content.tint !== false"
         class="pointer-events-none absolute inset-0 z-10 bg-gray-950/55"
       ></div>
 
@@ -467,11 +483,15 @@ defineExpose({
             </p>
 
             <h1
-              class="mt-3 max-w-5xl break-words text-4xl font-bold leading-tight tracking-tight text-white [text-shadow:0px_0px_12px_rgba(0,0,0,1)] md:text-5xl lg:text-6xl"
+              class="mt-3 max-w-5xl break-words text-4xl font-bold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl"
+              :class="{
+                '[text-shadow:0px_0px_12px_rgba(0,0,0,1)]': model.content.textShadow === true,
+              }"
             >
               <BlocksSharedEditableText
                 :model-value="model.title"
                 :editable="editable"
+                multiline
                 placeholder="Titel toevoegen"
                 @update:model-value="update(['title'], $event)"
               />
@@ -479,7 +499,10 @@ defineExpose({
 
             <div
               v-if="editable || model.subtitle"
-              class="mt-3 max-w-3xl break-words text-base leading-relaxed text-gray-200 sm:text-lg [text-shadow:0px_0px_12px_rgba(0,0,0,1)]"
+              class="mt-3 max-w-3xl break-words text-base leading-relaxed text-gray-200 sm:text-lg"
+              :class="{
+                '[text-shadow:0px_0px_12px_rgba(0,0,0,1)]': model.content.textShadow === true,
+              }"
             >
               <BlocksSharedEditableText
                 :model-value="model.subtitle"
