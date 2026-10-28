@@ -12,6 +12,7 @@ declare module '@tiptap/core' {
 export default Node.create({
   name: 'intro',
   content: 'inline*',
+  marks: '',
   group: 'block',
   defining: true,
 
