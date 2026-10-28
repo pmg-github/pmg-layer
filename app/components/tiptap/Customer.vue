@@ -9,6 +9,7 @@ import {
 import { NodeViewWrapper, nodeViewProps } from "@tiptap/vue-3";
 import { ref, computed, onMounted } from "vue";
 import type { FileButtonViewModel } from "models";
+import { stripProtocol, withProtocol } from "../../utils/url";
 
 
 const props = defineProps(nodeViewProps);
@@ -258,11 +259,11 @@ onMounted(async () => {
           </template>
           <template v-if="node.attrs.website">
             <br /><a
-              :href="node.attrs.website"
+              :href="withProtocol(node.attrs.website)"
               target="_blank"
               rel="noopener"
               class="text-blue-600 underline hover:text-blue-800"
-              >{{ node.attrs.website }}</a
+              >{{ stripProtocol(node.attrs.website) }}</a
             >
           </template>
         </div>

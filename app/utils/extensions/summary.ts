@@ -1,4 +1,5 @@
 import { Node } from "@tiptap/core";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
 import type { Component } from "vue";
 import Summary from "../../components/tiptap/Summary.vue";
@@ -6,6 +7,15 @@ import Summary from "../../components/tiptap/Summary.vue";
 export interface SummaryAttributes {
   color?: string;
 }
+
+/** Default title; every summary starts with a heading. */
+export const SUMMARY_TITLE = "In het kort";
+
+const titleHeading = {
+  type: "heading",
+  attrs: { level: 2 },
+  content: [{ type: "text", text: SUMMARY_TITLE }],
+};
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -51,11 +61,40 @@ export default Node.create({
             {
               type: this.name,
               attrs: { color: "gray", ...attributes },
-              content: [{ type: "paragraph" }],
+              content: [titleHeading, { type: "paragraph" }],
             },
             { type: "paragraph" },
           ]),
     };
+  },
+
+  // Give every summary a title: older summaries, wrapped selections and a
+  // deleted title all get the default heading back.
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey("summaryTitle"),
+        appendTransaction: (transactions, _oldState, state) => {
+          if (!transactions.some((tr) => tr.docChanged)) return null;
+          const heading = state.schema.nodes.heading;
+          if (!heading) return null;
+
+          const missing: number[] = [];
+          state.doc.descendants((node, pos) => {
+            if (node.type.name !== this.name) return;
+            if (node.firstChild?.type !== heading) missing.push(pos + 1);
+            return false;
+          });
+          if (!missing.length) return null;
+
+          const tr = state.tr;
+          for (const pos of missing.reverse()) {
+            tr.insert(pos, state.schema.nodeFromJSON(titleHeading));
+          }
+          return tr;
+        },
+      }),
+    ];
   },
 
   addNodeView() {

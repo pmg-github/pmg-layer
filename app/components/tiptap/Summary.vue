@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/vue-3";
 import { computed, ref } from "vue";
+import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import {
   DialogContent,
   DialogOverlay,
@@ -10,7 +11,7 @@ import {
 } from "reka-ui";
 
 const props = defineProps<{
-  node: { attrs: { color?: string } };
+  node: ProseMirrorNode;
   editor: any;
   getPos: () => number;
   updateAttributes: (attrs: { color?: string }) => void;
@@ -111,7 +112,7 @@ const generateWithAi = async () => {
     const prompt = [
       "Vat onderstaand artikel samen als HTML.",
       "Geef enkel HTML terug, zonder uitleg of markdown.",
-      "Structuur: <h2>Samenvatting</h2> <ul> <li>...</li> </ul>",
+      "Structuur: <ul> <li>...</li> </ul>, zonder titel of kop.",
       "Richt je uitsluitend op de belangrijkste inzichten, feiten en conclusies.",
       "Vermijd details, voorbeelden en herhalingen.",
       "Gebruik maximaal 5 bullet points.",
@@ -130,11 +131,20 @@ const generateWithAi = async () => {
 
     if (!summary) return;
 
-    props.editor
-      .chain()
-      .focus()
-      .insertContentAt(props.getPos() + 1, summary)
-      .run();
+    // Keep the title. Replace an empty body, otherwise insert below the title.
+    const pos = props.getPos();
+    const title = props.node.firstChild;
+    const hasTitle = title?.type.name === "heading";
+    const from = pos + 1 + (hasTitle ? title.nodeSize : 0);
+    let bodyHasText = false;
+    props.node.forEach((child, _offset, index) => {
+      if ((index > 0 || !hasTitle) && child.textContent.trim()) {
+        bodyHasText = true;
+      }
+    });
+    const to = bodyHasText ? from : pos + props.node.nodeSize - 1;
+
+    props.editor.chain().focus().insertContentAt({ from, to }, summary).run();
 
     closeModal();
   } catch {
@@ -178,7 +188,7 @@ const generateWithAi = async () => {
         >
           <div class="mb-6 flex items-center justify-between">
             <DialogTitle class="text-xl font-bold">
-              Uitgelicht (kader)
+              Samenvatting
             </DialogTitle>
 
             <div class="flex items-center gap-2">
