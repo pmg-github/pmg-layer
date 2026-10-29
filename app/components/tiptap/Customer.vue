@@ -11,7 +11,6 @@ import { ref, computed, onMounted } from "vue";
 import type { FileButtonViewModel } from "models";
 import { stripProtocol, withProtocol } from "../../utils/url";
 
-
 const props = defineProps(nodeViewProps);
 const isEditable = computed(() => props.editor.isEditable ?? false);
 
@@ -155,7 +154,7 @@ const isEmpty = computed(() => {
 
 // Auto-load article customer on mount if available
 onMounted(async () => {
-  if (!isEditable.value) return;
+  if (!isEditable.value || !isEmpty.value) return;
   const imports = (await import("#imports")) as any;
   const metaData = imports.useArticleStore?.()?.metaData;
   const getMagJob = imports.useFetchMagJobs?.()?.getMagJob;
