@@ -29,8 +29,7 @@ declare module "@tiptap/core" {
 export default Node.create({
   name: "summary",
   group: "block",
-  // The title heading is required; when empty it is hidden on the website.
-  content: "heading (heading|paragraph|list)+",
+  content: "(heading|paragraph|list)+",
   selectable: true,
   draggable: true,
 

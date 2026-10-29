@@ -3,6 +3,7 @@ import { NodeViewContent, NodeViewWrapper } from "@tiptap/vue-3";
 import { computed, nextTick, ref } from "vue";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
+import { SUMMARY_TITLE } from "../../utils/extensions/summary";
 import {
   DialogContent,
   DialogOverlay,
@@ -181,20 +182,25 @@ const generateWithAi = async () => {
 
     if (!summary) return;
 
-    // Keep the title. Replace an empty body, otherwise insert below the title.
+    // Keep a filled title, otherwise add an h2. Replace an empty body, else insert above it.
     const pos = props.getPos();
     const title = props.node.firstChild;
-    const hasTitle = title?.type.name === "heading";
-    const from = pos + 1 + (hasTitle ? title.nodeSize : 0);
+    const isHeading = title?.type.name === "heading";
+    const keepTitle = isHeading && !!title.textContent.trim();
+    const emptyTitleSize = isHeading && !keepTitle ? title.nodeSize : 0;
+    const from = pos + 1 + (keepTitle ? title.nodeSize : 0);
     let bodyHasText = false;
     props.node.forEach((child, _offset, index) => {
-      if ((index > 0 || !hasTitle) && child.textContent.trim()) {
+      if ((index > 0 || !isHeading) && child.textContent.trim()) {
         bodyHasText = true;
       }
     });
-    const to = bodyHasText ? from : pos + props.node.nodeSize - 1;
+    const to = bodyHasText
+      ? from + emptyTitleSize
+      : pos + props.node.nodeSize - 1;
+    const content = keepTitle ? summary : `<h2>${SUMMARY_TITLE}</h2>${summary}`;
 
-    props.editor.chain().focus().insertContentAt({ from, to }, summary).run();
+    props.editor.chain().focus().insertContentAt({ from, to }, content).run();
 
     closeModal();
   } catch {
@@ -394,7 +400,9 @@ const generateWithAi = async () => {
 <style scoped>
 /* Placeholder for an emptied title; ProseMirror keeps a trailing <br> in empty blocks. */
 .summary-content
-  :deep(:is(h2, h3, h4):first-child:has(> br.ProseMirror-trailingBreak:only-child))::before {
+  :deep(
+    :is(h2, h3, h4):first-child:has(> br.ProseMirror-trailingBreak:only-child)
+  )::before {
   content: "In het kort";
   float: left;
   height: 0;
