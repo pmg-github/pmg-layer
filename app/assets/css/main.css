@@ -1,46 +1,186 @@
-:root {
-  --layer-starter-primary: #00dc82;
+/* Shared article presentation for editable and read-only content.
+ * Editor controls and decorations stay in the consuming editor component. */
+.pmg-article {
+  container: pmg-article / inline-size;
+
+  .ProseMirror {
+    @apply font-sans text-base text-gray-900;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
+  }
+  /* Explicit margins keep paragraph typography and saved alignment intact. */
+  .ProseMirror > p:not(.intro),
+  .ProseMirror
+    :where(.summary-content, .box-content, [data-summary], [data-box])
+    > p:not(.intro),
+  .ProseMirror [data-node-view-content-vue] > p:not(.intro) {
+    margin: 1em 0;
+  }
+
+  .ProseMirror .summary-content {
+    font-size: inherit;
+  }
+
+  ul:not(.summary-content *),
+  ol {
+    padding: 0 1rem;
+    margin: 1.25rem 1rem 1.25rem 0.4rem;
+
+    li p {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+  }
+
+  /* List styles */
+  ul:not(.summary-content *) {
+    list-style-type: disc;
+  }
+
+  ol {
+    list-style-type: decimal;
+  }
+
+  /* Heading styles */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    line-height: 1.1;
+    text-wrap: pretty;
+    font-weight: 500;
+    scroll-margin-top: 5rem;
+  }
+
+  h1 {
+    @apply mb-4 text-3xl;
+  }
+
+  h2 {
+    @apply mb-2 text-xl;
+  }
+
+  h3 {
+    @apply mb-2 text-lg;
+  }
+
+  h4 {
+    @apply text-base;
+  }
+
+  p {
+    @apply text-base leading-relaxed;
+
+    small {
+      @apply text-sm;
+    }
+  }
+
+  a {
+    @apply text-blue-600 underline hover:text-blue-800;
+  }
+
+  a[data-link-display="button"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+
+    background-color: #2563eb;
+    color: white !important;
+
+    font-weight: 500;
+    text-decoration: none !important;
+
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+
+  a[data-link-display="button"]:hover {
+    background-color: #1d4ed8;
+    color: white !important;
+  }
+
+  small {
+    @apply mb-4 block text-xs italic text-gray-600;
+  }
+
+  blockquote {
+    @apply m-16 mr-20 border-l-4 border-primary-500 pl-4 font-semibold italic leading-tight;
+
+    p {
+      @apply text-xl;
+    }
+  }
+
+  .intro {
+    @apply mb-6 text-lg font-semibold;
+  }
+
+  /* Table styles */
+  table {
+    @apply mt-4 w-full border-collapse overflow-hidden rounded-md text-sm;
+    table-layout: fixed;
+    max-width: 100%;
+  }
+
+  th,
+  td {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  th {
+    @apply border border-gray-200 bg-gray-100 px-3 py-2 text-left font-semibold;
+  }
+
+  td {
+    @apply border border-gray-200 px-3 py-2;
+  }
+
+  tr:nth-child(even) td {
+    @apply bg-gray-50;
+  }
 }
 
-body {
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
+.pmg-article .tableWrapper {
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.inline-comment-mark {
-  background-color: #fdf2f8;
-  text-decoration-line: underline;
-  text-decoration-color: #ec4899;
-  text-decoration-style: dotted;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 2px;
+.pmg-article .tableWrapper > table {
+  margin-top: 0;
 }
 
-.char-space {
-  background-image: radial-gradient(
-    circle at 50% 58%,
-    rgba(156, 163, 175, 0.85) 0.085em,
-    transparent 0.085em
-  );
-}
-
-.char-nbsp {
-  background-image: linear-gradient(
-    rgba(147, 51, 234, 0.45),
-    rgba(147, 51, 234, 0.45)
-  );
-  background-repeat: no-repeat;
-  background-position: center 50%;
-  background-size: 0.4em 0.7em;
-}
-
-.char-pilcrow {
-  margin-left: 2px;
-  color: rgba(147, 51, 234, 0.45);
-  font-size: 0.8em;
-  font-style: normal;
-  pointer-events: none;
-  user-select: none;
+/* Use the article width so the editor's mobile preview matches the website. */
+@container pmg-article (max-width: 767px) {
+  .pmg-article {
+    h1 {
+      @apply text-xl;
+    }
+    h2 {
+      @apply text-lg;
+    }
+    h3 {
+      @apply text-base;
+    }
+    .intro {
+      @apply text-base;
+    }
+    table {
+      width: max-content;
+      min-width: 100%;
+      table-layout: auto;
+    }
+  }
 }

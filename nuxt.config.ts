@@ -3,6 +3,8 @@ import { createResolver } from "@nuxt/kit";
 const { resolve } = createResolver(import.meta.url);
 
 export default defineNuxtConfig({
+  css: [resolve("./app/assets/css/main.css")],
+
   // Modules shared by every project that extends this layer
   modules: [
     "@nuxtjs/i18n",
