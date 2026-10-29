@@ -59,9 +59,7 @@ const selectedColor = computed({
 });
 
 const activeColor = computed(
-  () =>
-    boxColors.find((c) => c.value === selectedColor.value) ??
-    boxColors[0]!,
+  () => boxColors.find((c) => c.value === selectedColor.value) ?? boxColors[0]!,
 );
 
 const openSettings = () => {
