@@ -419,33 +419,23 @@ const generateWithAi = async () => {
 .summary-content :deep(ul > li) {
   position: relative;
   margin: 0.5rem 0;
-  padding-left: 1.75rem;
+  padding-left: 1.5rem;
 }
 
 .summary-content :deep(ul > li > p) {
   margin: 0;
 }
 
+/* Centered on the first line (line-height 1.625). */
 .summary-content :deep(ul > li)::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 0.15em;
-  width: 1.125rem;
-  height: 1.125rem;
-  border-radius: 9999px;
-  background-color: color-mix(in srgb, var(--summary-accent) 15%, transparent);
-}
-
-.summary-content :deep(ul > li)::after {
-  content: "";
-  position: absolute;
-  left: 0.3125rem;
-  top: calc(0.15em + 0.3125rem);
-  width: 0.5rem;
-  height: 0.5rem;
+  top: calc(0.8125em - 0.5rem);
+  width: 1rem;
+  height: 1rem;
   background-color: var(--summary-accent);
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 4l8 8-8 8'/%3E%3C/svg%3E")
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E")
     center / contain no-repeat;
 }
 </style>
