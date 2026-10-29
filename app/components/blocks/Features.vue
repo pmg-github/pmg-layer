@@ -270,5 +270,18 @@ defineExpose({
     <p class="text-sm text-gray-500">
       Features beheer je rechtstreeks in het blok.
     </p>
+    <section>
+      <label class="block">
+        <span class="mb-1 block text-xs font-semibold text-gray-600">
+          Referentie
+        </span>
+        <input
+          class="w-full rounded-md border border-gray-300 px-2.5 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          :value="props.id || ''"
+          placeholder="section-id"
+          @input="update(['id'], ($event.target as HTMLInputElement).value)"
+        />
+      </label>
+    </section>
   </BlocksSharedBlockSettings>
 </template>

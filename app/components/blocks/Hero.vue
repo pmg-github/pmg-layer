@@ -82,10 +82,14 @@ const heightPresets = [
 
 const heroHeight = computed(() => model.content.height || "100dvh");
 const tintOpacity = computed(() => {
-  if (typeof model.content.tint === "number") {
-    return Math.min(100, Math.max(0, model.content.tint));
+  const tint = model.content.tint;
+  if (tint === false) return 0;
+  // Saved page data may return the slider value as a string.
+  const value = Number(tint);
+  if (tint !== true && tint !== "" && tint != null && Number.isFinite(value)) {
+    return Math.min(100, Math.max(0, value));
   }
-  return model.content.tint === false ? 0 : 55;
+  return 55;
 });
 
 const setTintOpacity = (event: Event) => {
