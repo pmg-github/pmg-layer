@@ -1,4 +1,5 @@
 import { Node } from "@tiptap/core";
+import { Plugin, type Transaction } from "@tiptap/pm/state";
 import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
 import type { Component } from "vue";
 import Summary from "../../components/tiptap/Summary.vue";
@@ -92,5 +93,29 @@ export default Node.create({
 
   addNodeView() {
     return VueNodeViewRenderer(Summary as Component<NodeViewProps>);
+  },
+
+  // Only h2-h4 are allowed inside a summary.
+  addProseMirrorPlugins() {
+    const name = this.name;
+    return [
+      new Plugin({
+        appendTransaction: (transactions, _oldState, state) => {
+          if (!transactions.some((t) => t.docChanged)) return null;
+          let tr: Transaction | null = null;
+          state.doc.descendants((node, pos, parent) => {
+            if (node.type.name !== "heading") return true;
+            if (parent?.type.name !== name) return false;
+            const level = Math.min(4, Math.max(2, node.attrs.level));
+            if (level !== node.attrs.level) {
+              tr ??= state.tr;
+              tr.setNodeMarkup(pos, undefined, { ...node.attrs, level });
+            }
+            return false;
+          });
+          return tr;
+        },
+      }),
+    ];
   },
 });
