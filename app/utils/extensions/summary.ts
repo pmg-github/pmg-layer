@@ -70,7 +70,15 @@ export default Node.create({
             {
               type: this.name,
               attrs: { color: "gray", print: true, ...attributes },
-              content: [titleHeading, { type: "paragraph" }],
+              content: [
+                titleHeading,
+                {
+                  type: "bulletList",
+                  content: [
+                    { type: "listItem", content: [{ type: "paragraph" }] },
+                  ],
+                },
+              ],
             },
             { type: "paragraph" },
           ]),

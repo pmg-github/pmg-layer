@@ -2,6 +2,7 @@
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/vue-3";
 import { computed, nextTick, ref } from "vue";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
+import { TextSelection } from "@tiptap/pm/state";
 import {
   DialogContent,
   DialogOverlay,
@@ -20,11 +21,16 @@ const props = defineProps<{
 const isEditable = computed(() => props.editor.isEditable ?? false);
 const hasTitle = computed(() => props.node.firstChild?.type.name === "heading");
 
+const EMPTY_BODY_TYPES = ["paragraph", "bulletList"];
+
 const isBodyEmpty = computed(() => {
   let empty = true;
   props.node.forEach((child, _offset, index) => {
     if (index === 0 && hasTitle.value) return;
-    if (child.type.name !== "paragraph" || child.content.size > 0) {
+    if (
+      !EMPTY_BODY_TYPES.includes(child.type.name) ||
+      child.textContent.trim()
+    ) {
       empty = false;
     }
   });
@@ -41,9 +47,14 @@ const writeManually = async () => {
   await nextTick();
   const title = props.node.firstChild;
   const offset = hasTitle.value && title ? title.nodeSize : 0;
+  const start = props.getPos() + 1 + offset;
   props.editor
     .chain()
-    .focus(props.getPos() + 1 + offset + 1)
+    .focus()
+    .command(({ tr }: { tr: any }) => {
+      tr.setSelection(TextSelection.near(tr.doc.resolve(start)));
+      return true;
+    })
     .run();
 };
 
@@ -65,36 +76,36 @@ const summaryColors = [
   {
     name: "Gray",
     value: "gray",
-    wrapper: "border-gray-200",
-    strip: "bg-gray-600 text-white",
+    wrapper: "border-gray-200 bg-gray-50",
+    accent: "#4b5563",
     content: "text-gray-700",
   },
   {
     name: "Blue",
     value: "blue",
-    wrapper: "border-blue-200",
-    strip: "bg-blue-600 text-white",
+    wrapper: "border-blue-200 bg-blue-50",
+    accent: "#2563eb",
     content: "text-gray-700",
   },
   {
     name: "Green",
     value: "green",
-    wrapper: "border-green-200",
-    strip: "bg-green-600 text-white",
+    wrapper: "border-green-200 bg-green-50",
+    accent: "#16a34a",
     content: "text-gray-700",
   },
   {
     name: "Yellow",
     value: "yellow",
-    wrapper: "border-yellow-200",
-    strip: "bg-yellow-400 text-gray-900",
+    wrapper: "border-yellow-200 bg-yellow-50",
+    accent: "#ca8a04",
     content: "text-gray-700",
   },
   {
     name: "Orange",
     value: "orange",
-    wrapper: "border-orange-200",
-    strip: "bg-orange-500 text-white",
+    wrapper: "border-orange-200 bg-orange-50",
+    accent: "#f97316",
     content: "text-gray-700",
   },
 ];
@@ -276,20 +287,15 @@ const generateWithAi = async () => {
 
     <div
       v-show="!showEmptyState"
-      class="relative min-h-24 overflow-hidden rounded-lg border bg-white shadow-md"
+      class="relative min-h-24 rounded-lg border p-1"
       :class="[activeColor.wrapper, { 'cursor-pointer': isEditable }]"
+      :style="{ '--summary-accent': activeColor.accent }"
       @click="selectNodeFromBackground"
     >
-      <div
-        contenteditable="false"
-        class="flex items-center gap-2 px-6 py-2 text-xs font-semibold uppercase tracking-wider"
-        :class="activeColor.strip"
-      >
-        <Icon name="material-symbols:summarize-outline" class="size-4" />
-        Samenvatting
-        <span
+      <div class="relative min-h-24 p-8">
+        <div
           v-if="isEditable && !hasTitle"
-          class="ml-2 inline-flex items-center gap-2 rounded-full bg-black/20 py-0.5 pl-2 pr-1 text-[11px] font-medium normal-case tracking-normal"
+          class="absolute left-2 top-2 z-[1] inline-flex items-center gap-2 rounded-full bg-gray-800/70 py-0.5 pl-2 pr-1 text-[11px] font-medium text-white"
         >
           Geen titel
           <button
@@ -299,10 +305,8 @@ const generateWithAi = async () => {
           >
             Titel toevoegen
           </button>
-        </span>
-      </div>
+        </div>
 
-      <div class="relative min-h-16 px-6 pb-6 pr-14 pt-4">
         <div v-if="isEditable" class="absolute right-2 top-2 z-[1]">
           <button
             type="button"
@@ -391,7 +395,7 @@ const generateWithAi = async () => {
                 >
                   <span
                     class="block h-full w-full rounded-full"
-                    :class="color.strip"
+                    :class="color.wrapper"
                   />
                 </button>
               </div>
@@ -404,3 +408,44 @@ const generateWithAi = async () => {
     </DialogRoot>
   </NodeViewWrapper>
 </template>
+
+<style scoped>
+.summary-content :deep(ul) {
+  list-style: none;
+  margin: 0.75rem 0;
+  padding-left: 0;
+}
+
+.summary-content :deep(ul > li) {
+  position: relative;
+  margin: 0.5rem 0;
+  padding-left: 1.75rem;
+}
+
+.summary-content :deep(ul > li > p) {
+  margin: 0;
+}
+
+.summary-content :deep(ul > li)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--summary-accent) 15%, transparent);
+}
+
+.summary-content :deep(ul > li)::after {
+  content: "";
+  position: absolute;
+  left: 0.3125rem;
+  top: calc(0.15em + 0.3125rem);
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: var(--summary-accent);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 4l8 8-8 8'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+</style>
