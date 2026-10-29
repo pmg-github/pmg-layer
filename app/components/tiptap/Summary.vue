@@ -4,6 +4,7 @@ import { computed, nextTick, ref } from "vue";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
 import { SUMMARY_TITLE } from "../../utils/extensions/summary";
+import Switch from "../inputs/Switch.vue";
 import {
   DialogContent,
   DialogDescription,
