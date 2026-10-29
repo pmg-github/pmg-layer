@@ -49,12 +49,11 @@ const toEmbedUrl = (source: string): string => {
     ].includes(host);
 
     if (isYouTubeHost) {
-      const videoId =
-        host.endsWith("youtu.be")
-          ? url.pathname.split("/").filter(Boolean)[0]
-          : url.pathname === "/watch"
-            ? url.searchParams.get("v")
-            : url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/)?.[1];
+      const videoId = host.endsWith("youtu.be")
+        ? url.pathname.split("/").filter(Boolean)[0]
+        : url.pathname === "/watch"
+          ? url.searchParams.get("v")
+          : url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/)?.[1];
 
       if (!videoId) return source;
 
@@ -69,9 +68,7 @@ const toEmbedUrl = (source: string): string => {
       return embedUrl.toString();
     }
 
-    const isVimeoHost =
-      host === "vimeo.com" ||
-      host.endsWith(".vimeo.com");
+    const isVimeoHost = host === "vimeo.com" || host.endsWith(".vimeo.com");
 
     if (!isVimeoHost || host === "player.vimeo.com") return source;
 
@@ -142,7 +139,7 @@ const selectNode = () => {
       class="relative flex aspect-video cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6 transition-all hover:border-blue-400 hover:bg-blue-50"
       @click="selectNode"
     >
-      <div class="absolute left-14 top-3">
+      <div class="absolute left-3 top-3">
         <span
           class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
           >Embed
@@ -201,10 +198,7 @@ const selectNode = () => {
     </div>
 
     <!-- Edit modal -->
-    <DialogRoot
-      :open="isModalOpen"
-      @update:open="isModalOpen = $event"
-    >
+    <DialogRoot :open="isModalOpen" @update:open="isModalOpen = $event">
       <DialogPortal>
         <DialogOverlay class="fixed inset-0 z-50 bg-black/60" />
         <DialogContent
