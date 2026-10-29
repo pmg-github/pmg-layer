@@ -24,31 +24,36 @@ const boxColors = [
   {
     name: "Gray",
     value: "gray",
-    wrapper: "border-gray-200 bg-gray-50",
+    wrapper: "bg-gray-100",
+    swatch: "bg-gray-200",
     content: "text-gray-700",
   },
   {
     name: "Blue",
     value: "blue",
-    wrapper: "border-blue-200 bg-blue-50",
+    wrapper: "bg-blue-50",
+    swatch: "bg-blue-200",
     content: "text-gray-700",
   },
   {
     name: "Green",
     value: "green",
-    wrapper: "border-green-200 bg-green-50",
+    wrapper: "bg-green-50",
+    swatch: "bg-green-200",
     content: "text-gray-700",
   },
   {
     name: "Yellow",
     value: "yellow",
-    wrapper: "border-yellow-200 bg-yellow-50",
+    wrapper: "bg-yellow-50",
+    swatch: "bg-yellow-200",
     content: "text-gray-700",
   },
   {
     name: "Orange",
     value: "orange",
-    wrapper: "border-orange-200 bg-orange-50",
+    wrapper: "bg-orange-50",
+    swatch: "bg-orange-200",
     content: "text-gray-700",
   },
 ];
@@ -88,15 +93,22 @@ const selectNodeFromBackground = (event: MouseEvent) => {
 <template>
   <NodeViewWrapper
     as="section"
-    class="mt-4 box-border w-full max-w-full rounded-lg border p-1"
+    class="mt-4 box-border w-full max-w-full rounded-xl p-1"
     :class="[activeColor.wrapper, { 'cursor-pointer': isEditable }]"
     @click="selectNodeFromBackground"
   >
     <div class="relative min-h-24 p-8">
+      <span
+        v-if="isEditable"
+        class="absolute left-2 top-2 z-[1] rounded-full bg-gray-800/70 px-2 py-0.5 text-[11px] font-medium text-white"
+      >
+        Kader
+      </span>
+
       <div v-if="isEditable" class="absolute right-2 top-2 z-[1]">
         <button
           type="button"
-          class="flex items-center justify-center rounded-full bg-gray-800/70 p-2 text-white transition hover:bg-gray-800/90"
+          class="flex items-center justify-center rounded-full bg-gray-800 bg-opacity-70 p-2 text-white transition-all hover:bg-opacity-90"
           title="Kader instellingen"
           @click.stop="openSettings"
         >
@@ -154,7 +166,7 @@ const selectNodeFromBackground = (event: MouseEvent) => {
                 >
                   <span
                     class="block h-full w-full rounded-full"
-                    :class="color.wrapper"
+                    :class="color.swatch"
                   />
                 </button>
               </div>

@@ -65,31 +65,36 @@ const summaryColors = [
   {
     name: "Gray",
     value: "gray",
-    wrapper: "border-gray-200 bg-gray-50",
+    wrapper: "border-gray-200",
+    strip: "bg-gray-600 text-white",
     content: "text-gray-700",
   },
   {
     name: "Blue",
     value: "blue",
-    wrapper: "border-blue-200 bg-blue-50",
+    wrapper: "border-blue-200",
+    strip: "bg-blue-600 text-white",
     content: "text-gray-700",
   },
   {
     name: "Green",
     value: "green",
-    wrapper: "border-green-200 bg-green-50",
+    wrapper: "border-green-200",
+    strip: "bg-green-600 text-white",
     content: "text-gray-700",
   },
   {
     name: "Yellow",
     value: "yellow",
-    wrapper: "border-yellow-200 bg-yellow-50",
+    wrapper: "border-yellow-200",
+    strip: "bg-yellow-400 text-gray-900",
     content: "text-gray-700",
   },
   {
     name: "Orange",
     value: "orange",
-    wrapper: "border-orange-200 bg-orange-50",
+    wrapper: "border-orange-200",
+    strip: "bg-orange-500 text-white",
     content: "text-gray-700",
   },
 ];
@@ -271,14 +276,20 @@ const generateWithAi = async () => {
 
     <div
       v-show="!showEmptyState"
-      class="relative min-h-24 rounded-lg border p-1"
+      class="relative min-h-24 overflow-hidden rounded-lg border bg-white shadow-md"
       :class="[activeColor.wrapper, { 'cursor-pointer': isEditable }]"
       @click="selectNodeFromBackground"
     >
-      <div class="relative min-h-24 p-8">
-        <div
+      <div
+        contenteditable="false"
+        class="flex items-center gap-2 px-6 py-2 text-xs font-semibold uppercase tracking-wider"
+        :class="activeColor.strip"
+      >
+        <Icon name="material-symbols:summarize-outline" class="size-4" />
+        Samenvatting
+        <span
           v-if="isEditable && !hasTitle"
-          class="absolute left-2 top-2 z-[1] inline-flex items-center gap-2 rounded-full bg-gray-800/70 py-0.5 pl-2 pr-1 text-[11px] font-medium text-white"
+          class="ml-2 inline-flex items-center gap-2 rounded-full bg-black/20 py-0.5 pl-2 pr-1 text-[11px] font-medium normal-case tracking-normal"
         >
           Geen titel
           <button
@@ -288,8 +299,10 @@ const generateWithAi = async () => {
           >
             Titel toevoegen
           </button>
-        </div>
+        </span>
+      </div>
 
+      <div class="relative min-h-16 px-6 pb-6 pr-14 pt-4">
         <div v-if="isEditable" class="absolute right-2 top-2 z-[1]">
           <button
             type="button"
@@ -378,7 +391,7 @@ const generateWithAi = async () => {
                 >
                   <span
                     class="block h-full w-full rounded-full"
-                    :class="color.wrapper"
+                    :class="color.strip"
                   />
                 </button>
               </div>
