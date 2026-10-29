@@ -2,7 +2,6 @@ import { Node } from "@tiptap/core";
 import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
 import type { Component } from "vue";
 import Box from "../../components/tiptap/Box.vue";
-import { SUMMARY_TITLE } from "./summary";
 
 export interface BoxAttributes {
   color?: string;
@@ -21,7 +20,7 @@ declare module "@tiptap/core" {
 export default Node.create({
   name: "box",
   group: "block",
-  content: "(paragraph|list|heading|gallery|grid|accordion|file|iframe|poll)+",
+  content: "block+",
   selectable: true,
   draggable: true,
 
@@ -54,14 +53,7 @@ export default Node.create({
             {
               type: this.name,
               attrs: { color: "gray", ...attributes },
-              content: [
-                {
-                  type: "heading",
-                  attrs: { level: 2 },
-                  content: [{ type: "text", text: SUMMARY_TITLE }],
-                },
-                { type: "paragraph" },
-              ],
+              content: [{ type: "paragraph" }],
             },
             { type: "paragraph" },
           ]),

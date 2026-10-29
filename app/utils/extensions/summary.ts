@@ -30,7 +30,7 @@ declare module "@tiptap/core" {
 export default Node.create({
   name: "summary",
   group: "block",
-  content: "(paragraph|list|heading|gallery|grid|accordion|file|iframe|poll)+",
+  content: "(heading|paragraph|list)+",
   selectable: true,
   draggable: true,
 

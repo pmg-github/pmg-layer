@@ -21,36 +21,11 @@ const isEditable = computed(() => props.editor.isEditable ?? false);
 const isModalOpen = ref(false);
 
 const boxColors = [
-  {
-    name: "Gray",
-    value: "gray",
-    wrapper: "border-gray-200 bg-gray-50",
-    content: "text-gray-700",
-  },
-  {
-    name: "Blue",
-    value: "blue",
-    wrapper: "border-blue-200 bg-blue-50",
-    content: "text-gray-700",
-  },
-  {
-    name: "Green",
-    value: "green",
-    wrapper: "border-green-200 bg-green-50",
-    content: "text-gray-700",
-  },
-  {
-    name: "Yellow",
-    value: "yellow",
-    wrapper: "border-yellow-200 bg-yellow-50",
-    content: "text-gray-700",
-  },
-  {
-    name: "Orange",
-    value: "orange",
-    wrapper: "border-orange-200 bg-orange-50",
-    content: "text-gray-700",
-  },
+  { name: "Gray", value: "gray", wrapper: "border-gray-200 bg-gray-50" },
+  { name: "Blue", value: "blue", wrapper: "border-blue-200 bg-blue-50" },
+  { name: "Green", value: "green", wrapper: "border-green-200 bg-green-50" },
+  { name: "Yellow", value: "yellow", wrapper: "border-yellow-200 bg-yellow-50" },
+  { name: "Orange", value: "orange", wrapper: "border-orange-200 bg-orange-50" },
 ];
 
 const selectedColor = computed({
@@ -103,8 +78,8 @@ const selectNodeFromBackground = (event: MouseEvent) => {
       </div>
 
       <NodeViewContent
-        class="box-content text-sm leading-relaxed focus:outline-none"
-        :class="[activeColor.content, { 'cursor-text': isEditable }]"
+        class="focus:outline-none"
+        :class="{ 'cursor-text': isEditable }"
       />
     </div>
 

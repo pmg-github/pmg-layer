@@ -167,6 +167,7 @@ const generateWithAi = async () => {
       "Vat onderstaand artikel samen als HTML.",
       "Geef enkel HTML terug, zonder uitleg of markdown.",
       "Structuur: <ul> <li>...</li> </ul>, zonder titel of kop.",
+      "Je mag <strong>, <em> en <u> gebruiken om kernwoorden te benadrukken, spaarzaam en geen andere opmaak.",
       "Richt je uitsluitend op de belangrijkste inzichten, feiten en conclusies.",
       "Vermijd details, voorbeelden en herhalingen.",
       "Gebruik maximaal 5 bullet points.",
