@@ -22,8 +22,6 @@ declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     summary: {
       insertSummary: (attributes?: SummaryAttributes) => ReturnType;
-      /** Adds the default title to the summary at `pos`. */
-      insertSummaryTitle: (pos: number) => ReturnType;
     };
   }
 }
@@ -31,7 +29,8 @@ declare module "@tiptap/core" {
 export default Node.create({
   name: "summary",
   group: "block",
-  content: "(heading|paragraph|list)+",
+  // The title heading is required; when empty it is hidden on the website.
+  content: "heading (heading|paragraph|list)+",
   selectable: true,
   draggable: true,
 
@@ -83,11 +82,6 @@ export default Node.create({
             },
             { type: "paragraph" },
           ]),
-      insertSummaryTitle:
-        (pos) =>
-        ({ state, commands }) =>
-          state.doc.nodeAt(pos)?.type.name === this.name &&
-          commands.insertContentAt(pos + 1, titleHeading),
     };
   },
 

@@ -3,7 +3,6 @@ import { NodeViewContent, NodeViewWrapper } from "@tiptap/vue-3";
 import { computed, nextTick, ref } from "vue";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
-import { SUMMARY_TITLE } from "../../utils/extensions/summary";
 import {
   DialogContent,
   DialogOverlay,
@@ -63,17 +62,6 @@ const usePrint = computed({
   get: () => props.node.attrs.print !== false,
   set: (value: boolean) => props.updateAttributes({ print: value }),
 });
-
-const addTitle = () => {
-  if (!isEditable.value) return;
-  const pos = props.getPos();
-  props.editor
-    .chain()
-    .insertSummaryTitle(pos)
-    .setTextSelection({ from: pos + 2, to: pos + 2 + SUMMARY_TITLE.length })
-    .focus()
-    .run();
-};
 
 const isModalOpen = ref(false);
 const isGenerating = ref(false);
@@ -312,16 +300,6 @@ const generateWithAi = async () => {
           </button>
         </div>
 
-        <h2
-          v-if="isEditable && !hasTitle"
-          contenteditable="false"
-          class="cursor-text select-none opacity-40 transition hover:opacity-60"
-          title="Titel toevoegen"
-          @click.stop="addTitle"
-        >
-          {{ SUMMARY_TITLE }}
-        </h2>
-
         <NodeViewContent
           class="summary-content text-sm leading-relaxed focus:outline-none"
           :class="[activeColor.content, { 'cursor-text': isEditable }]"
@@ -414,6 +392,15 @@ const generateWithAi = async () => {
 </template>
 
 <style scoped>
+/* Placeholder for an emptied title; ProseMirror keeps a trailing <br> in empty blocks. */
+.summary-content
+  :deep(:is(h2, h3, h4):first-child:has(> br.ProseMirror-trailingBreak:only-child))::before {
+  content: "In het kort";
+  float: left;
+  height: 0;
+  pointer-events: none;
+  opacity: 0.4;
+}
 .summary-content :deep(ul) {
   list-style: none;
   margin: 0.75rem 0;
