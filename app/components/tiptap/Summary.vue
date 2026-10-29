@@ -3,6 +3,7 @@ import { NodeViewContent, NodeViewWrapper } from "@tiptap/vue-3";
 import { computed, nextTick, ref } from "vue";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
+import { SUMMARY_TITLE } from "../../utils/extensions/summary";
 import {
   DialogContent,
   DialogOverlay,
@@ -65,7 +66,13 @@ const usePrint = computed({
 
 const addTitle = () => {
   if (!isEditable.value) return;
-  props.editor.chain().focus().insertSummaryTitle(props.getPos()).run();
+  const pos = props.getPos();
+  props.editor
+    .chain()
+    .insertSummaryTitle(pos)
+    .setTextSelection({ from: pos + 2, to: pos + 2 + SUMMARY_TITLE.length })
+    .focus()
+    .run();
 };
 
 const isModalOpen = ref(false);
@@ -294,20 +301,6 @@ const generateWithAi = async () => {
       @click="selectNodeFromBackground"
     >
       <div class="relative min-h-24 p-8">
-        <div
-          v-if="isEditable && !hasTitle"
-          class="absolute left-2 top-2 z-[1] inline-flex items-center gap-2 rounded-full bg-gray-800/70 py-0.5 pl-2 pr-1 text-[11px] font-medium text-white"
-        >
-          Geen titel
-          <button
-            type="button"
-            class="rounded-full bg-white/20 px-2 py-0.5 transition hover:bg-white/30"
-            @click.stop="addTitle"
-          >
-            Titel toevoegen
-          </button>
-        </div>
-
         <div v-if="isEditable" class="absolute right-2 top-2 z-[1]">
           <button
             type="button"
@@ -318,6 +311,16 @@ const generateWithAi = async () => {
             <Icon name="material-symbols:edit-outline" class="size-5" />
           </button>
         </div>
+
+        <h2
+          v-if="isEditable && !hasTitle"
+          contenteditable="false"
+          class="cursor-text select-none opacity-40 transition hover:opacity-60"
+          title="Titel toevoegen"
+          @click.stop="addTitle"
+        >
+          {{ SUMMARY_TITLE }}
+        </h2>
 
         <NodeViewContent
           class="summary-content text-sm leading-relaxed focus:outline-none"
