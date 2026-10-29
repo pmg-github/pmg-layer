@@ -5,7 +5,6 @@ import type { Component } from "vue";
 import Summary from "../../components/tiptap/Summary.vue";
 
 export interface SummaryAttributes {
-  color?: string;
   print?: boolean;
 }
 
@@ -35,13 +34,6 @@ export default Node.create({
 
   addAttributes() {
     return {
-      color: {
-        default: "gray",
-        parseHTML: (element) => element.getAttribute("data-color") ?? "gray",
-        renderHTML: (attributes) => ({
-          "data-color": attributes.color ?? "gray",
-        }),
-      },
       print: {
         default: true,
         parseHTML: (element) => element.getAttribute("data-print") !== "false",
@@ -56,8 +48,13 @@ export default Node.create({
     return [{ tag: "div[data-summary]" }];
   },
 
+  // Summaries are always yellow; any stored color is ignored.
   renderHTML({ HTMLAttributes }) {
-    return ["div", { "data-summary": "true", ...HTMLAttributes }, 0];
+    return [
+      "div",
+      { "data-summary": "true", ...HTMLAttributes, "data-color": "yellow" },
+      0,
+    ];
   },
 
   addCommands() {
@@ -68,7 +65,7 @@ export default Node.create({
           commands.insertContent([
             {
               type: this.name,
-              attrs: { color: "gray", print: true, ...attributes },
+              attrs: { print: true, ...attributes },
               content: [
                 titleHeading,
                 {

@@ -6,6 +6,7 @@ import { TextSelection } from "@tiptap/pm/state";
 import { SUMMARY_TITLE } from "../../utils/extensions/summary";
 import {
   DialogContent,
+  DialogDescription,
   DialogOverlay,
   DialogPortal,
   DialogRoot,
@@ -16,7 +17,7 @@ const props = defineProps<{
   node: ProseMirrorNode;
   editor: any;
   getPos: () => number;
-  updateAttributes: (attrs: { color?: string; print?: boolean }) => void;
+  updateAttributes: (attrs: { print?: boolean }) => void;
 }>();
 
 const isEditable = computed(() => props.editor.isEditable ?? false);
@@ -68,54 +69,11 @@ const isModalOpen = ref(false);
 const isGenerating = ref(false);
 const errorMessage = ref("");
 
-const summaryColors = [
-  {
-    name: "Gray",
-    value: "gray",
-    wrapper: "border-gray-200 bg-gray-50",
-    accent: "#4b5563",
-    content: "text-gray-700",
-  },
-  {
-    name: "Blue",
-    value: "blue",
-    wrapper: "border-blue-200 bg-blue-50",
-    accent: "#2563eb",
-    content: "text-gray-700",
-  },
-  {
-    name: "Green",
-    value: "green",
-    wrapper: "border-green-200 bg-green-50",
-    accent: "#16a34a",
-    content: "text-gray-700",
-  },
-  {
-    name: "Yellow",
-    value: "yellow",
-    wrapper: "border-yellow-200 bg-yellow-50",
-    accent: "#ca8a04",
-    content: "text-gray-700",
-  },
-  {
-    name: "Orange",
-    value: "orange",
-    wrapper: "border-orange-200 bg-orange-50",
-    accent: "#f97316",
-    content: "text-gray-700",
-  },
-];
-
-const selectedColor = computed({
-  get: () => props.node.attrs.color ?? "gray",
-  set: (value: string) => props.updateAttributes({ color: value }),
-});
-
-const activeColor = computed(
-  () =>
-    summaryColors.find((c) => c.value === selectedColor.value) ??
-    summaryColors[0]!,
-);
+const activeColor = {
+  wrapper: "border-yellow-200 bg-yellow-50",
+  accent: "#ca8a04",
+  content: "text-gray-700",
+};
 
 const openSettings = () => {
   if (!isEditable.value) return;
@@ -317,79 +275,102 @@ const generateWithAi = async () => {
       <DialogPortal>
         <DialogOverlay class="fixed inset-0 z-50 bg-black/60" />
         <DialogContent
-          class="fixed left-1/2 top-16 z-50 max-h-[calc(100vh-5rem)] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 overflow-y-auto rounded-lg bg-white p-6 shadow-xl focus:outline-none"
+          class="fixed left-1/2 top-16 z-50 max-h-[calc(100vh-5rem)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 overflow-y-auto rounded-xl bg-white shadow-xl focus:outline-none"
         >
-          <div class="mb-6 flex items-center justify-between">
-            <DialogTitle class="text-xl font-bold"> Samenvatting </DialogTitle>
+          <div class="flex items-start gap-3 border-b border-gray-100 p-5">
+            <div
+              class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-yellow-100 text-yellow-700"
+            >
+              <Icon name="material-symbols:summarize-outline" class="size-5" />
+            </div>
+            <div class="min-w-0 flex-1">
+              <DialogTitle class="text-lg font-semibold text-gray-900">
+                Samenvatting
+              </DialogTitle>
+              <DialogDescription class="text-sm text-gray-500">
+                De kernpunten van het artikel in een korte opsomming.
+              </DialogDescription>
+            </div>
+            <button
+              type="button"
+              class="flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50"
+              aria-label="Sluiten"
+              :disabled="isGenerating"
+              @click="closeModal"
+            >
+              <Icon name="material-symbols:close" class="size-5" />
+            </button>
+          </div>
 
-            <div class="flex items-center gap-2">
+          <div class="space-y-4 p-5">
+            <div class="rounded-lg border border-gray-200 p-4">
+              <div class="flex items-start gap-3">
+                <Icon
+                  name="material-symbols:auto-awesome"
+                  class="mt-0.5 size-5 shrink-0 text-blue-600"
+                />
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-gray-900">
+                    Genereren met AI
+                  </p>
+                  <p class="mt-0.5 text-xs text-gray-500">
+                    {{
+                      isBodyEmpty
+                        ? "Maakt maximaal 5 kernpunten op basis van de artikeltekst."
+                        : "De AI-versie wordt boven de bestaande tekst toegevoegd."
+                    }}
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
-                class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                class="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="isGenerating"
                 @click.stop="generateWithAi"
               >
-                <span class="flex items-center gap-1.5">
-                  <Icon
-                    :name="
-                      isGenerating
-                        ? 'material-symbols:progress-activity'
-                        : 'material-symbols:auto-awesome'
-                    "
-                    class="size-4"
-                    :class="{ 'animate-spin': isGenerating }"
-                  />
-                  {{ isGenerating ? "Genereren..." : "Genereer met AI" }}
-                </span>
-              </button>
-              <button
-                type="button"
-                class="flex items-center justify-center rounded-full p-2 hover:bg-gray-100"
-                title="Sluiten"
-                :disabled="isGenerating"
-                @click="closeModal"
-              >
-                <Icon name="material-symbols:close" class="size-5" />
-              </button>
-            </div>
-          </div>
-
-          <div
-            v-if="errorMessage"
-            class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700"
-          >
-            {{ errorMessage }}
-          </div>
-
-          <div class="space-y-6">
-            <div>
-              <p class="mb-3 text-sm font-medium text-gray-700">
-                Kies een kleur
-              </p>
-
-              <div class="flex flex-wrap gap-3">
-                <button
-                  v-for="color in summaryColors"
-                  :key="color.value"
-                  type="button"
-                  class="h-10 w-10 rounded-full border-2 transition"
-                  :class="
-                    selectedColor === color.value
-                      ? 'border-gray-900 ring-2 ring-gray-900/20'
-                      : 'border-gray-200'
+                <Icon
+                  :name="
+                    isGenerating
+                      ? 'material-symbols:progress-activity'
+                      : 'material-symbols:auto-awesome'
                   "
-                  :title="color.name"
-                  @click="selectedColor = color.value"
-                >
-                  <span
-                    class="block h-full w-full rounded-full"
-                    :class="color.wrapper"
-                  />
-                </button>
-              </div>
+                  class="size-4"
+                  :class="{ 'animate-spin': isGenerating }"
+                />
+                {{ isGenerating ? "Genereren..." : "Genereer met AI" }}
+              </button>
+              <p
+                v-if="errorMessage"
+                class="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700"
+              >
+                {{ errorMessage }}
+              </p>
             </div>
 
-            <Switch v-model="usePrint" label="Gebruik voor print" />
+            <div
+              class="flex items-center justify-between gap-4 rounded-lg border border-gray-200 p-4"
+            >
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900">
+                  Gebruik voor print
+                </p>
+                <p class="mt-0.5 text-xs text-gray-500">
+                  Neem deze samenvatting op in de printversie.
+                </p>
+              </div>
+              <Switch v-model="usePrint" />
+            </div>
+          </div>
+
+          <div class="flex justify-end border-t border-gray-100 p-4">
+            <button
+              type="button"
+              class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
+              :disabled="isGenerating"
+              @click="closeModal"
+            >
+              Klaar
+            </button>
           </div>
         </DialogContent>
       </DialogPortal>

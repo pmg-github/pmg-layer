@@ -93,10 +93,7 @@ const tintOpacity = computed(() => {
 });
 
 const setTintOpacity = (event: Event) => {
-  update(
-    ["content", "tint"],
-    Number((event.target as HTMLInputElement).value),
-  );
+  update(["content", "tint"], Number((event.target as HTMLInputElement).value));
 };
 
 const imageUrl = computed(() => {
@@ -522,7 +519,7 @@ defineExpose({
             <h1
               class="mt-3 max-w-5xl break-words text-4xl font-bold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl"
               :class="{
-                  '[text-shadow:0px_0px_8px_rgba(0,0,0,0.65)]':
+                '[text-shadow:0px_0px_8px_rgba(0,0,0,0.65)]':
                   model.content.textShadow === true,
               }"
             >
@@ -539,7 +536,7 @@ defineExpose({
               v-if="editable || model.subtitle"
               class="mt-3 max-w-3xl break-words text-base leading-relaxed text-gray-200 sm:text-lg"
               :class="{
-                  '[text-shadow:0px_0px_8px_rgba(0,0,0,0.65)]':
+                '[text-shadow:0px_0px_8px_rgba(0,0,0,0.65)]':
                   model.content.textShadow === true,
               }"
             >

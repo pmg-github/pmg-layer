@@ -28,7 +28,11 @@ export default Node.create({
     return {
       color: {
         default: "gray",
-        parseHTML: (element) => element.getAttribute("data-color") ?? "gray",
+        // Yellow is reserved for summaries.
+        parseHTML: (element) => {
+          const color = element.getAttribute("data-color");
+          return color && color !== "yellow" ? color : "gray";
+        },
         renderHTML: (attributes) => ({
           "data-color": attributes.color ?? "gray",
         }),
