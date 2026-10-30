@@ -202,7 +202,7 @@ defineExpose({
         <ol :class="['relative border-s', themeClasses.timelineBorder]">
           <li
             v-for="(item, itemIndex) in content.items"
-            :key="item.label"
+            :key="itemIndex"
             class="group/timeline-item relative mb-10 ms-4"
           >
             <div
