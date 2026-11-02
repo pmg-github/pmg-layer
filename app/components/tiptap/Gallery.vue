@@ -423,7 +423,7 @@ onUnmounted(() => {
           <span
             class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
           >
-            Fotogallerij
+            Fotogalerij
           </span>
         </div>
         <Icon
@@ -447,7 +447,7 @@ onUnmounted(() => {
           <span
             class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
           >
-            Fotogallerij
+            Fotogalerij
           </span>
         </div>
         <h3 class="text-lg font-medium text-gray-700">
