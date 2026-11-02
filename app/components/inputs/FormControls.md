@@ -101,18 +101,20 @@ Tag input for comma- or separator-based keyword entry. Source:
 [Tags.vue](./Tags.vue), auto-imported as `<PMGTags>`. Built on Reka UI
 `TagsInputRoot` primitives.
 
-| Prop              | Type             | Default                      | Description                                      |
-| ----------------- | ---------------- | ---------------------------- | ------------------------------------------------ |
-| `v-model`         | `string \| null` | `null`                       | Serialized tag string joined by `separator`.     |
-| `name`            | `string`         | —                            | Opt-in vee-validate field name.                  |
-| `label`           | `string`         | —                            | Label text above the input.                      |
-| `placeholder`     | `string`         | `'Trefwoorden toevoegen...'` | Placeholder text in the editable area.           |
-| `disabled`        | `boolean`        | `false`                      | Disable the component.                           |
-| `required`        | `boolean`        | `false`                      | Show required indicator (`*`) on label.          |
-| `clearable`       | `boolean`        | `false`                      | Show a clear (×) button when tags exist.         |
-| `separator`       | `string`         | `','`                        | Output separator used in the serialized value.   |
-| `delimiters`      | `RegExp`         | `/[,;]/`                     | Pattern used to split typed or pasted tag input. |
-| `allowDuplicates` | `boolean`        | `false`                      | Allow repeated tags.                             |
+| Prop               | Type             | Default                      | Description                                      |
+| ------------------ | ---------------- | ---------------------------- | ------------------------------------------------ |
+| `v-model`          | `string \| null` | `null`                       | Serialized tag string joined by `separator`.     |
+| `name`             | `string`         | —                            | Opt-in vee-validate field name.                  |
+| `label`            | `string`         | —                            | Label text above the input.                      |
+| `placeholder`      | `string`         | `'Trefwoorden toevoegen...'` | Placeholder text in the editable area.           |
+| `disabled`         | `boolean`        | `false`                      | Disable the component.                           |
+| `required`         | `boolean`        | `false`                      | Show required indicator (`*`) on label.          |
+| `clearable`        | `boolean`        | `false`                      | Show a clear (×) button when tags exist.         |
+| `separator`        | `string`         | `','`                        | Output separator used in the serialized value.   |
+| `delimiters`       | `RegExp`         | `/[,;]/`                     | Pattern used to split typed or pasted tag input. |
+| `allowDuplicates`  | `boolean`        | `false`                      | Allow repeated tags.                             |
+| `maxlength`        | `number`         | `300`                        | Maximum serialized character count.              |
+| `warningMaxLength` | `number`         | —                            | Show a warning counter threshold.                |
 
 Events: `update:modelValue`, `change` — both emit `string | null`.
 

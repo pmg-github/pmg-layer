@@ -26,6 +26,8 @@ export interface TagsProps {
   separator?: string;
   delimiters?: RegExp;
   allowDuplicates?: boolean;
+  maxlength?: number;
+  warningMaxLength?: number;
 }
 
 const props = withDefaults(defineProps<TagsProps>(), {
@@ -35,6 +37,7 @@ const props = withDefaults(defineProps<TagsProps>(), {
   clearable: false,
   separator: ",",
   allowDuplicates: false,
+  maxlength: 300,
 });
 
 const emit = defineEmits<{
@@ -57,6 +60,72 @@ const errorMessage = computed(() => field?.errorMessage.value);
 const showError = computed(() => !!field?.meta.touched && !!errorMessage.value);
 
 const rawValue = computed(() => (field ? field.value.value : modelValue.value));
+
+const maxLength = computed(() => {
+  if (props.maxlength == null) return null;
+  const value = Number(props.maxlength);
+  return Number.isFinite(value) && value >= 0 ? Math.floor(value) : null;
+});
+
+const warningMaxLength = computed(() => {
+  if (props.warningMaxLength == null) return null;
+  const value = Number(props.warningMaxLength);
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : null;
+});
+
+const serializedValue = computed(() => {
+  const raw = rawValue.value;
+  if (Array.isArray(raw)) return normalizeTags(raw).join(props.separator);
+  return raw == null ? "" : String(raw);
+});
+
+const draftValue = ref("");
+
+const currentLength = computed(() => {
+  if (!draftValue.value) return serializedValue.value.length;
+  return (
+    serializedValue.value.length +
+    (serializedValue.value ? props.separator.length : 0) +
+    draftValue.value.length
+  );
+});
+
+const inputMaxLength = computed(() => {
+  if (maxLength.value == null) return undefined;
+  return Math.max(
+    0,
+    maxLength.value -
+      serializedValue.value.length -
+      (serializedValue.value ? props.separator.length : 0),
+  );
+});
+
+const lengthMetaClass = computed(() => {
+  if (
+    warningMaxLength.value != null &&
+    currentLength.value > warningMaxLength.value
+  ) {
+    return "text-red-500";
+  }
+  if (
+    warningMaxLength.value != null &&
+    currentLength.value >= warningMaxLength.value * 0.9
+  ) {
+    return "text-amber-500";
+  }
+  if (maxLength.value != null && currentLength.value >= maxLength.value) {
+    return "text-red-500";
+  }
+  if (maxLength.value != null && currentLength.value >= maxLength.value * 0.9) {
+    return "text-amber-500";
+  }
+  return "text-gray-400";
+});
+
+const lengthMetaText = computed(() => {
+  const limit = warningMaxLength.value ?? maxLength.value;
+  return limit == null ? "" : `${currentLength.value}/${limit}`;
+});
 
 const delimiterPattern = computed(() => props.delimiters ?? /[,;]/);
 
@@ -101,6 +170,15 @@ const tags = computed<string[]>({
   },
   set(values) {
     const nextValue = serializeTags(values);
+    if (
+      maxLength.value != null &&
+      nextValue &&
+      nextValue.length > maxLength.value &&
+      nextValue.length > serializedValue.value.length
+    ) {
+      return;
+    }
+    draftValue.value = "";
     setSerializedValue(nextValue);
     field?.setTouched(true);
     emit("change", nextValue);
@@ -111,6 +189,10 @@ const hasTags = computed(() => tags.value.length > 0);
 
 const onBlur = (event: FocusEvent) => {
   field?.handleBlur(event);
+};
+
+const onInput = (event: Event) => {
+  draftValue.value = (event.target as HTMLInputElement).value;
 };
 
 const clear = () => {
@@ -161,7 +243,9 @@ const clear = () => {
 
       <TagsInputInput
         :placeholder="placeholder"
+        :maxlength="inputMaxLength"
         class="min-w-[8rem] flex-1 border-none bg-transparent p-0 text-xs text-gray-800 placeholder-gray-400 outline-none focus:ring-0"
+        @input="onInput"
         @blur="onBlur"
       />
 
@@ -175,10 +259,19 @@ const clear = () => {
       </button>
     </TagsInputRoot>
 
-    <p class="mt-1 text-[11px] text-gray-500">
-      Druk op Enter of gebruik het "{{ separator }}" om een trefwoord toe te
-      voegen.
-    </p>
+    <div class="mt-1 flex items-start justify-between gap-2">
+      <p class="text-[11px] text-gray-500">
+        Druk op Enter of gebruik het "{{ separator }}" om een trefwoord toe te
+        voegen.
+      </p>
+      <span
+        v-if="maxLength != null || warningMaxLength != null"
+        class="shrink-0 text-[11px]"
+        :class="lengthMetaClass"
+      >
+        {{ lengthMetaText }}
+      </span>
+    </div>
 
     <div v-if="showError" class="mt-1 flex items-start justify-between gap-2">
       <p class="text-[11px] text-red-500">

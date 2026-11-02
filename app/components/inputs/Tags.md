@@ -9,18 +9,20 @@ at [Tags.vue](./Tags.vue) in this layer and is auto-imported as
 
 ## Props Reference
 
-| Prop              | Type             | Default                      | Description                                                       |
-| ----------------- | ---------------- | ---------------------------- | ----------------------------------------------------------------- |
-| `v-model`         | `string \| null` | `null`                       | The serialized tags value, joined with `separator`.               |
-| `name`            | `string`         | —                            | Opt-in vee-validate field name.                                   |
-| `label`           | `string`         | —                            | Label text above the input.                                       |
-| `placeholder`     | `string`         | `'Trefwoorden toevoegen...'` | Placeholder shown in the editable area.                           |
-| `disabled`        | `boolean`        | `false`                      | Disable the component.                                            |
-| `required`        | `boolean`        | `false`                      | Show required indicator (`*`) on label.                           |
-| `clearable`       | `boolean`        | `false`                      | Show a clear (×) button when tags are present.                    |
-| `separator`       | `string`         | `','`                        | String used when serializing the selected tags back to `v-model`. |
-| `delimiters`      | `RegExp`         | `/[,;]/`                     | Pattern used to split typed / pasted text into multiple tags.     |
-| `allowDuplicates` | `boolean`        | `false`                      | Allow repeated tags instead of de-duplicating identical values.   |
+| Prop               | Type             | Default                      | Description                                                       |
+| ------------------ | ---------------- | ---------------------------- | ----------------------------------------------------------------- |
+| `v-model`          | `string \| null` | `null`                       | The serialized tags value, joined with `separator`.               |
+| `name`             | `string`         | —                            | Opt-in vee-validate field name.                                   |
+| `label`            | `string`         | —                            | Label text above the input.                                       |
+| `placeholder`      | `string`         | `'Trefwoorden toevoegen...'` | Placeholder shown in the editable area.                           |
+| `disabled`         | `boolean`        | `false`                      | Disable the component.                                            |
+| `required`         | `boolean`        | `false`                      | Show required indicator (`*`) on label.                           |
+| `clearable`        | `boolean`        | `false`                      | Show a clear (×) button when tags are present.                    |
+| `separator`        | `string`         | `','`                        | String used when serializing the selected tags back to `v-model`. |
+| `delimiters`       | `RegExp`         | `/[,;]/`                     | Pattern used to split typed / pasted text into multiple tags.     |
+| `allowDuplicates`  | `boolean`        | `false`                      | Allow repeated tags instead of de-duplicating identical values.   |
+| `maxlength`        | `number`         | `300`                        | Maximum serialized character count, including separators.         |
+| `warningMaxLength` | `number`         | —                            | Show a warning counter threshold without limiting input.          |
 
 ## Events
 
