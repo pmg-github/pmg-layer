@@ -499,7 +499,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <small>
+      <small class="mt-1 block">
         {{ images[currentSlide]?.caption || "\u00A0" }}
         {{
           images[currentSlide]?.copyRight

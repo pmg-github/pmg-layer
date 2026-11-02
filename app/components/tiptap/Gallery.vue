@@ -534,7 +534,7 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <small>
+      <small class="mt-1 block">
         {{ images.length === 1 ? images[0]?.caption : "\u00A0" }}
         {{
           images.length === 1 && images[0]?.copyRight
