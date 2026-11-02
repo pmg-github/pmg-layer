@@ -129,6 +129,7 @@
     @apply mt-4 w-full border-collapse overflow-hidden rounded-md text-sm;
     table-layout: fixed;
     max-width: 100%;
+    clip-path: inset(0 round 0.375rem);
   }
 
   th,
@@ -139,7 +140,7 @@
   }
 
   th {
-    @apply border border-primary-400 bg-primary-300 px-3 py-2 text-left font-semibold;
+    @apply border border-gray-300 bg-primary-300 px-3 py-2 text-left font-semibold;
   }
 
   td {
