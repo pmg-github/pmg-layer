@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
+import type { BoVideoViewModel } from "models";
 import Modal from "../Modal.vue";
 import { useFetchVideos } from "~/composables/useFetchVideos";
 
@@ -33,7 +34,7 @@ const props = defineProps<NodeViewProps>();
 
 const BUNNY_LIBRARY_ID = "698074";
 
-const { getVideo } = useFetchVideos();
+const { getVideo, getProjects } = useFetchVideos();
 
 const isEditable = computed(() => props.editor.isEditable ?? false);
 const isEditing = ref(false);
@@ -56,6 +57,10 @@ const hasVideoReference = computed(() => Boolean(videoId.value.trim()));
 
 const draftVideoId = ref("");
 const draftAutoplay = ref(false);
+const searchResults = ref<BoVideoViewModel[]>([]);
+const isSearching = ref(false);
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
+let searchRequestId = 0;
 
 const resolvedVideo = ref<VideoResponse | null>(null);
 const isLoadingVideo = ref(false);
@@ -164,6 +169,39 @@ const openEditor = () => {
   draftVideoId.value = videoId.value;
   draftAutoplay.value = autoplay.value;
   isEditing.value = true;
+  void searchVideos(draftVideoId.value);
+};
+
+const searchVideos = async (keyword: string) => {
+  const requestId = ++searchRequestId;
+  isSearching.value = true;
+
+  try {
+    const response = await getProjects({ keyword, limit: 20 });
+    if (requestId === searchRequestId) {
+      searchResults.value = response?.content ?? [];
+    }
+  } catch {
+    if (requestId === searchRequestId) {
+      searchResults.value = [];
+    }
+  } finally {
+    if (requestId === searchRequestId) {
+      isSearching.value = false;
+    }
+  }
+};
+
+const onVideoSearchInput = () => {
+  if (searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    void searchVideos(draftVideoId.value);
+  }, 300);
+};
+
+const selectVideo = (video: BoVideoViewModel) => {
+  draftVideoId.value = video.jobNr;
+  searchResults.value = [];
 };
 
 const applyVideo = () => {
@@ -373,15 +411,49 @@ const selectNode = () => {
       <div class="space-y-4">
         <div>
           <label class="mb-1 block text-sm text-gray-600">
-            Video referentie
+            Video zoeken of referentie invoeren
           </label>
 
           <input
             v-model="draftVideoId"
             type="text"
-            placeholder="Bijvoorbeeld: V123456"
+            placeholder="Zoek op titel of projectcode"
             class="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            @input="onVideoSearchInput"
           />
+
+          <div
+            class="mt-2 max-h-52 overflow-y-auto rounded border border-gray-200"
+          >
+            <p v-if="isSearching" class="px-3 py-4 text-sm text-gray-500">
+              Video's zoeken...
+            </p>
+            <p
+              v-else-if="searchResults.length === 0"
+              class="px-3 py-4 text-sm text-gray-500"
+            >
+              Geen video's gevonden
+            </p>
+            <button
+              v-for="video in searchResults"
+              :key="video.id"
+              type="button"
+              class="flex w-full items-center justify-between gap-3 border-b border-gray-100 px-3 py-2 text-left last:border-b-0 hover:bg-gray-50"
+              @click="selectVideo(video)"
+            >
+              <span class="min-w-0">
+                <span class="block truncate text-sm font-medium text-gray-800">
+                  {{ video.titel }}
+                </span>
+                <span class="block text-xs text-gray-500">
+                  {{ video.jobNr }}
+                </span>
+              </span>
+              <span class="shrink-0 text-xs text-gray-500">
+                {{ video.amountOfVideos }} video's
+              </span>
+            </button>
+          </div>
         </div>
 
         <div class="flex items-center gap-6">
