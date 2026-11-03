@@ -294,32 +294,30 @@ function addTile() {
 
           <div
             v-if="editable || t.links?.length"
-            :class="['mt-auto flex w-full', contentJustifyClass]"
+            :class="['mt-auto flex w-full flex-wrap gap-3', contentJustifyClass]"
           >
             <BlocksSharedEditableLinks
               v-if="editable"
               :model-value="t.links"
-              :max="1"
+              :max="3"
               color-scheme="white"
               title="Tegellink"
               @update:model-value="setField(t, 'links', $event)"
             />
-            <a
-              v-else-if="
-                t?.links?.[0]?.url?.trim() && t?.links?.[0]?.text?.trim()
-              "
-              :href="t.links[0].url"
-              :target="t.links[0].target || '_self'"
-              class="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-primary-900 px-6 py-3 text-center text-sm font-semibold leading-5 text-white transition-colors hover:bg-primary-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-              :style="linkButtonStyle(t.links[0].color, 'primary')"
-            >
-              <BlocksSharedEditableText
-                :editable="editable"
-                v-if="editable"
-                :model-value="t.links[0].text"
-                @update:model-value="setField(t.links[0], 'text', $event)"
-              /><template v-else>{{ t.links[0].text }}</template>
-            </a>
+            <template v-else>
+              <a
+                v-for="(link, linkIndex) in t.links || []"
+                :key="linkIndex"
+                :href="link.url"
+                :target="link.target || '_self'"
+                class="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-primary-900 px-6 py-3 text-center text-sm font-semibold leading-5 text-white transition-colors hover:bg-primary-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                :class="linkIndex > 0 ? themeClasses.secondaryButton : ''"
+                :style="linkButtonStyle(link.color, linkIndex === 0 ? 'primary' : 'secondary')"
+                @click.prevent="handleAnchorClick(link.url, link.target)"
+              >
+                {{ link.text }}
+              </a>
+            </template>
           </div>
         </div>
 
