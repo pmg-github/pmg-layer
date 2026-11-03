@@ -174,12 +174,34 @@ const openEditor = () => {
 
 const searchVideos = async (keyword: string) => {
   const requestId = ++searchRequestId;
+
+  if (!keyword.trim()) {
+    searchResults.value = [];
+    isSearching.value = false;
+    return;
+  }
+
   isSearching.value = true;
 
   try {
     const response = await getProjects({ keyword, limit: 20 });
+    const projects = response?.content ?? [];
+
+    // Only keep projects that have a video in the current language
+    const availability = await Promise.all(
+      projects.map((project: BoVideoViewModel) =>
+        getVideo(project.jobNr)
+          .then((video) =>
+            Boolean(video?.bunnyVideoId || video?.sources?.length),
+          )
+          .catch(() => false),
+      ),
+    );
+
     if (requestId === searchRequestId) {
-      searchResults.value = response?.content ?? [];
+      searchResults.value = projects.filter(
+        (_: BoVideoViewModel, index: number) => availability[index],
+      );
     }
   } catch {
     if (requestId === searchRequestId) {
@@ -423,6 +445,7 @@ const selectNode = () => {
           />
 
           <div
+            v-if="draftVideoId.trim()"
             class="mt-2 max-h-52 overflow-y-auto rounded border border-gray-200"
           >
             <p v-if="isSearching" class="px-3 py-4 text-sm text-gray-500">
