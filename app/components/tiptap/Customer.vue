@@ -32,6 +32,9 @@ const logo = ref<FileButtonViewModel>(
   },
 );
 
+const getWebsiteDomain = (url: string) =>
+  stripProtocol(url).replace(/[/?#].*$/, "");
+
 const openEditModal = () => {
   if (!isEditable.value) return;
   klnr.value = props.node.attrs.klnr || "";
@@ -262,7 +265,7 @@ onMounted(async () => {
               target="_blank"
               rel="noopener"
               class="text-blue-600 underline hover:text-blue-800"
-              >{{ stripProtocol(node.attrs.website) }}</a
+              >{{ getWebsiteDomain(node.attrs.website) }}</a
             >
           </template>
         </div>
