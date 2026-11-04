@@ -11,7 +11,6 @@ import {
   BlocksSharedEditableIcon,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
-  BlocksSharedLinkReferenceSelect,
   BlocksSharedItemControls,
   BlocksSharedSelectionFrame,
 } from "../block-editor";
@@ -24,15 +23,24 @@ const props = withDefaults(
     padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
     id?: string;
-    links?: { url: string; text: string; target?: string; color?: string | null }[];
+    links?: {
+      url: string;
+      text: string;
+      target?: string;
+      color?: string | null;
+    }[];
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
     content?: {
       tiles?: Array<{
         icon?: string;
-        link?: { url: string; target?: string };
-        links?: { url: string; text: string; target?: string; color?: string | null }[];
+        links?: {
+          url: string;
+          text: string;
+          target?: string;
+          color?: string | null;
+        }[];
         title?: string;
         subtitle?: string;
         description?: string;
@@ -183,7 +191,6 @@ function addTile() {
       title: "",
       subtitle: "",
       description: "",
-      link: { url: "", target: "_self" },
       links: [],
     },
   ];
@@ -228,13 +235,6 @@ function addTile() {
             themeClasses.card,
           ]"
         >
-          <a
-            v-if="!editable && t?.link?.url?.trim()"
-            :href="t.link.url"
-            :target="t.link.target || '_self'"
-            :aria-label="t.title || 'Tegel openen'"
-            class="absolute inset-0 z-0 rounded-xl"
-          />
           <BlocksSharedItemControls
             v-if="editable && selected"
             label="Tegel bewerken"
@@ -244,13 +244,7 @@ function addTile() {
             @update:items="model.content.tiles = $event"
           />
 
-          <div
-            :class="[
-              'relative z-10 flex flex-col',
-              contentAlignmentClass,
-              !editable && t?.link?.url?.trim() ? 'pointer-events-none' : '',
-            ]"
-          >
+          <div :class="['flex flex-col', contentAlignmentClass]">
             <BlocksSharedEditableIcon
               v-if="editable"
               :class="['mb-4', contentSelfAlignmentClass]"
@@ -296,9 +290,8 @@ function addTile() {
 
           <div
             :class="[
-              'card-description relative z-10 mb-4 mt-4 text-gray-700',
+              'card-description mb-4 mt-4 text-gray-700',
               contentAlignmentClass,
-              !editable && t?.link?.url?.trim() ? 'pointer-events-none' : '',
             ]"
           >
             <BlocksSharedEditableText
@@ -310,41 +303,10 @@ function addTile() {
           </div>
 
           <div
-            v-if="editable"
-            class="relative z-10 mb-4 flex min-w-0 items-center gap-2"
-          >
-            <SharedInput
-              :model-value="t?.link?.url || ''"
-              type="url"
-              placeholder="https://... of #sectie"
-              aria-label="Volledige tegel linken"
-              class="min-w-0 flex-1"
-              @update:model-value="
-                setField(t, 'link', {
-                  ...t.link,
-                  url: String($event ?? ''),
-                  target: t.link?.target || '_self',
-                })
-              "
-            />
-            <BlocksSharedLinkReferenceSelect
-              :model-value="t?.link?.url || ''"
-              @update:model-value="
-                setField(t, 'link', {
-                  ...t.link,
-                  url: String($event ?? ''),
-                  target: t.link?.target || '_self',
-                })
-              "
-            />
-          </div>
-
-          <div
             v-if="editable || t.links?.length"
             :class="[
-              'relative z-10 mt-auto flex w-full flex-wrap gap-3',
+              'mt-auto flex w-full flex-wrap gap-3',
               contentJustifyClass,
-              !editable && t?.link?.url?.trim() ? 'pointer-events-none' : '',
             ]"
           >
             <BlocksSharedEditableLinks
@@ -361,10 +323,15 @@ function addTile() {
                 :key="linkIndex"
                 :href="link.url"
                 :target="link.target || '_self'"
-                class="pointer-events-auto inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-primary-900 px-6 py-3 text-center text-sm font-semibold leading-5 text-white transition-colors hover:bg-primary-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                class="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-primary-900 px-6 py-3 text-center text-sm font-semibold leading-5 text-white transition-colors hover:bg-primary-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
                 :class="linkIndex > 0 ? themeClasses.secondaryButton : ''"
-                :style="linkButtonStyle(link.color, linkIndex === 0 ? 'primary' : 'secondary')"
-                @click.stop.prevent="handleAnchorClick(link.url, link.target)"
+                :style="
+                  linkButtonStyle(
+                    link.color,
+                    linkIndex === 0 ? 'primary' : 'secondary',
+                  )
+                "
+                @click.prevent="handleAnchorClick(link.url, link.target)"
               >
                 {{ link.text }}
               </a>
@@ -402,7 +369,9 @@ function addTile() {
             :class="
               idx === 0 ? themeClasses.button : themeClasses.secondaryButton
             "
-            :style="linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')"
+            :style="
+              linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')
+            "
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >
             <BlocksSharedEditableText

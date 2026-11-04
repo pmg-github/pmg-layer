@@ -11,6 +11,7 @@ import {
   PaddingHandles,
   BlocksSharedEditableLinks,
   BlocksSharedEditableText,
+  BlocksSharedLinkReferenceSelect,
   BlocksSharedImageManager,
   BlocksSharedSelectionFrame,
 } from "../block-editor";
@@ -296,6 +297,37 @@ const tileImageUrl = (tile: any) => {
                 :editable="editable"
                 rich
                 @update:model-value="setField(t, 'description', $event)"
+              />
+            </div>
+
+            <div
+              v-if="editable"
+              class="mt-4 flex min-w-0 items-center gap-2"
+              @click.stop
+            >
+              <SharedInput
+                :model-value="t?.link?.url || ''"
+                type="url"
+                placeholder="https://... of #sectie"
+                aria-label="Volledige tegel linken"
+                class="min-w-0 flex-1"
+                @update:model-value="
+                  setField(t, 'link', {
+                    ...t.link,
+                    url: String($event ?? ''),
+                    target: t.link?.target || '_self',
+                  })
+                "
+              />
+              <BlocksSharedLinkReferenceSelect
+                :model-value="t?.link?.url || ''"
+                @update:model-value="
+                  setField(t, 'link', {
+                    ...t.link,
+                    url: String($event ?? ''),
+                    target: t.link?.target || '_self',
+                  })
+                "
               />
             </div>
           </div>
