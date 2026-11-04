@@ -25,7 +25,12 @@ const props = withDefaults(
     padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
     id?: string;
-    links?: { url: string; text: string; target?: string; color?: string | null }[];
+    links?: {
+      url: string;
+      text: string;
+      target?: string;
+      color?: string | null;
+    }[];
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
@@ -359,7 +364,9 @@ const tileImageUrl = (tile: any) => {
             :class="
               idx === 0 ? themeClasses.button : themeClasses.secondaryButton
             "
-            :style="linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')"
+            :style="
+              linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')
+            "
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >
             <BlocksSharedEditableText

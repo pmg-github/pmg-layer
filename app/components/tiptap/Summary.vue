@@ -72,7 +72,7 @@ const isModalOpen = ref(false);
 const isGenerating = ref(false);
 const aiPrompt = computed(() => props.extension.options.aiPrompt);
 const isAiDisabled = computed(
-  () => !aiPrompt.value || aiPrompt.value.isBusy() || isGenerating.value,
+  () => !aiPrompt.value?.prompt?.trim() || isGenerating.value,
 );
 const errorMessage = ref("");
 
@@ -118,7 +118,16 @@ const generateWithAi = async () => {
   errorMessage.value = "";
 
   try {
-    const response = await aiPrompt.value.run(articleText);
+    const imports = (await import("#imports")) as any;
+    const postPrompt = imports.useFetchOpenAI?.()?.postPrompt;
+    if (!postPrompt) throw new Error("OpenAI composable is unavailable");
+    const prompt = [
+      aiPrompt.value.prompt,
+      aiPrompt.value.promptResponseFormat,
+      "ARTIKEL:\n" + articleText,
+    ].filter(Boolean).join("\n\n");
+    const result = await postPrompt(prompt, aiPrompt.value.model);
+    const response = result?.response;
     const summary = response
       ?.trim()
       .replace(/^```[\w]*\n?|\n?```$/g, "")

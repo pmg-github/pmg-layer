@@ -1,7 +1,8 @@
-/** A host-owned prompt bound to its shared AI controller. */
+/** Prompt settings supplied by the host application. */
 export interface EditorAiPrompt {
-  run: (text: string) => Promise<string | null>;
-  isBusy: () => boolean;
+  prompt?: string;
+  promptResponseFormat?: string;
+  model?: string;
 }
 
 export interface EditorPromptOptions {
