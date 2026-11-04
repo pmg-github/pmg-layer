@@ -1,5 +1,7 @@
+import type { EditorPromptOptions } from "./editorPrompts";
+import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
+import type { Component } from "vue";
 import { Node } from '@tiptap/core';
-import { VueNodeViewRenderer, type NodeViewProps } from '@tiptap/vue-3';
 import Accordion from '../../components/tiptap/Accordion.vue';
 
 export type AccordionText = {
@@ -51,12 +53,16 @@ declare module '@tiptap/core' {
   }
 }
 
-export default Node.create({
+export default Node.create<EditorPromptOptions>({
   name: 'accordion',
   group: 'block',
   atom: true,
   selectable: true,
   draggable: true,
+
+  addOptions() {
+    return { aiPrompt: undefined };
+  },
 
   addAttributes() {
     return {
@@ -139,8 +145,6 @@ export default Node.create({
   },
 
   addNodeView() {
-    return VueNodeViewRenderer(
-      Accordion as unknown as Component<NodeViewProps>,
-    );
+    return VueNodeViewRenderer(Accordion as Component<NodeViewProps>);
   },
 });

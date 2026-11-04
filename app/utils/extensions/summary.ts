@@ -1,7 +1,8 @@
-import { Node } from "@tiptap/core";
-import { Plugin, type Transaction } from "@tiptap/pm/state";
+import type { EditorPromptOptions } from "./editorPrompts";
 import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
 import type { Component } from "vue";
+import { Node } from "@tiptap/core";
+import { Plugin, type Transaction } from "@tiptap/pm/state";
 import Summary from "../../components/tiptap/Summary.vue";
 
 export interface SummaryAttributes {
@@ -25,12 +26,16 @@ declare module "@tiptap/core" {
   }
 }
 
-export default Node.create({
+export default Node.create<EditorPromptOptions>({
   name: "summary",
   group: "block",
   content: "(heading|paragraph|list)+",
   selectable: true,
   draggable: true,
+
+  addOptions() {
+    return { aiPrompt: undefined };
+  },
 
   addAttributes() {
     return {

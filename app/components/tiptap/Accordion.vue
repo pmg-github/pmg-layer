@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { EditorPromptOptions } from "../../utils/extensions/editorPrompts";
 import { NodeViewWrapper } from "@tiptap/vue-3";
-import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref, watch, onMounted, onBeforeUnmount, type PropType } from "vue";
 import {
   DialogContent,
   DialogOverlay,
@@ -63,6 +64,7 @@ function isCanonicalItem(item: unknown): item is AccordionItem {
 }
 
 const props = defineProps({
+  extension: { type: Object as PropType<{ options: EditorPromptOptions }>, required: true },
   node: { type: Object, required: true },
   editor: { type: Object, required: true },
   updateAttributes: { type: Function, required: true },
@@ -72,6 +74,10 @@ const isEditable = computed(() => props.editor.isEditable ?? false);
 
 const isModalOpen = ref(false);
 const isGenerating = ref(false);
+const aiPrompt = computed(() => props.extension.options.aiPrompt);
+const isAiDisabled = computed(
+  () => !aiPrompt.value || aiPrompt.value.isBusy() || isGenerating.value,
+);
 const openIndex = ref<number | null>(null);
 
 const items = computed<AccordionItem[]>({
@@ -143,27 +149,17 @@ const updateItem = (
 
 const generateWithAi = async () => {
   if (!isEditable.value) return;
-  if (isGenerating.value) return;
+  if (isAiDisabled.value || !aiPrompt.value) return;
   isGenerating.value = true;
 
   try {
     const text = props.editor.state.doc.textContent;
     if (!text?.trim()) return;
 
-    const prompt =
-      `Genereer 5 veelgestelde vragen met bijbehorende antwoorden op basis van de volgende tekst. ` +
-      `Antwoord uitsluitend met JSON, niets anders. ` +
-      `Formaat: {"items":[{"question":{"text":"Vraag"},"answer":{"text":"Antwoord"}}]}. ` +
-      `\n\nTEKST:\n${text}`;
+    const response = await aiPrompt.value.run(text);
+    if (!response) return;
 
-    const imports = (await import("#imports")) as any;
-    const postPrompt = imports.useFetchOpenAI?.()?.postPrompt;
-    if (!postPrompt) return;
-
-    const result = await postPrompt(prompt, "gpt-4o");
-    if (!result?.response) return;
-
-    const raw = result.response.replace(/^```[\w]*\n?|\n?```$/g, "").trim();
+    const raw = response.replace(/^```[\w]*\n?|\n?```$/g, "").trim();
     const parsed = JSON.parse(raw);
 
     if (
@@ -176,6 +172,8 @@ const generateWithAi = async () => {
     }
 
     items.value = normalizeItems(parsed.items);
+  } catch (error) {
+    console.error("Het genereren van de veelgestelde vragen is mislukt.", error);
   } finally {
     isGenerating.value = false;
   }
@@ -325,7 +323,7 @@ onBeforeUnmount(() => {
         <button
           type="button"
           class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-blue-700 disabled:opacity-60"
-          :disabled="isGenerating"
+          :disabled="isAiDisabled"
           @click.stop="generateWithAi"
         >
           <span class="flex items-center gap-2">
@@ -439,7 +437,7 @@ onBeforeUnmount(() => {
               <button
                 type="button"
                 class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="isGenerating"
+                :disabled="isAiDisabled"
                 @click.stop="generateWithAi"
               >
                 <span class="flex items-center gap-1.5">

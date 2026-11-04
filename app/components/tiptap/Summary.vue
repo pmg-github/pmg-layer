@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { EditorPromptOptions } from "../../utils/extensions/editorPrompts";
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/vue-3";
 import { computed, nextTick, ref } from "vue";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
@@ -15,6 +16,7 @@ import {
 } from "reka-ui";
 
 const props = defineProps<{
+  extension: { options: EditorPromptOptions };
   node: ProseMirrorNode;
   editor: any;
   getPos: () => number;
@@ -68,6 +70,10 @@ const usePrint = computed({
 
 const isModalOpen = ref(false);
 const isGenerating = ref(false);
+const aiPrompt = computed(() => props.extension.options.aiPrompt);
+const isAiDisabled = computed(
+  () => !aiPrompt.value || aiPrompt.value.isBusy() || isGenerating.value,
+);
 const errorMessage = ref("");
 
 const activeColor = {
@@ -99,7 +105,7 @@ const selectNodeFromBackground = (event: MouseEvent) => {
 
 const generateWithAi = async () => {
   if (!isEditable.value) return;
-  if (isGenerating.value) return;
+  if (isAiDisabled.value || !aiPrompt.value) return;
 
   const articleText = props.editor.state.doc.textContent.trim();
 
@@ -112,29 +118,8 @@ const generateWithAi = async () => {
   errorMessage.value = "";
 
   try {
-    const imports = (await import("#imports")) as any;
-    const postPrompt = imports.useFetchOpenAI?.()?.postPrompt;
-    if (!postPrompt) {
-      throw new Error("OpenAI composable is unavailable");
-    }
-
-    const prompt = [
-      "Vat onderstaand artikel samen als HTML.",
-      "Geef enkel HTML terug, zonder uitleg of markdown.",
-      "Structuur: <ul> <li>...</li> </ul>, zonder titel of kop.",
-      "Je mag <strong>, <em> en <u> gebruiken om kernwoorden te benadrukken, spaarzaam en geen andere opmaak.",
-      "Richt je uitsluitend op de belangrijkste inzichten, feiten en conclusies.",
-      "Vermijd details, voorbeelden en herhalingen.",
-      "Gebruik maximaal 5 bullet points.",
-      "Schrijf elke bullet in één duidelijke zin van maximaal 20 woorden.",
-      "Wees objectief en voeg geen eigen interpretaties toe.",
-      "",
-      "ARTIKEL:",
-      articleText,
-    ].join("\n");
-
-    const result = await postPrompt(prompt, "gpt-5");
-    const summary = result.response
+    const response = await aiPrompt.value.run(articleText);
+    const summary = response
       ?.trim()
       .replace(/^```[\w]*\n?|\n?```$/g, "")
       .trim();
@@ -218,7 +203,7 @@ const generateWithAi = async () => {
         <button
           type="button"
           class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-blue-700 disabled:opacity-60"
-          :disabled="isGenerating"
+          :disabled="isAiDisabled"
           @click.stop="generateWithAi"
         >
           <span class="flex items-center gap-2">
@@ -326,7 +311,7 @@ const generateWithAi = async () => {
               <button
                 type="button"
                 class="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="isGenerating"
+                :disabled="isAiDisabled"
                 @click.stop="generateWithAi"
               >
                 <Icon
