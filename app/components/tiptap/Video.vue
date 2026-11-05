@@ -383,6 +383,7 @@ const selectNode = () => {
         :muted="muted"
         :poster="resolvedVideo?.poster"
         controls
+        crossorigin="anonymous"
         class="absolute inset-0 h-full w-full"
       >
         <source
