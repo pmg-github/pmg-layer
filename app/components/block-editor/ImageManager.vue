@@ -10,11 +10,13 @@ const {
   open: openPanel,
   close,
 } = useBlockEditorPanel("media");
-const editorRef = ref<{ open: () => void }>();
+const editorRef = ref<{ open: () => void; add?: () => void }>();
 const open = () =>
   editorRef.value?.open ? editorRef.value.open() : openPanel();
+const add = () =>
+  editorRef.value?.add ? editorRef.value.add() : open();
 
-defineExpose({ open, close });
+defineExpose({ open, close, add });
 </script>
 
 <template>

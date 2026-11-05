@@ -6,6 +6,7 @@ import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import { linkButtonStyle } from "../../utils/buttonColor";
 import {
+  BlocksSharedAddItem,
   BlocksSharedBlockSettings,
   BlocksSharedHeaderAlignment,
   PaddingHandles,
@@ -228,18 +229,7 @@ const tileImageUrl = (tile: any) => {
         />
       </div>
 
-      <div
-        v-if="editable && !props.content?.tiles?.length"
-        class="h-56 overflow-hidden rounded-xl"
-      >
-        <MediaPlaceholder
-          label="Afbeeldingen toevoegen"
-          description="Voeg afbeeldingen of video's toe aan dit blok."
-          action-label="Media beheren"
-          @action="imageManagerRef?.open?.()"
-        />
-      </div>
-      <div v-else :class="gridClass">
+      <div :class="gridClass">
         <component
           :is="editable || !t?.link?.url?.trim() ? 'div' : 'a'"
           v-for="(t, i) in props.content?.tiles || []"
@@ -339,6 +329,12 @@ const tileImageUrl = (tile: any) => {
 
           <div class="mt-auto flex"></div>
         </component>
+        <BlocksSharedAddItem
+          v-if="editable"
+          class="min-h-64"
+          label="Afbeelding toevoegen"
+          @add="imageManagerRef?.add?.()"
+        />
       </div>
 
       <div
