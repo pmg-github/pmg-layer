@@ -324,13 +324,7 @@ function addTile() {
                 :href="link.url"
                 :target="link.target || '_self'"
                 class="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-primary-900 px-6 py-3 text-center text-sm font-semibold leading-5 text-white transition-colors hover:bg-primary-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-                :class="linkIndex > 0 ? themeClasses.secondaryButton : ''"
-                :style="
-                  linkButtonStyle(
-                    link.color,
-                    linkIndex === 0 ? 'primary' : 'secondary',
-                  )
-                "
+                :style="linkButtonStyle(link.color, 'primary')"
                 @click.prevent="handleAnchorClick(link.url, link.target)"
               >
                 {{ link.text }}
