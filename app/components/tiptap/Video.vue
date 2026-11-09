@@ -92,12 +92,15 @@ const getVideoWithDutchFallback = async (
   language = locale.value,
 ): Promise<VideoResponse | null> => {
   try {
+    console.log(`Fetching video for jobCode: ${jobCode}, language: ${language}`);
     const video = await getVideo(jobCode, language);
-
+    console.log(`Received video:`, video);
     if (video?.bunnyVideoId || video?.sources?.length) {
       return video;
     }
+    console.log(`Video not found for jobCode: ${jobCode}, language: ${language}`);
   } catch (error) {
+    console.error(`Error fetching video for jobCode: ${jobCode}, language: ${language}`, error);
     if (!(error instanceof FetchError) || error.statusCode !== 404) {
       throw error;
     }
