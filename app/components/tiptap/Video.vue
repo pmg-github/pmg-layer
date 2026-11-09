@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { FetchError } from "ofetch";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/vue-3";
 import type { BoVideoViewModel } from "models";
 import Modal from "../Modal.vue";
@@ -35,6 +36,7 @@ const props = defineProps<NodeViewProps>();
 const BUNNY_LIBRARY_ID = "698074";
 
 const { getVideo, getProjects } = useFetchVideos();
+const { locale } = useI18n();
 
 const isEditable = computed(() => props.editor.isEditable ?? false);
 const isEditing = ref(false);
@@ -85,6 +87,25 @@ const normalizeVideoReference = (reference: string) => {
   };
 };
 
+const getVideoWithDutchFallback = async (
+  jobCode: string,
+  language = locale.value,
+): Promise<VideoResponse | null> => {
+  try {
+    const video = await getVideo(jobCode, language);
+
+    if (video?.bunnyVideoId || video?.sources?.length) {
+      return video;
+    }
+  } catch (error) {
+    if (!(error instanceof FetchError) || error.statusCode !== 404) {
+      throw error;
+    }
+  }
+
+  return language === "nl" ? null : getVideo(jobCode, "nl");
+};
+
 const loadVideo = async () => {
   const reference = videoId.value.trim();
 
@@ -102,7 +123,7 @@ const loadVideo = async () => {
   isLoadingVideo.value = true;
 
   try {
-    const video = await getVideo(jobCode, language);
+    const video = await getVideoWithDutchFallback(jobCode, language);
 
     const hasPlayableSource = Boolean(
       video?.bunnyVideoId || video?.sources?.length,
@@ -187,10 +208,9 @@ const searchVideos = async (keyword: string) => {
     const response = await getProjects({ keyword, limit: 20 });
     const projects = response?.content ?? [];
 
-    // Only keep projects that have a video in the current language
     const availability = await Promise.all(
       projects.map((project: BoVideoViewModel) =>
-        getVideo(project.jobNr)
+        getVideoWithDutchFallback(project.jobNr)
           .then((video) =>
             Boolean(video?.bunnyVideoId || video?.sources?.length),
           )

@@ -96,6 +96,8 @@ Once extended, the consuming project automatically gets:
 - Tailwind CSS support via `@nuxtjs/tailwindcss` with this layer's shared config
 - TipTap building blocks: `<TiptapCarousel />`, `<TiptapGallery />`,
   `<TiptapVideo />`, `CarouselExtension`, `GalleryExtension`, and `VideoExtension`
+  - `<TiptapVideo />` playback and video search fall back to Dutch (`nl`) when
+    the requested language is not found or has no playable source.
 - Page blocks such as `<PMGHero />`, `<PMGFeatures />`, `<PMGTileGrid />`,
   `<PMGTimeline />`, `<PMGQAndA />`, and the other components in
   `app/components/blocks`
