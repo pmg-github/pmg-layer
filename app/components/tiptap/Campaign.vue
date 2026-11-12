@@ -6,7 +6,6 @@ import type { CampagneViewModel } from 'models';
 import type { CampaignAttrs } from '../../utils/extensions/campaign';
 import Modal from '../Modal.vue';
 import PMGInput from '../inputs/Input.vue';
-import PMGSelect from '../inputs/Select.vue';
 
 const props = defineProps(nodeViewProps);
 type CampaignData = CampagneViewModel & { subtitle?: string; maxRow?: number };
@@ -25,10 +24,6 @@ const results = ref<CampaignOption[]>([]);
 const searching = ref(false);
 const searchError = ref(false);
 const draft = ref<CampaignAttrs>({ ...attrs.value });
-const columnOptions = [
-  { key: 'Automatisch (max. 3)', value: null },
-  ...[1, 2, 3, 4].map((value) => ({ key: String(value), value })),
-];
 let searchVersion = 0;
 let detailVersion = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -105,9 +100,7 @@ const openModal = () => {
   cancelSearch();
   draft.value = {
     ...attrs.value,
-    maxRow: attrs.value.maxRow
-      ? Math.min(4, Math.max(1, attrs.value.maxRow))
-      : null,
+    maxRow: null,
   };
   query.value = attrs.value.campaignName || campaign.value?.title || '';
   isOpen.value = true;
@@ -131,14 +124,7 @@ const selectCampaign = (option: CampaignOption) => {
   }
   query.value = option.key;
 };
-const validDraft = computed(() => {
-  const columns = draft.value.maxRow;
-  return (
-    !!draft.value.campaignId &&
-    (columns === null ||
-      (Number.isInteger(columns) && columns >= 1 && columns <= 4))
-  );
-});
+const validDraft = computed(() => !!draft.value.campaignId);
 const apply = () => {
   if (!isEditable.value || !validDraft.value) return;
   props.updateAttributes({ ...draft.value });
@@ -165,13 +151,7 @@ const items = computed(
   () =>
     campaign.value?.items?.filter((item) => item.name || item.logoUrl) ?? [],
 );
-const columns = computed(() => {
-  const value = Number(attrs.value.maxRow);
-  return Math.min(
-    items.value.length || 1,
-    Number.isSafeInteger(value) && value > 0 ? Math.min(value, 4) : 3,
-  );
-});
+const columns = computed(() => Math.min(items.value.length || 1, 3));
 onBeforeUnmount(() => {
   cancelSearch();
   ++detailVersion;
@@ -191,8 +171,9 @@ onBeforeUnmount(() => {
       <div class="absolute left-3 top-3">
         <span
           class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
-          >Campagne</span
         >
+          Campagne
+        </span>
       </div>
       <Icon
         name="material-symbols:campaign-outline"
@@ -215,7 +196,6 @@ onBeforeUnmount(() => {
     <section
       v-else-if="attrs.campaignId"
       class="relative overflow-hidden rounded-lg"
-      :class="{ 'border border-gray-200 bg-white': isEditable }"
     >
       <div
         v-if="loading"
@@ -246,11 +226,7 @@ onBeforeUnmount(() => {
           Opnieuw proberen
         </button>
       </div>
-      <div
-        v-else-if="campaign"
-        class="p-6 text-center"
-        :class="{ 'pt-14': isEditable }"
-      >
+      <div v-else-if="campaign" class="p-6 text-center">
         <h2
           v-if="attrs.title || campaign.title"
           class="mb-3 text-2xl font-semibold"
@@ -291,15 +267,6 @@ onBeforeUnmount(() => {
         >
           Deze campagne bevat nog geen partners.
         </p>
-      </div>
-      <div
-        v-if="isEditable"
-        class="pointer-events-none absolute left-3 top-3 z-[2]"
-      >
-        <span
-          class="inline-block rounded-full bg-gray-800 px-2 py-1 text-xs font-semibold text-white"
-          >Campagne</span
-        >
       </div>
       <button
         v-if="isEditable && !props.selected && campaign && !loading"
@@ -369,13 +336,12 @@ onBeforeUnmount(() => {
               @click="selectCampaign(option)"
             >
               <span class="min-w-0">
-                <span
-                  class="block truncate text-sm font-medium text-gray-800"
-                  >{{ option.key }}</span
-                >
-                <span class="block text-xs text-gray-500">{{
-                  option.value
-                }}</span>
+                <span class="block truncate text-sm font-medium text-gray-800">
+                  {{ option.key }}
+                </span>
+                <span class="block text-xs text-gray-500">
+                  {{ option.value }}
+                </span>
               </span>
               <Icon
                 name="material-symbols:chevron-right"
@@ -398,12 +364,6 @@ onBeforeUnmount(() => {
             label="Ondertitel"
             placeholder="Ondertitel van de campagne"
             clearable
-          />
-          <PMGSelect
-            v-model="draft.maxRow"
-            :options="columnOptions"
-            label="Logo’s per rij"
-            placeholder="Automatisch (max. 3)"
           />
           <p class="text-xs text-gray-500">
             Deze instellingen gelden voor dit artikel. Lege tekstvelden
