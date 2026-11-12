@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3';
-import { useHead, useI18n } from '#imports';
-import type { ToolsArticleListView } from 'models';
-import type { Model3dAttrs } from '../../utils/extensions/model3d';
-import { useFetchModels3d } from '../../composables/useFetchModels3d';
-import Modal from '../Modal.vue';
-import PMGInput from '../inputs/Input.vue';
+import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { NodeViewWrapper, nodeViewProps } from "@tiptap/vue-3";
+import { useHead, useI18n } from "#imports";
+import type { ToolsArticleListView } from "models";
+import type { Model3dAttrs } from "../../utils/extensions/model3d";
+import { useFetchModels3d } from "../../composables/useFetchModels3d";
+import Modal from "../Modal.vue";
+import PMGInput from "../inputs/Input.vue";
 
 const props = defineProps(nodeViewProps);
 const { getModels } = useFetchModels3d();
@@ -14,16 +14,16 @@ const { locale } = useI18n();
 const isEditable = computed(() => props.editor.isEditable);
 const attrs = computed(() => props.node.attrs as Model3dAttrs);
 const model = ref<ToolsArticleListView | null>(null);
-const modelTitle = computed(() => attrs.value.title || model.value?.name || '');
+const modelTitle = computed(() => attrs.value.title || model.value?.name || "");
 const modelPoster = computed(
   () =>
     model.value?.imageUrl ||
-    'https://static.pmg.be/uploads/it/general/477385.gif?width=800',
+    "https://static.pmg.be/uploads/it/general/477385.gif?width=800",
 );
 const loading = ref(false);
 const loadError = ref(false);
 const isOpen = ref(false);
-const query = ref('');
+const query = ref("");
 const results = ref<ToolsArticleListView[]>([]);
 const searching = ref(false);
 const searchError = ref(false);
@@ -35,16 +35,16 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 const hasModel = (tool: ToolsArticleListView) =>
   Number.isSafeInteger(Number(tool.id)) &&
   Number(tool.id) > 0 &&
-  typeof tool['3dUrl'] === 'string' &&
-  !!tool['3dUrl'].trim();
+  typeof tool["3dUrl"] === "string" &&
+  !!tool["3dUrl"].trim();
 useHead(
   computed(() => ({
     script: model.value
       ? [
           {
-            key: 'pmg-model-viewer',
-            src: 'https://3d.pmg.be/lib/model-viewer/model-viewer.min.js',
-            type: 'module',
+            key: "pmg-model-viewer",
+            src: "https://3d.pmg.be/lib/model-viewer/model-viewer.min.js",
+            type: "module",
           },
         ]
       : [],
@@ -100,9 +100,9 @@ const runSearch = async () => {
 };
 const onSearchInput = (value: string | number | null) => {
   cancelSearch();
-  query.value = String(value ?? '');
+  query.value = String(value ?? "");
   draft.value.toolId = null;
-  draft.value.modelName = '';
+  draft.value.modelName = "";
   if (!query.value.trim()) return;
   searching.value = true;
   timer = setTimeout(runSearch, 300);
@@ -111,7 +111,7 @@ const openModal = () => {
   if (!isEditable.value) return;
   cancelSearch();
   draft.value = { ...attrs.value };
-  query.value = attrs.value.modelName || model.value?.name || '';
+  query.value = attrs.value.modelName || model.value?.name || "";
   isOpen.value = true;
 };
 watch(isOpen, (open) => {
@@ -128,7 +128,7 @@ const selectModel = (tool: ToolsArticleListView) => {
     toolId: Number(tool.id),
     modelName: tool.name,
     title:
-      Number(attrs.value.toolId) === Number(tool.id) ? draft.value.title : '',
+      Number(attrs.value.toolId) === Number(tool.id) ? draft.value.title : "",
   };
   query.value = tool.name;
 };
@@ -143,13 +143,13 @@ const apply = () => {
 };
 const clearModel = () => {
   if (!isEditable.value) return;
-  props.updateAttributes({ toolId: null, modelName: '', title: '' });
+  props.updateAttributes({ toolId: null, modelName: "", title: "" });
   isOpen.value = false;
 };
 const selectNode = () => {
   if (!isEditable.value) return;
   const pos = props.getPos();
-  if (typeof pos === 'number')
+  if (typeof pos === "number")
     props.editor.chain().focus().setNodeSelection(pos).run();
 };
 onBeforeUnmount(() => {
@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
       <div v-else-if="model" class="relative">
         <h3
           v-if="modelTitle"
-          class="pointer-events-none absolute left-3 top-3 z-[1] !m-0 max-w-[calc(100%_-_4.5rem)] break-words rounded-md bg-white/85 px-3 py-1.5 text-sm font-medium text-gray-800 shadow-sm backdrop-blur-sm"
+          class="pointer-events-none absolute left-3 top-3 z-[1] !m-0 inline-flex max-w-[calc(100%_-_4.5rem)] break-words rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700"
         >
           {{ modelTitle }}
         </h3>
