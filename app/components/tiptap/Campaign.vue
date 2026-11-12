@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3';
-import { useFetchCampaigns, useFetchFilters, useI18n } from '#imports';
-import type { CampagneViewModel } from 'models';
-import type { CampaignAttrs } from '../../utils/extensions/campaign';
-import Modal from '../Modal.vue';
-import PMGInput from '../inputs/Input.vue';
+import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { NodeViewWrapper, nodeViewProps } from "@tiptap/vue-3";
+import { useFetchCampaigns, useFetchFilters, useI18n } from "#imports";
+import type { CampagneViewModel } from "models";
+import type { CampaignAttrs } from "../../utils/extensions/campaign";
+import Modal from "../Modal.vue";
+import PMGInput from "../inputs/Input.vue";
 
 const props = defineProps(nodeViewProps);
 type CampaignData = CampagneViewModel & { subtitle?: string; maxRow?: number };
@@ -19,8 +19,12 @@ const campaign = ref<CampaignData | null>(null);
 const loading = ref(false);
 const loadError = ref(false);
 const isOpen = ref(false);
-const query = ref('');
+const query = ref("");
 const results = ref<CampaignOption[]>([]);
+const rowOptions = [2, 3, 4, 5].map((value) => ({
+  label: String(value),
+  value,
+}));
 const searching = ref(false);
 const searchError = ref(false);
 const draft = ref<CampaignAttrs>({ ...attrs.value });
@@ -38,7 +42,7 @@ const loadCampaign = async () => {
   try {
     const data = await getCampaign(id, locale.value);
     if (version === detailVersion) {
-      if (Number(data?.id) !== id) throw new Error('Campaign not found');
+      if (Number(data?.id) !== id) throw new Error("Campaign not found");
       campaign.value = data;
     }
   } catch {
@@ -70,7 +74,7 @@ const runSearch = async () => {
       results.value = options
         .flatMap((option) => {
           const value = Number(option.value);
-          return typeof option.key === 'string' &&
+          return typeof option.key === "string" &&
             Number.isSafeInteger(value) &&
             value > 0
             ? [{ key: option.key, value }]
@@ -88,9 +92,9 @@ const runSearch = async () => {
 };
 const onSearchInput = (value: string | number | null) => {
   cancelSearch();
-  query.value = String(value ?? '');
+  query.value = String(value ?? "");
   draft.value.campaignId = null;
-  draft.value.campaignName = '';
+  draft.value.campaignName = "";
   if (!query.value.trim()) return;
   searching.value = true;
   timer = setTimeout(runSearch, 300);
@@ -100,9 +104,9 @@ const openModal = () => {
   cancelSearch();
   draft.value = {
     ...attrs.value,
-    maxRow: null,
+    maxRow: attrs.value.maxRow ?? 3,
   };
-  query.value = attrs.value.campaignName || campaign.value?.title || '';
+  query.value = attrs.value.campaignName || campaign.value?.title || "";
   isOpen.value = true;
 };
 watch(isOpen, (open) => {
@@ -114,9 +118,9 @@ const selectCampaign = (option: CampaignOption) => {
     draft.value = {
       campaignId: option.value,
       campaignName: option.key,
-      title: '',
-      subtitle: '',
-      maxRow: null,
+      title: "",
+      subtitle: "",
+      maxRow: draft.value.maxRow ?? 3,
     };
   } else {
     draft.value.campaignId = option.value;
@@ -134,9 +138,9 @@ const clearCampaign = () => {
   if (!isEditable.value) return;
   props.updateAttributes({
     campaignId: null,
-    campaignName: '',
-    title: '',
-    subtitle: '',
+    campaignName: "",
+    title: "",
+    subtitle: "",
     maxRow: null,
   });
   isOpen.value = false;
@@ -144,14 +148,22 @@ const clearCampaign = () => {
 const selectNode = () => {
   if (!isEditable.value) return;
   const pos = props.getPos();
-  if (typeof pos === 'number')
+  if (typeof pos === "number")
     props.editor.chain().focus().setNodeSelection(pos).run();
 };
 const items = computed(
-  () =>
-    campaign.value?.items?.filter((item) => item.name || item.logoUrl) ?? [],
+  () => campaign.value?.items?.filter((item) => item.logoUrl?.trim()) ?? [],
 );
-const columns = computed(() => Math.min(items.value.length || 1, 3));
+const columns = computed(() => {
+  const configuredColumns = Number(attrs.value.maxRow);
+  const maxColumns =
+    Number.isSafeInteger(configuredColumns) &&
+    configuredColumns >= 2 &&
+    configuredColumns <= 5
+      ? configuredColumns
+      : 3;
+  return Math.min(items.value.length || 1, maxColumns);
+});
 onBeforeUnmount(() => {
   cancelSearch();
   ++detailVersion;
@@ -250,15 +262,14 @@ onBeforeUnmount(() => {
             :href="!isEditable ? item.url : undefined"
             :target="!isEditable ? '_blank' : undefined"
             :rel="!isEditable ? 'noopener noreferrer' : undefined"
-            class="flex min-w-0 flex-col items-center justify-center gap-3 rounded-lg border border-gray-200 bg-white p-4"
+            class="flex min-w-0 items-center justify-center rounded-lg border border-gray-200 bg-white p-4"
           >
             <img
               v-if="item.logoUrl"
               :src="item.logoUrl"
               :alt="item.name"
-              class="h-20 max-w-full object-contain"
+              class="size-20 object-contain"
             />
-            <span class="break-words text-sm font-medium">{{ item.name }}</span>
           </component>
         </div>
         <p
@@ -351,6 +362,11 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <template v-if="draft.campaignId">
+          <PMGSelect
+            v-model="draft.maxRow"
+            :options="rowOptions"
+            label="Partners per row (desktop)"
+          />
           <PMGInput
             :model-value="draft.title"
             @update:model-value="draft.title = String($event ?? '')"
@@ -409,15 +425,7 @@ onBeforeUnmount(() => {
   container-type: inline-size;
 }
 .campaign-grid {
-  grid-template-columns: minmax(0, 1fr);
-}
-@container (min-width: 280px) {
-  .campaign-grid {
-    grid-template-columns: repeat(
-      min(var(--campaign-columns), 2),
-      minmax(0, 1fr)
-    );
-  }
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 @container (min-width: 560px) {
   .campaign-grid {
