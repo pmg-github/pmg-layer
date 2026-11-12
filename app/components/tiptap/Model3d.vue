@@ -223,10 +223,10 @@ onBeforeUnmount(() => {
           Opnieuw proberen
         </button>
       </div>
-      <div v-else-if="model">
+      <div v-else-if="model" class="relative">
         <h3
           v-if="modelTitle"
-          class="px-12 py-3 text-center text-lg font-semibold"
+          class="pointer-events-none absolute left-3 top-3 z-[1] !m-0 max-w-[calc(100%_-_4.5rem)] break-words rounded-md bg-white/85 px-3 py-1.5 text-sm font-medium text-gray-800 shadow-sm backdrop-blur-sm"
         >
           {{ modelTitle }}
         </h3>
