@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
       <div v-else-if="model" class="relative">
         <h3
           v-if="modelTitle"
-          class="pointer-events-none absolute left-3 top-3 z-[1] !m-0 inline-flex max-w-[calc(100%_-_4.5rem)] break-words rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700"
+          class="pointer-events-none absolute left-2 top-2 z-[1] !m-0 inline-flex max-w-[calc(100%_-_3.5rem)] break-words rounded-full border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] leading-4 font-medium text-gray-700"
         >
           {{ modelTitle }}
         </h3>
