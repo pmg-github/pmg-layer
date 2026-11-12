@@ -224,12 +224,12 @@ onBeforeUnmount(() => {
         </button>
       </div>
       <div v-else-if="model" class="relative">
-        <h3
+        <span
           v-if="modelTitle"
           class="pointer-events-none absolute left-2 top-2 z-[1] !m-0 inline-flex max-w-[calc(100%_-_3.5rem)] break-words rounded-full border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] leading-4 font-medium text-gray-700"
         >
           {{ modelTitle }}
-        </h3>
+        </span>
         <component
           :is="'model-viewer'"
           :key="`${model.id}-${locale}`"
