@@ -244,7 +244,7 @@ const tileImageUrl = (tile: any) => {
             "
             :editable="editable"
             :kind="t?.type === 'video' ? 'video' : 'image'"
-            ratio="photo"
+            ratio="video"
           >
             <img
               v-if="t?.type !== 'video'"
