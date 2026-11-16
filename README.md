@@ -102,6 +102,20 @@ Once extended, the consuming project automatically gets:
   `<PMGTimeline />`, `<PMGQAndA />`, and the other components in
   `app/components/blocks`
 
+## Overlay stacking
+
+Components use explicit values, not a shared overlay manager. `PMGModal`
+defaults to 50; use its `zIndex` prop for nested surfaces. The dashboard uses
+60 for the image library/lightboxes, 70 for image editors, 80 for editor
+confirmations, and 90 for blocking confirmations. Portalled select/combobox
+content uses 100, tooltips use 110, and notifications use 120.
+
+Keep local page controls below modal levels. Do not globally override Reka
+popper wrappers: Reka copies the content's z-index to its positioning wrapper.
+Fixed tiers do not order arbitrary nested dialogs automatically; close an open
+menu before opening another modal and explicitly place nested dialogs above
+their parent.
+
 ## Shared page blocks
 
 The page blocks use the dashboard implementation as their canonical source.

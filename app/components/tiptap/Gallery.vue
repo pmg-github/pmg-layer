@@ -630,11 +630,11 @@ onUnmounted(() => {
     >
       <DialogPortal>
         <DialogOverlay
-          class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in"
+          class="fixed inset-0 z-[60] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in"
         />
 
         <DialogContent
-          class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 p-4 outline-none"
+          class="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-3 p-4 outline-none"
           @open-auto-focus.prevent
         >
           <DialogTitle class="sr-only">Afbeelding bekijken</DialogTitle>

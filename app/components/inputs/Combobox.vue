@@ -220,7 +220,7 @@ onUnmounted(() => {
           side="bottom"
           align="start"
           :side-offset="4"
-          class="w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl shadow-gray-200/60"
+          class="z-[100] w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl shadow-gray-200/60"
         >
           <ComboboxViewport class="max-h-60 overflow-y-auto py-1">
             <div

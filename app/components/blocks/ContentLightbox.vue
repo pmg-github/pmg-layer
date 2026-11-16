@@ -126,92 +126,94 @@ defineExpose({ open, close, prev, next });
 </script>
 
 <template>
-  <transition name="lg-fade">
-    <div
-      v-if="selectedIndex !== null"
-      class="fixed inset-0 z-50 flex h-full items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      @click.self="close"
-    >
-      <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
-
+  <Teleport to="body">
+    <transition name="lg-fade">
       <div
-        class="relative z-10 max-h-full w-full"
-        @touchstart.passive="onTouchStart"
-        @touchmove.passive="onTouchMove"
-        @touchend.passive="onTouchEnd"
+        v-if="selectedIndex !== null"
+        class="fixed inset-0 z-[60] flex h-full items-center justify-center p-4"
+        role="dialog"
+        aria-modal="true"
+        @click.self="close"
       >
-        <button
-          class="absolute right-3 top-3 z-30 flex items-center justify-center rounded bg-black/40 p-3 text-white hover:bg-black/60"
-          @click="close"
-          aria-label="Close"
-        >
-          <Icon name="heroicons:x-mark" class="text-xl" />
-        </button>
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
 
-        <button
-          v-if="images.length > 1"
-          class="absolute left-3 top-1/2 z-30 flex -translate-y-1/2 items-center justify-center rounded-full bg-black/40 p-3 text-white hover:bg-black/60"
-          @click.stop="prev"
-          aria-label="Previous image"
+        <div
+          class="relative z-10 max-h-full w-full"
+          @touchstart.passive="onTouchStart"
+          @touchmove.passive="onTouchMove"
+          @touchend.passive="onTouchEnd"
         >
-          <Icon name="heroicons:chevron-left" class="text-xl" />
-        </button>
-
-        <button
-          v-if="images.length > 1"
-          class="absolute right-3 top-1/2 z-30 flex -translate-y-1/2 items-center rounded-full bg-black/40 p-3 text-white hover:bg-black/60"
-          @click.stop="next"
-          aria-label="Next image"
-        >
-          <Icon name="heroicons:chevron-right" class="text-xl" />
-        </button>
-
-        <div class="flex items-center justify-center">
-          <div
-            class="relative flex h-[90vh] w-full items-center justify-center"
+          <button
+            class="absolute right-3 top-3 z-30 flex items-center justify-center rounded bg-black/40 p-3 text-white hover:bg-black/60"
+            @click="close"
+            aria-label="Close"
           >
+            <Icon name="heroicons:x-mark" class="text-xl" />
+          </button>
+
+          <button
+            v-if="images.length > 1"
+            class="absolute left-3 top-1/2 z-30 flex -translate-y-1/2 items-center justify-center rounded-full bg-black/40 p-3 text-white hover:bg-black/60"
+            @click.stop="prev"
+            aria-label="Previous image"
+          >
+            <Icon name="heroicons:chevron-left" class="text-xl" />
+          </button>
+
+          <button
+            v-if="images.length > 1"
+            class="absolute right-3 top-1/2 z-30 flex -translate-y-1/2 items-center rounded-full bg-black/40 p-3 text-white hover:bg-black/60"
+            @click.stop="next"
+            aria-label="Next image"
+          >
+            <Icon name="heroicons:chevron-right" class="text-xl" />
+          </button>
+
+          <div class="flex items-center justify-center">
             <div
-              v-if="loadingImage"
-              class="absolute inset-0 grid place-items-center"
+              class="relative flex h-[90vh] w-full items-center justify-center"
             >
               <div
-                class="h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-white"
-              ></div>
+                v-if="loadingImage"
+                class="absolute inset-0 grid place-items-center"
+              >
+                <div
+                  class="h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-white"
+                ></div>
+              </div>
+
+              <video
+                v-if="isVideo(images[selectedIndex])"
+                :key="images[selectedIndex]"
+                :src="images[selectedIndex]"
+                class="h-[80vh] w-auto rounded object-contain transition-opacity duration-300"
+                :class="loadingImage ? 'opacity-0' : 'opacity-100'"
+                controls
+                playsinline
+                @loadeddata="onImageLoaded"
+                @error="onImageError"
+              />
+              <img
+                v-else
+                :src="images[selectedIndex]"
+                :alt="`Foto ${selectedIndex + 1}`"
+                class="h-[80vh] w-auto rounded object-contain transition-opacity duration-300"
+                :class="loadingImage ? 'opacity-0' : 'opacity-100'"
+                @load="onImageLoaded"
+                @error="onImageError"
+              />
             </div>
-
-            <video
-              v-if="isVideo(images[selectedIndex])"
-              :key="images[selectedIndex]"
-              :src="images[selectedIndex]"
-              class="h-[80vh] w-auto rounded object-contain transition-opacity duration-300"
-              :class="loadingImage ? 'opacity-0' : 'opacity-100'"
-              controls
-              playsinline
-              @loadeddata="onImageLoaded"
-              @error="onImageError"
-            />
-            <img
-              v-else
-              :src="images[selectedIndex]"
-              :alt="`Foto ${selectedIndex + 1}`"
-              class="h-[80vh] w-auto rounded object-contain transition-opacity duration-300"
-              :class="loadingImage ? 'opacity-0' : 'opacity-100'"
-              @load="onImageLoaded"
-              @error="onImageError"
-            />
           </div>
-        </div>
 
-        <div class="z-30 mt-4 text-center text-sm text-white/90">
-          <div v-if="images.length > 1" class="mb-1 font-medium">
-            Foto {{ selectedIndex + 1 }} van {{ images.length }}
+          <div class="z-30 mt-4 text-center text-sm text-white/90">
+            <div v-if="images.length > 1" class="mb-1 font-medium">
+              Foto {{ selectedIndex + 1 }} van {{ images.length }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </transition>
+    </transition>
+  </Teleport>
 </template>
 
 <style scoped>
