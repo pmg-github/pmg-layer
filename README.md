@@ -102,6 +102,64 @@ Once extended, the consuming project automatically gets:
   `<PMGTimeline />`, `<PMGQAndA />`, and the other components in
   `app/components/blocks`
 
+## Article charts
+
+The article editor's `ChartExtension` uses a single TipTap chart component for
+rendering and editing, without an external service or chart library. It supports `bar`, `line`, `pie`,
+and `donut`, keyboard/touch interaction, and reduced motion.
+Text controls are Dutch, matching the article editor, with `nl-BE` number formatting.
+
+```ts
+import type { ChartData } from "pmg-layer/utils/chart";
+import ChartExtension from "pmg-layer/utils/extensions/chart";
+
+const chart: ChartData = {
+  type: "bar",
+  title: "Vervoer naar het werk",
+  description: "Fictieve voorbeeldgegevens",
+  unit: "%",
+  source: "Demonstratie",
+  palette: "categorical",
+  points: [
+    { label: "Fiets", value: 60 },
+    { label: "Auto", value: 40 },
+  ],
+};
+
+// Add ChartExtension to the consuming TipTap editor's extensions.
+// The editor must also provide document, paragraph and text nodes.
+editor.chain().focus().insertChart(chart).run();
+// Or insert an empty block, then configure it using "Grafiek instellen":
+editor.chain().focus().insertChart().run();
+```
+
+The node view uses the layer's shared modal for chart type,
+title, description, unit, source and add/remove/reorder controls for 1–30 rows.
+Settings are grouped into chart type, data and optional information. Chart types
+include visual examples and guidance. New charts use the default color palette;
+existing chart colors are preserved, without a color picker. Settings use
+a single-column dialog with save/cancel always visible, without a live preview.
+Edits are saved together in one update; cancelling leaves the article unchanged.
+The block follows the other TipTap components: a labeled empty state with a setup
+action, a circular edit control, and a separate unavailable state for invalid data.
+Charts can be deleted from the settings modal's footer.
+Read-only mode hides all editing controls.
+Titles and labels are required; values must be finite numbers. Negative values
+are supported for bars/lines, while pie/donut require non-negative values and a
+positive finite total. Bars/lines always include zero. Lines use equally spaced
+categories in the supplied order, not a continuous date axis. This first version
+uses one data series; it does not fetch external data.
+
+Article JSON stores the configuration in `chart` node `attrs.chart`.
+HTML round-trips via `figure[data-chart]` and includes a readable table fallback
+for static HTML consumers. Interactive rendering uses the same registered
+extension in a read-only TipTap editor. Registering the extension and adding its insert action to the
+consumer's toolbar remains the consumer's responsibility. Invalid data is shown
+explicitly rather than silently coerced.
+
+The node view is in `app/components/tiptap/Chart.vue`.
+See `/charts` in the playground (`npm run dev`).
+
 ## Overlay stacking
 
 Components use explicit values, not a shared overlay manager. `PMGModal`

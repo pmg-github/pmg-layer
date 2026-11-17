@@ -248,7 +248,7 @@ const onSelect = (option: T) => {
     setSelectedValue(value as any);
     field?.setTouched(true);
     emit("change", value as any);
-    isOpen.value = false;
+    onOpenChange(false);
   }
 };
 
@@ -405,7 +405,12 @@ onUnmounted(() => {
           <template v-else>
             <ComboboxInput
               :model-value="searchQuery"
-              class="min-w-[4rem] flex-1 border-none bg-transparent p-0 text-xs text-gray-800 placeholder-gray-400 outline-none focus:ring-0"
+              class="min-w-[4rem] flex-1 border-none bg-transparent p-0 text-xs text-gray-800 outline-none focus:ring-0"
+              :class="
+                !multiple && displayLabel
+                  ? 'placeholder-gray-800'
+                  : 'placeholder-gray-400'
+              "
               :placeholder="
                 !multiple && displayLabel
                   ? displayLabel

@@ -11,6 +11,10 @@
       "types": "./app/utils/buttonColor.ts",
       "import": "./app/utils/buttonColor.ts"
     },
+    "./utils/chart": {
+      "types": "./app/utils/chart.ts",
+      "import": "./app/utils/chart.ts"
+    },
     "./utils/extensions/*": {
       "types": "./app/utils/extensions/*.ts",
       "import": "./app/utils/extensions/*.ts"

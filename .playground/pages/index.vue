@@ -122,6 +122,7 @@ const tableUsers = ref<UserItem[]>([
         :options="fruitOptions"
         label="Favorite fruit"
         placeholder="Select a fruit"
+        searchable
         clearable
       />
 

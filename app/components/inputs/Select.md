@@ -88,6 +88,11 @@ Use when the full list is available upfront (pre-fetched via `useAsyncData` or h
 />
 ```
 
+For searchable single selects, the selected label uses the normal input text
+color. Selecting an option clears the search text and closes the dropdown, so
+the selected label is shown immediately. Closing without selecting also clears
+the search text and shows the existing selection.
+
 ### 3. Multi-select with static options
 
 ```vue
