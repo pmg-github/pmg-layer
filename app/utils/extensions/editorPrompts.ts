@@ -1,6 +1,7 @@
 /** Prompt settings supplied by the host application. */
 export interface EditorAiPrompt {
   prompt?: string;
+  promptReference?: string;
   promptResponseFormat?: string;
   model?: string;
 }

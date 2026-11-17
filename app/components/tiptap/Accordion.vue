@@ -76,7 +76,7 @@ const isModalOpen = ref(false);
 const isGenerating = ref(false);
 const aiPrompt = computed(() => props.extension.options.aiPrompt);
 const isAiDisabled = computed(
-  () => !aiPrompt.value?.prompt?.trim() || isGenerating.value,
+  () => !(aiPrompt.value?.prompt?.trim() || aiPrompt.value?.promptReference) || isGenerating.value,
 );
 const openIndex = ref<number | null>(null);
 
@@ -159,8 +159,14 @@ const generateWithAi = async () => {
     const imports = (await import("#imports")) as any;
     const postPrompt = imports.useFetchOpenAI?.()?.postPrompt;
     if (!postPrompt) throw new Error("OpenAI composable is unavailable");
+    const instruction = aiPrompt.value.prompt?.trim() || (
+      aiPrompt.value.promptReference
+        ? (await imports.useFetchPrompts?.()?.getPromptByReference(aiPrompt.value.promptReference))?.prompt
+        : ""
+    );
+    if (!instruction?.trim()) throw new Error("AI prompt instruction is unavailable");
     const prompt = [
-      aiPrompt.value.prompt,
+      instruction,
       aiPrompt.value.promptResponseFormat,
       "ARTIKEL:\n" + text,
     ].filter(Boolean).join("\n\n");
