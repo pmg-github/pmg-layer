@@ -350,9 +350,6 @@ onBeforeUnmount(() => {
                 <span class="block truncate text-sm font-medium text-gray-800">
                   {{ option.key }}
                 </span>
-                <span class="block text-xs text-gray-500">
-                  {{ option.value }}
-                </span>
               </span>
               <Icon
                 name="material-symbols:chevron-right"
