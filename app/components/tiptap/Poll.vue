@@ -338,7 +338,7 @@ watch(
       </div>
 
       <!-- Filled state: visual-only preview -->
-      <div v-else class="overflow-hidden rounded-lg p-8 border border-gray-200">
+      <div v-else class="relative overflow-hidden rounded-lg p-8 border border-gray-200">
         <div class="pointer-events-none select-none rounded-lg">
           <span
             class="mb-2 inline-block rounded-full bg-pmg-700 px-4 text-sm font-medium text-white"
