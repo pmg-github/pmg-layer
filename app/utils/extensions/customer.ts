@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
 import type { Component } from "vue";
+import type { FileButtonViewModel } from "models";
 import Customer from "../../components/tiptap/Customer.vue";
 
 export interface SupplierInfoOptions {
@@ -15,7 +16,7 @@ export interface CustomerAttributes {
   phone?: string;
   email?: string;
   website?: string;
-  logo?: string;
+  logo?: string | FileButtonViewModel | null;
 }
 
 declare module "@tiptap/core" {
@@ -70,6 +71,10 @@ export default Node.create<SupplierInfoOptions>({
       },
       logo: {
         default: "",
+        renderHTML: (attributes) => {
+          const logo: CustomerAttributes["logo"] = attributes.logo;
+          return { logo: typeof logo === "string" ? logo : logo?.url ?? "" };
+        },
       },
     };
   },
