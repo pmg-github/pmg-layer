@@ -8,6 +8,7 @@ export interface TextareaProps {
   disabled?: boolean;
   required?: boolean;
   rows?: number;
+  maxlength?: number;
   warningMinLength?: number;
   warningMaxLength?: number;
 }
@@ -151,6 +152,7 @@ const onBlur = (event: Event) => {
         :disabled="disabled"
         :required="required"
         :rows="rows"
+        :maxlength="maxlength"
         class="min-w-0 flex-1 resize-y border-none bg-transparent p-0 text-xs text-gray-800 placeholder-gray-400 outline-none focus:ring-0"
         @input="onInput"
         @blur="onBlur"

@@ -11,6 +11,7 @@ as `<PMGTextarea>`.
 | `disabled`    | `boolean`        | `false` | Disable the textarea.                  |
 | `required`    | `boolean`        | `false` | Show required indicator (\*) on label. |
 | `rows`        | `number`         | `3`     | Number of visible text rows.           |
+| `maxlength`   | `number`         | —       | Native maximum input length; unlimited when omitted. |
 
 Events: `update:modelValue`, `change` — both emit `string | null`.
 
