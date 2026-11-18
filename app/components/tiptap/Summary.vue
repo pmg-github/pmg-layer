@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { EditorPromptOptions } from "../../utils/extensions/editorPrompts";
+import type { SummaryStorage } from "../../utils/extensions/summary";
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/vue-3";
 import { computed, nextTick, ref } from "vue";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
-import { SUMMARY_TITLE } from "../../utils/extensions/summary";
 import Switch from "../inputs/Switch.vue";
 import {
   DialogContent,
@@ -16,7 +16,7 @@ import {
 } from "reka-ui";
 
 const props = defineProps<{
-  extension: { options: EditorPromptOptions };
+  extension: { options: EditorPromptOptions; storage: SummaryStorage };
   node: ProseMirrorNode;
   editor: any;
   getPos: () => number;
@@ -157,7 +157,12 @@ const generateWithAi = async () => {
     const to = bodyHasText
       ? from + emptyTitleSize
       : pos + props.node.nodeSize - 1;
-    const content = keepTitle ? summary : `<h2>${SUMMARY_TITLE}</h2>${summary}`;
+    let content = summary;
+    if (!keepTitle) {
+      const heading = document.createElement("h2");
+      heading.textContent = props.extension.storage.getDefaultTitle();
+      content = heading.outerHTML + summary;
+    }
 
     props.editor.chain().focus().insertContentAt({ from, to }, content).run();
 

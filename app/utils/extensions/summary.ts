@@ -1,6 +1,7 @@
+import { tryUseNuxtApp } from "#app";
 import type { EditorPromptOptions } from "./editorPrompts";
 import { VueNodeViewRenderer, type NodeViewProps } from "@tiptap/vue-3";
-import type { Component } from "vue";
+import { unref, type Component } from "vue";
 import { Node } from "@tiptap/core";
 import { Plugin, type Transaction } from "@tiptap/pm/state";
 import Summary from "../../components/tiptap/Summary.vue";
@@ -9,14 +10,17 @@ export interface SummaryAttributes {
   print?: boolean;
 }
 
-/** Default title for new summaries; editors can change or remove it. */
+export interface SummaryStorage {
+  getDefaultTitle: () => string;
+}
+
+/** Fallback heading for editors without a supported locale. */
 export const SUMMARY_TITLE = "In het kort";
 
-const titleHeading = {
-  type: "heading",
-  attrs: { level: 2 },
-  content: [{ type: "text", text: SUMMARY_TITLE }],
-};
+const summaryTitles = new Map([
+  ["fr", "En bref"],
+  ["en", "In brief"],
+]);
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -26,7 +30,7 @@ declare module "@tiptap/core" {
   }
 }
 
-export default Node.create<EditorPromptOptions>({
+export default Node.create<EditorPromptOptions, SummaryStorage>({
   name: "summary",
   group: "block",
   content: "(heading|paragraph|list)+",
@@ -35,6 +39,19 @@ export default Node.create<EditorPromptOptions>({
 
   addOptions() {
     return { aiPrompt: undefined };
+  },
+
+  addStorage() {
+    return { getDefaultTitle: () => SUMMARY_TITLE };
+  },
+
+  onBeforeCreate() {
+    // Capture the composer during editor setup; read the locale at insertion time.
+    const i18n = tryUseNuxtApp()?.$i18n;
+    this.storage.getDefaultTitle = () => {
+      const language = unref(i18n?.locale)?.toLowerCase().split("-")[0] ?? "";
+      return summaryTitles.get(language) ?? SUMMARY_TITLE;
+    };
   },
 
   addAttributes() {
@@ -72,7 +89,11 @@ export default Node.create<EditorPromptOptions>({
               type: this.name,
               attrs: { print: true, ...attributes },
               content: [
-                titleHeading,
+                {
+                  type: "heading",
+                  attrs: { level: 2 },
+                  content: [{ type: "text", text: this.storage.getDefaultTitle() }],
+                },
                 {
                   type: "bulletList",
                   content: [
