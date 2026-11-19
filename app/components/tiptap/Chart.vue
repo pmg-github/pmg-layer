@@ -112,6 +112,31 @@ function chartView(data: ChartData | null) {
       : "";
     return `${point.label}: ${numberFormat.format(point.value)}${data.unit ? ` ${data.unit}` : ""}${percentage}`;
   };
+  const tooltipAt = (index: number) => {
+    const point = data.points[index];
+    const position = geometry.points[index];
+    if (!point || !position) return null;
+
+    let { x, y } = position;
+    const slice = slices[index];
+    if (circular && slice) {
+      const previousFraction = slices
+        .slice(0, index)
+        .reduce((sum, item) => sum + item.fraction, 0);
+      const angle =
+        (previousFraction + slice.fraction / 2) * 2 * Math.PI - Math.PI / 2;
+      const radius = data.type === "donut" ? 103 : 65;
+      x = 320 + Math.cos(angle) * radius;
+      y = 170 + Math.sin(angle) * radius;
+    }
+
+    return {
+      x,
+      y,
+      label: shortLabel(point.label),
+      value: `${numberFormat.format(point.value)}${data.unit ? ` ${data.unit}` : ""}${slice ? ` (${percentFormat.format(slice.fraction)})` : ""}`,
+    };
+  };
   return {
     ...data,
     geometry,
@@ -119,6 +144,7 @@ function chartView(data: ChartData | null) {
     color,
     slices,
     pointText,
+    tooltipAt,
     linePath: geometry.points
       .map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`)
       .join(" "),
@@ -128,6 +154,23 @@ function chartView(data: ChartData | null) {
 }
 
 const chart = computed(() => chartView(stored.value.data));
+const activeTooltip = computed(() => {
+  if (activeIndex.value === null || !chart.value) return null;
+
+  const tooltip = chart.value.tooltipAt(activeIndex.value);
+  if (!tooltip) return null;
+
+  const width = Math.min(
+    280,
+    Math.max(96, Math.max(tooltip.label.length, tooltip.value.length) * 7 + 20),
+  );
+  return {
+    ...tooltip,
+    x: Math.max(8, Math.min(632 - width, tooltip.x - width / 2)),
+    y: tooltip.y < 60 ? tooltip.y + 18 : tooltip.y - 50,
+    width,
+  };
+});
 
 function openSettings() {
   if (!props.editor.isEditable) return;
@@ -213,7 +256,7 @@ watch(
       </figcaption>
       <!-- Explicit geometry attributes also work during SVG hydration. -->
       <svg
-        viewBox="0 0 640 340"
+        viewBox="0 0 640 380"
         class="chart-graphic"
         role="group"
         :aria-label="chart.title"
@@ -242,11 +285,39 @@ watch(
           </g>
           <line
             x1="90"
+            x2="90"
+            y1="40"
+            y2="300"
+            stroke="#64748b"
+            stroke-width="1.5"
+          />
+          <line
+            x1="90"
             x2="610"
             :y1.attr="chart.geometry.baseline"
             :y2.attr="chart.geometry.baseline"
             stroke="#64748b"
+            stroke-width="1.5"
           />
+          <text
+            v-if="chart.yAxisLabel"
+            x="22"
+            y="170"
+            text-anchor="middle"
+            class="axis-title"
+            transform="rotate(-90 22 170)"
+          >
+            {{ chart.yAxisLabel }}
+          </text>
+          <text
+            v-if="chart.xAxisLabel"
+            x="350"
+            y="365"
+            text-anchor="middle"
+            class="axis-title"
+          >
+            {{ chart.xAxisLabel }}
+          </text>
           <path
             v-if="chart.type === 'line'"
             :d.attr="chart.linePath"
@@ -271,7 +342,6 @@ watch(
           @blur="activeIndex = null"
           @click="activeIndex = index"
         >
-          <title>{{ chart.pointText(index) }}</title>
           <template v-if="chart.circular">
             <path
               v-if="point.value > 0"
@@ -319,13 +389,39 @@ watch(
             {{ shortLabel(point.label) }}
           </text>
         </g>
+        <g
+          v-if="activeTooltip"
+          class="chart-tooltip"
+          role="tooltip"
+          aria-live="polite"
+        >
+          <rect
+            :x.attr="activeTooltip.x"
+            :y.attr="activeTooltip.y"
+            :width.attr="activeTooltip.width"
+            height="42"
+            rx="5"
+          />
+          <text
+            :x.attr="activeTooltip.x + 8"
+            :y.attr="activeTooltip.y + 16"
+            :textLength.attr="activeTooltip.width - 16"
+            lengthAdjust="spacingAndGlyphs"
+            class="chart-tooltip-label"
+          >
+            {{ activeTooltip.label }}
+          </text>
+          <text
+            :x.attr="activeTooltip.x + 8"
+            :y.attr="activeTooltip.y + 33"
+            :textLength.attr="activeTooltip.width - 16"
+            lengthAdjust="spacingAndGlyphs"
+            class="chart-tooltip-value"
+          >
+            {{ activeTooltip.value }}
+          </text>
+        </g>
       </svg>
-      <p class="chart-hint">
-        Tik op een gegeven of gebruik de tabtoets om de waarde te bekijken.
-      </p>
-      <p class="chart-detail">
-        {{ activeIndex === null ? "\u00a0" : chart.pointText(activeIndex) }}
-      </p>
       <ul class="chart-legend" aria-label="Gegevens">
         <li v-for="(point, index) in chart.points" :key="index">
           <button
@@ -507,6 +603,24 @@ watch(
               placeholder="Bijv. %, euro of inwoners"
             />
           </label>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="chart-field">
+              <span>X-aslabel <span class="chart-optional">(optioneel)</span></span>
+              <input
+                v-model="draft.xAxisLabel"
+                type="text"
+                placeholder="Bijv. Jaar"
+              />
+            </label>
+            <label class="chart-field">
+              <span>Y-aslabel <span class="chart-optional">(optioneel)</span></span>
+              <input
+                v-model="draft.yAxisLabel"
+                type="text"
+                placeholder="Bijv. Aantal inwoners"
+              />
+            </label>
+          </div>
           <div>
             <div class="mb-2 flex items-center justify-between gap-2">
               <p class="text-sm font-medium text-gray-700">Gegevensrijen</p>
@@ -718,8 +832,8 @@ watch(
 
 <style scoped>
 .article-chart {
-  margin: 1.5rem 0;
-  padding: 1.25rem;
+  margin: 1rem 0;
+  padding: 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 1rem;
   background: white;
@@ -732,9 +846,8 @@ watch(
   font-weight: 700;
 }
 .chart-description,
-.chart-source,
-.chart-hint {
-  margin: 0.5rem 0;
+.chart-source {
+  margin: 0.35rem 0;
   color: #475569;
   font-size: 0.875rem;
   white-space: pre-line;
@@ -749,6 +862,11 @@ watch(
   font-size: 12px;
   fill: #475569;
 }
+.axis-title {
+  font-size: 13px;
+  font-weight: 600;
+  fill: #334155;
+}
 .chart-point {
   cursor: pointer;
   transition: opacity 0.15s ease;
@@ -760,10 +878,22 @@ watch(
   outline: 2px solid #0f172a;
   outline-offset: 3px;
 }
-.chart-detail {
-  min-height: 1.5em;
-  margin: 0.5rem 0;
+.chart-tooltip {
+  pointer-events: none;
+}
+.chart-tooltip rect {
+  fill: #0f172a;
+  filter: drop-shadow(0 2px 3px rgb(15 23 42 / 25%));
+}
+.chart-tooltip text {
+  fill: white;
+  font-size: 12px;
+}
+.chart-tooltip-label {
   font-weight: 600;
+}
+.chart-tooltip-value {
+  fill: #e2e8f0;
 }
 .article-chart .chart-legend {
   display: flex;
@@ -771,7 +901,7 @@ watch(
   gap: 0.25rem 1rem;
   list-style: none;
   padding: 0;
-  margin: 0.5rem 0 1rem;
+  margin: 0.35rem 0 0.25rem;
 }
 .chart-legend button {
   display: flex;

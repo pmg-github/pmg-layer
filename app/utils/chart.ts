@@ -4,6 +4,8 @@ export type ChartPalette = "blue" | "green" | "categorical";
 export interface ChartData {
   type: ChartType;
   title: string;
+  xAxisLabel: string;
+  yAxisLabel: string;
   description: string;
   unit: string;
   source: string;
@@ -30,6 +32,8 @@ export function createChartData(): ChartData {
   return {
     type: "bar",
     title: "",
+    xAxisLabel: "",
+    yAxisLabel: "",
     description: "",
     unit: "",
     source: "",
@@ -55,6 +59,11 @@ export function validateChart(value: unknown): ChartValidation {
   }
   for (const field of ["title", "description", "unit", "source"]) {
     if (typeof value[field] !== "string") return invalid("De tekstvelden van de grafiek zijn ongeldig.");
+  }
+  const xAxisLabel = value.xAxisLabel === undefined ? "" : value.xAxisLabel;
+  const yAxisLabel = value.yAxisLabel === undefined ? "" : value.yAxisLabel;
+  if (typeof xAxisLabel !== "string" || typeof yAxisLabel !== "string") {
+    return invalid("De aslabels van de grafiek zijn ongeldig.");
   }
   if (typeof value.title !== "string" || !value.title.trim()) {
     return invalid("Vul een titel in.");
@@ -91,6 +100,8 @@ export function validateChart(value: unknown): ChartValidation {
       type: value.type as ChartType,
       palette: value.palette as ChartPalette,
       title: value.title,
+      xAxisLabel,
+      yAxisLabel,
       description: value.description as string,
       unit: value.unit as string,
       source: value.source as string,
