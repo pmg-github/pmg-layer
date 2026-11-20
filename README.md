@@ -116,6 +116,8 @@ import ChartExtension from "pmg-layer/utils/extensions/chart";
 const chart: ChartData = {
   type: "bar",
   title: "Vervoer naar het werk",
+  xAxisLabel: "",
+  yAxisLabel: "",
   description: "Fictieve voorbeeldgegevens",
   unit: "%",
   source: "Demonstratie",
@@ -135,6 +137,11 @@ editor.chain().focus().insertChart().run();
 
 The node view uses the layer's shared modal for chart type,
 title, description, unit, source and add/remove/reorder controls for 1–30 rows.
+CSV import replaces the draft rows with two columns (name and numeric value),
+separated by commas or semicolons. Quoted fields and decimal commas in
+semicolon-separated files are supported; an optional header can use
+`Naam,Waarde` (also `Label,Value` or `Categorie,Waarde`). Invalid files leave
+the current rows unchanged. Save the settings to apply the imported data.
 Settings are grouped into chart type, data and optional information. Chart types
 include visual examples and guidance. New charts use the default color palette;
 existing chart colors are preserved, without a color picker. Settings use

@@ -10,6 +10,7 @@ import {
   chartTypes,
   createChartData,
   maxChartPoints,
+  parseChartCsv,
   validateChart,
   type ChartData,
   type ChartType,
@@ -62,11 +63,16 @@ const isCircularDraft = computed(
   () => draft.value.type === "pie" || draft.value.type === "donut",
 );
 const saveError = ref("");
-const activeIndex = ref<number | null>(null);
+const csvError = ref("");
+let csvRequest = 0;
+const hoveredIndex = ref<number | null>(null);
+const focusedIndex = ref<number | null>(null);
+const activeIndex = computed(() => hoveredIndex.value ?? focusedIndex.value);
 watch(
   () => props.node.attrs.chart,
   () => {
-    activeIndex.value = null;
+    hoveredIndex.value = null;
+    focusedIndex.value = null;
   },
   { deep: true },
 );
@@ -145,6 +151,9 @@ function chartView(data: ChartData | null) {
     slices,
     pointText,
     tooltipAt,
+    viewBox: circular
+      ? { x: 160, y: 20, width: 320, height: 300 }
+      : { x: data.yAxisLabel.trim() ? 0 : 25, y: 20, width: data.yAxisLabel.trim() ? 640 : 615, height: data.xAxisLabel.trim() ? 360 : 320 },
     linePath: geometry.points
       .map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`)
       .join(" "),
@@ -160,15 +169,12 @@ const activeTooltip = computed(() => {
   const tooltip = chart.value.tooltipAt(activeIndex.value);
   if (!tooltip) return null;
 
-  const width = Math.min(
-    280,
-    Math.max(96, Math.max(tooltip.label.length, tooltip.value.length) * 7 + 20),
-  );
   return {
     ...tooltip,
-    x: Math.max(8, Math.min(632 - width, tooltip.x - width / 2)),
-    y: tooltip.y < 60 ? tooltip.y + 18 : tooltip.y - 50,
-    width,
+    label: chart.value.points[activeIndex.value]?.label ?? tooltip.label,
+    x: ((tooltip.x - chart.value.viewBox.x) / chart.value.viewBox.width) * 100,
+    y: ((tooltip.y - chart.value.viewBox.y) / chart.value.viewBox.height) * 100,
+    below: tooltip.y - chart.value.viewBox.y < chart.value.viewBox.height * 0.3,
   };
 });
 
@@ -179,7 +185,33 @@ function openSettings() {
   if (!draft.value.points.length)
     draft.value.points.push({ label: "", value: "" });
   saveError.value = "";
+  csvError.value = "";
+  csvRequest++;
   isOpen.value = true;
+}
+
+async function importCsv(event: Event) {
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement)) return;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file) return;
+  const request = ++csvRequest;
+  csvError.value = "";
+  try {
+    const text = await file.text();
+    if (request !== csvRequest || !isOpen.value || !props.editor.isEditable) return;
+    const result = parseChartCsv(text);
+    if (result.points === null) {
+      csvError.value = result.error;
+      return;
+    }
+    draft.value.points = result.points;
+  } catch (error) {
+    if (request !== csvRequest || !isOpen.value) return;
+    console.error("[Chart] CSV-bestand lezen mislukt.", error);
+    csvError.value = "Het CSV-bestand kon niet worden gelezen.";
+  }
 }
 
 function save() {
@@ -216,6 +248,9 @@ function selectNode() {
 
 watch(isEditable, (editable) => {
   if (!editable) isOpen.value = false;
+});
+watch(isOpen, (open) => {
+  if (!open) csvRequest++;
 });
 watch(
   draft,
@@ -254,9 +289,10 @@ watch(
           {{ chart.description }}
         </p>
       </figcaption>
+      <div class="chart-graphic-container">
       <!-- Explicit geometry attributes also work during SVG hydration. -->
       <svg
-        viewBox="0 0 640 380"
+        :viewBox="`${chart.viewBox.x} ${chart.viewBox.y} ${chart.viewBox.width} ${chart.viewBox.height}`"
         class="chart-graphic"
         role="group"
         :aria-label="chart.title"
@@ -336,11 +372,11 @@ watch(
           :class="{
             'is-muted': activeIndex !== null && activeIndex !== index,
           }"
-          @mouseenter="activeIndex = index"
-          @mouseleave="activeIndex = null"
-          @focus="activeIndex = index"
-          @blur="activeIndex = null"
-          @click="activeIndex = index"
+          @mouseenter="hoveredIndex = index"
+          @mouseleave="hoveredIndex = null"
+          @focus="focusedIndex = index"
+          @blur="focusedIndex = null"
+          @click="focusedIndex = index"
         >
           <template v-if="chart.circular">
             <path
@@ -389,49 +425,28 @@ watch(
             {{ shortLabel(point.label) }}
           </text>
         </g>
-        <g
-          v-if="activeTooltip"
-          class="chart-tooltip"
-          role="tooltip"
-          aria-live="polite"
-        >
-          <rect
-            :x.attr="activeTooltip.x"
-            :y.attr="activeTooltip.y"
-            :width.attr="activeTooltip.width"
-            height="42"
-            rx="5"
-          />
-          <text
-            :x.attr="activeTooltip.x + 8"
-            :y.attr="activeTooltip.y + 16"
-            :textLength.attr="activeTooltip.width - 16"
-            lengthAdjust="spacingAndGlyphs"
-            class="chart-tooltip-label"
-          >
-            {{ activeTooltip.label }}
-          </text>
-          <text
-            :x.attr="activeTooltip.x + 8"
-            :y.attr="activeTooltip.y + 33"
-            :textLength.attr="activeTooltip.width - 16"
-            lengthAdjust="spacingAndGlyphs"
-            class="chart-tooltip-value"
-          >
-            {{ activeTooltip.value }}
-          </text>
-        </g>
       </svg>
+      <div
+        v-if="activeTooltip"
+        class="chart-tooltip"
+        :class="{ 'is-below': activeTooltip.below }"
+        :style="{ left: `clamp(0px, calc(${activeTooltip.x}% - min(7rem, 50%)), calc(100% - min(14rem, 100%)))`, top: `${activeTooltip.y}%` }"
+        role="tooltip"
+      >
+        <div class="chart-tooltip-label">{{ activeTooltip.label }}</div>
+        <div class="chart-tooltip-value">{{ activeTooltip.value }}</div>
+      </div>
+      </div>
       <ul class="chart-legend" aria-label="Gegevens">
         <li v-for="(point, index) in chart.points" :key="index">
           <button
             type="button"
             :aria-label="chart.pointText(index)"
-            @mouseenter="activeIndex = index"
-            @mouseleave="activeIndex = null"
-            @focus="activeIndex = index"
-            @blur="activeIndex = null"
-            @click="activeIndex = index"
+            @mouseenter="hoveredIndex = index"
+            @mouseleave="hoveredIndex = null"
+            @focus="focusedIndex = index"
+            @blur="focusedIndex = null"
+            @click="focusedIndex = index"
           >
             <span
               class="chart-swatch"
@@ -622,6 +637,15 @@ watch(
             </label>
           </div>
           <div>
+            <label class="chart-field mb-3">
+              <span>CSV-bestand importeren</span>
+              <input type="file" accept=".csv,text/csv" @change="importCsv" />
+            </label>
+            <p class="mb-3 text-xs leading-5 text-gray-600">
+              Gebruik twee kolommen: naam en waarde, gescheiden door een komma of puntkomma.
+              Een eerste rij met Naam en Waarde is optioneel. Importeren vervangt de gegevensrijen.
+            </p>
+            <p v-if="csvError" class="mb-3 text-sm text-red-700" role="alert">{{ csvError }}</p>
             <div class="mb-2 flex items-center justify-between gap-2">
               <p class="text-sm font-medium text-gray-700">Gegevensrijen</p>
               <span class="text-xs text-gray-500"
@@ -836,7 +860,7 @@ watch(
   padding: 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 1rem;
-  background: white;
+  background: #eff6ff;
   color: #0f172a;
   overflow-wrap: anywhere;
 }
@@ -857,6 +881,9 @@ watch(
   width: 100%;
   height: auto;
   overflow: visible;
+}
+.chart-graphic-container {
+  position: relative;
 }
 .axis-label {
   font-size: 12px;
@@ -879,21 +906,27 @@ watch(
   outline-offset: 3px;
 }
 .chart-tooltip {
+  position: absolute;
+  z-index: 1;
+  width: min(14rem, 100%);
+  transform: translateY(calc(-100% - 0.5rem));
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background: #0f172a;
+  color: white;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  box-shadow: 0 2px 3px rgb(15 23 42 / 25%);
   pointer-events: none;
 }
-.chart-tooltip rect {
-  fill: #0f172a;
-  filter: drop-shadow(0 2px 3px rgb(15 23 42 / 25%));
-}
-.chart-tooltip text {
-  fill: white;
-  font-size: 12px;
+.chart-tooltip.is-below {
+  transform: translateY(0.5rem);
 }
 .chart-tooltip-label {
   font-weight: 600;
 }
 .chart-tooltip-value {
-  fill: #e2e8f0;
+  color: #e2e8f0;
 }
 .article-chart .chart-legend {
   display: flex;

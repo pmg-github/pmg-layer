@@ -28,6 +28,89 @@ export const chartPalettes: { value: ChartPalette; label: string; colors: string
 
 export const maxChartPoints = 30;
 
+type ChartCsvResult =
+  | { points: ChartData["points"]; error: null }
+  | { points: null; error: string };
+
+export function parseChartCsv(text: string): ChartCsvResult {
+  const invalid = (error: string): ChartCsvResult => ({ points: null, error });
+  text = text.replace(/^\uFEFF/, "");
+  let quoted = false;
+  let semicolons = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '"') {
+      if (quoted && text[i + 1] === '"') i++;
+      else quoted = !quoted;
+    } else if (!quoted && (text[i] === "\r" || text[i] === "\n")) {
+      break;
+    } else if (!quoted && text[i] === ";") {
+      semicolons++;
+    }
+  }
+  const delimiter = semicolons ? ";" : ",";
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  let afterQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (inQuotes) {
+      if (char === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+          afterQuote = true;
+        }
+      } else {
+        field += char;
+      }
+    } else if (char === delimiter || char === "\r" || char === "\n") {
+      row.push(field);
+      field = "";
+      afterQuote = false;
+      if (char !== delimiter) {
+        if (char === "\r" && text[i + 1] === "\n") i++;
+        if (row.some((cell) => cell.trim())) rows.push(row);
+        row = [];
+      }
+    } else if (char === '"' && !field && !afterQuote) {
+      inQuotes = true;
+    } else if (char === '"' || (afterQuote && !/\s/.test(char ?? ""))) {
+      return invalid("Het CSV-bestand bevat ongeldige aanhalingstekens.");
+    } else if (!afterQuote) {
+      field += char;
+    }
+  }
+  if (inQuotes) return invalid("Het CSV-bestand bevat een niet-afgesloten aanhalingsteken.");
+  row.push(field);
+  if (row.some((cell) => cell.trim())) rows.push(row);
+
+  if (rows[0]?.length === 2 &&
+      /^(label|naam|name|categorie|category)$/i.test(rows[0][0]!.trim()) &&
+      /^(value|waarde)$/i.test(rows[0][1]!.trim())) {
+    rows.shift();
+  }
+  if (!rows.length || rows.length > maxChartPoints) {
+    return invalid(`Het CSV-bestand moet 1 tot ${maxChartPoints} gegevensrijen bevatten.`);
+  }
+  const points: ChartData["points"] = [];
+  for (const [index, cells] of rows.entries()) {
+    if (cells.length !== 2 || !cells[0]?.trim()) {
+      return invalid(`CSV-rij ${index + 1} moet een naam en een waarde bevatten.`);
+    }
+    const raw = cells[1]?.trim() ?? "";
+    const number = delimiter === ";" ? raw.replace(",", ".") : raw;
+    if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(number) || !Number.isFinite(Number(number))) {
+      return invalid(`CSV-rij ${index + 1} bevat geen geldig getal.`);
+    }
+    points.push({ label: cells[0].trim(), value: Number(number) });
+  }
+  return { points, error: null };
+}
+
 export function createChartData(): ChartData {
   return {
     type: "bar",
