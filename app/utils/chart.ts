@@ -148,9 +148,7 @@ export function validateChart(value: unknown): ChartValidation {
   if (typeof xAxisLabel !== "string" || typeof yAxisLabel !== "string") {
     return invalid("De aslabels van de grafiek zijn ongeldig.");
   }
-  if (typeof value.title !== "string" || !value.title.trim()) {
-    return invalid("Vul een titel in.");
-  }
+  if (typeof value.title !== "string") return invalid("De titel van de grafiek is ongeldig.");
   if (!Array.isArray(value.points) || value.points.length < 1 || value.points.length > maxChartPoints) {
     return invalid(`Voeg 1 tot ${maxChartPoints} gegevensrijen toe.`);
   }

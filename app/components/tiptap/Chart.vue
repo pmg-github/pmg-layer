@@ -64,6 +64,7 @@ const isCircularDraft = computed(
 );
 const saveError = ref("");
 const csvError = ref("");
+const csvStatus = ref("");
 let csvRequest = 0;
 const hoveredIndex = ref<number | null>(null);
 const focusedIndex = ref<number | null>(null);
@@ -186,6 +187,7 @@ function openSettings() {
     draft.value.points.push({ label: "", value: "" });
   saveError.value = "";
   csvError.value = "";
+  csvStatus.value = "";
   csvRequest++;
   isOpen.value = true;
 }
@@ -198,6 +200,7 @@ async function importCsv(event: Event) {
   if (!file) return;
   const request = ++csvRequest;
   csvError.value = "";
+  csvStatus.value = "";
   try {
     const text = await file.text();
     if (request !== csvRequest || !isOpen.value || !props.editor.isEditable) return;
@@ -207,6 +210,7 @@ async function importCsv(event: Event) {
       return;
     }
     draft.value.points = result.points;
+    csvStatus.value = `${result.points.length} rijen geïmporteerd uit ${file.name}.`;
   } catch (error) {
     if (request !== csvRequest || !isOpen.value) return;
     console.error("[Chart] CSV-bestand lezen mislukt.", error);
@@ -282,9 +286,9 @@ watch(
         aria-hidden="true"
       />
     </button>
-    <figure v-if="chart" class="article-chart" :aria-label="chart.title">
-      <figcaption :class="{ 'pr-12': isEditable }">
-        <h3 class="chart-title">{{ chart.title }}</h3>
+    <figure v-if="chart" class="article-chart" :aria-label="chart.title.trim() || 'Grafiek'">
+      <figcaption v-if="chart.title.trim() || chart.description" :class="{ 'pr-12': isEditable }">
+        <h3 v-if="chart.title.trim()" class="chart-title">{{ chart.title }}</h3>
         <p v-if="chart.description" class="chart-description">
           {{ chart.description }}
         </p>
@@ -295,7 +299,7 @@ watch(
         :viewBox="`${chart.viewBox.x} ${chart.viewBox.y} ${chart.viewBox.width} ${chart.viewBox.height}`"
         class="chart-graphic"
         role="group"
-        :aria-label="chart.title"
+        :aria-label="chart.title.trim() || 'Grafiek'"
       >
         <template v-if="!chart.circular">
           <g
@@ -601,51 +605,31 @@ watch(
           <legend class="chart-section-title mb-3">
             2. Vul je gegevens in
           </legend>
-          <label class="chart-field">
-            <span>Titel <span class="chart-optional">(verplicht)</span></span>
-            <input
-              v-model="draft.title"
-              type="text"
-              placeholder="Bijv. Hoe verplaatsen we ons naar het werk?"
-              required
-            />
-          </label>
-          <label class="chart-field">
-            <span>Eenheid <span class="chart-optional">(optioneel)</span></span>
-            <input
-              v-model="draft.unit"
-              type="text"
-              placeholder="Bijv. %, euro of inwoners"
-            />
-          </label>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="chart-field">
-              <span>X-aslabel <span class="chart-optional">(optioneel)</span></span>
-              <input
-                v-model="draft.xAxisLabel"
-                type="text"
-                placeholder="Bijv. Jaar"
-              />
-            </label>
-            <label class="chart-field">
-              <span>Y-aslabel <span class="chart-optional">(optioneel)</span></span>
-              <input
-                v-model="draft.yAxisLabel"
-                type="text"
-                placeholder="Bijv. Aantal inwoners"
-              />
-            </label>
-          </div>
           <div>
-            <label class="chart-field mb-3">
-              <span>CSV-bestand importeren</span>
-              <input type="file" accept=".csv,text/csv" @change="importCsv" />
+            <label class="chart-upload">
+              <input
+                class="sr-only"
+                type="file"
+                accept=".csv,text/csv"
+                :aria-describedby="`${settingsId}-csv-help`"
+                @change="importCsv"
+              />
+              <span class="chart-upload-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="h-6 w-6">
+                  <path d="M12 16V4m-4 4 4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-blue-700">CSV-bestand kiezen</span>
+                <span class="mt-1 block text-xs text-gray-600">Importeer gegevens uit een CSV-bestand</span>
+              </span>
             </label>
-            <p class="mb-3 text-xs leading-5 text-gray-600">
+            <p :id="`${settingsId}-csv-help`" class="mb-3 mt-2 text-xs leading-5 text-gray-600">
               Gebruik twee kolommen: naam en waarde, gescheiden door een komma of puntkomma.
               Een eerste rij met Naam en Waarde is optioneel. Importeren vervangt de gegevensrijen.
             </p>
             <p v-if="csvError" class="mb-3 text-sm text-red-700" role="alert">{{ csvError }}</p>
+            <p v-if="csvStatus" class="mb-3 text-sm text-green-700" role="status">{{ csvStatus }}</p>
             <div class="mb-2 flex items-center justify-between gap-2">
               <p class="text-sm font-medium text-gray-700">Gegevensrijen</p>
               <span class="text-xs text-gray-500"
@@ -788,12 +772,46 @@ watch(
               afstand, ook bij datums.
             </p>
           </div>
+          <label class="chart-field">
+            <span>Eenheid <span class="chart-optional">(optioneel)</span></span>
+            <input
+              v-model="draft.unit"
+              type="text"
+              placeholder="Bijv. %, euro of inwoners"
+            />
+          </label>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="chart-field">
+              <span>X-aslabel <span class="chart-optional">(optioneel)</span></span>
+              <input
+                v-model="draft.xAxisLabel"
+                type="text"
+                placeholder="Bijv. Jaar"
+              />
+            </label>
+            <label class="chart-field">
+              <span>Y-aslabel <span class="chart-optional">(optioneel)</span></span>
+              <input
+                v-model="draft.yAxisLabel"
+                type="text"
+                placeholder="Bijv. Aantal inwoners"
+              />
+            </label>
+          </div>
         </fieldset>
 
         <fieldset class="space-y-4">
           <legend class="chart-section-title mb-3">
             3. Extra informatie (optioneel)
           </legend>
+          <label class="chart-field">
+            <span>Titel <span class="chart-optional">(optioneel)</span></span>
+            <input
+              v-model="draft.title"
+              type="text"
+              placeholder="Bijv. Hoe verplaatsen we ons naar het werk?"
+            />
+          </label>
           <label class="chart-field">
             <span
               >Toelichting <span class="chart-optional">(optioneel)</span></span
@@ -977,6 +995,36 @@ watch(
   font-size: 0.75rem;
   font-weight: 400;
   color: #64748b;
+}
+.chart-upload {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  border: 1px dashed #93c5fd;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: #eff6ff;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.chart-upload:hover {
+  border-color: #2563eb;
+  background: #dbeafe;
+}
+.chart-upload:focus-within {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+.chart-upload-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.5rem;
+  background: white;
+  color: #2563eb;
 }
 .chart-choice {
   display: block;

@@ -151,7 +151,7 @@ The block follows the other TipTap components: a labeled empty state with a setu
 action, a circular edit control, and a separate unavailable state for invalid data.
 Charts can be deleted from the settings modal's footer.
 Read-only mode hides all editing controls.
-Titles and labels are required; values must be finite numbers. Negative values
+Titles are optional; row labels are required and values must be finite numbers. Negative values
 are supported for bars/lines, while pie/donut require non-negative values and a
 positive finite total. Bars/lines always include zero. Lines use equally spaced
 categories in the supplied order, not a continuous date axis. This first version

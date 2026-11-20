@@ -50,6 +50,7 @@ export default Node.create({
     });
     if (!result.data) return ["figure", attributes, ["p", `Grafiek niet beschikbaar: ${result.error}`]];
     const data = result.data;
+    if (!data.title.trim()) attributes["aria-label"] = "Grafiek";
     const rows: DOMOutputSpec[] = data.points.map((point) => [
       "tr",
       ["th", { scope: "row" }, point.label],
