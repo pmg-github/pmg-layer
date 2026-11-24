@@ -348,14 +348,14 @@ const setSlidesPerView = (value: string | number | null) => {
                   @update:model-value="setField(t, 'title', $event)"
                 /><template v-else>{{ t?.title }}</template>
               </h3>
-              <p class="mt-2 text-sm leading-6 text-gray-600">
+              <div class="mt-2 text-sm leading-6 text-gray-600">
                 <BlocksSharedEditableText
                   :editable="editable"
-                  v-if="editable"
                   :model-value="t?.subtitle"
+                  rich
                   @update:model-value="setField(t, 'subtitle', $event)"
-                /><template v-else>{{ t?.subtitle }}</template>
-              </p>
+                />
+              </div>
               <div
                 class="card-description mt-2 text-sm leading-6 text-gray-700"
               >
