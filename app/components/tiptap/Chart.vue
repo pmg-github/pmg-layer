@@ -542,8 +542,8 @@ watch(
           bewaard wanneer je opslaat.
         </DialogDescription>
         <fieldset>
-          <legend class="chart-section-title">1. Kies een grafiektype</legend>
-          <div class="mt-3 grid grid-cols-2 gap-2">
+          <legend class="chart-section-title">Grafiektype</legend>
+          <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <label
               v-for="type in chartTypes"
               :key="type.value"
@@ -601,9 +601,18 @@ watch(
           </div>
         </fieldset>
 
+        <label class="chart-field">
+          <span>Titel <span class="chart-optional">(optioneel)</span></span>
+          <input
+            v-model="draft.title"
+            type="text"
+            placeholder="Bijv. Hoe verplaatsen we ons naar het werk?"
+          />
+        </label>
+
         <fieldset class="space-y-4">
           <legend class="chart-section-title mb-3">
-            2. Vul je gegevens in
+            Gegevens
           </legend>
           <div>
             <label class="chart-upload">
@@ -772,68 +781,62 @@ watch(
               afstand, ook bij datums.
             </p>
           </div>
-          <label class="chart-field">
-            <span>Eenheid <span class="chart-optional">(optioneel)</span></span>
-            <input
-              v-model="draft.unit"
-              type="text"
-              placeholder="Bijv. %, euro of inwoners"
-            />
-          </label>
-          <div class="grid gap-4 sm:grid-cols-2">
+        </fieldset>
+
+        <details class="rounded-lg border border-gray-200 p-4">
+          <summary class="chart-section-title cursor-pointer">
+            Geavanceerd
+          </summary>
+          <div class="mt-4 space-y-4">
             <label class="chart-field">
-              <span>X-aslabel <span class="chart-optional">(optioneel)</span></span>
+              <span>Eenheid <span class="chart-optional">(optioneel)</span></span>
               <input
-                v-model="draft.xAxisLabel"
+                v-model="draft.unit"
                 type="text"
-                placeholder="Bijv. Jaar"
+                placeholder="Bijv. %, euro of inwoners"
+              />
+            </label>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="chart-field">
+                <span>X-aslabel <span class="chart-optional">(optioneel)</span></span>
+                <input
+                  v-model="draft.xAxisLabel"
+                  type="text"
+                  placeholder="Bijv. Jaar"
+                />
+              </label>
+              <label class="chart-field">
+                <span>Y-aslabel <span class="chart-optional">(optioneel)</span></span>
+                <input
+                  v-model="draft.yAxisLabel"
+                  type="text"
+                  placeholder="Bijv. Aantal inwoners"
+                />
+              </label>
+            </div>
+            <label class="chart-field">
+              <span
+                >Toelichting <span class="chart-optional">(optioneel)</span></span
+              >
+              <textarea
+                v-model="draft.description"
+                rows="2"
+                placeholder="Wat moet de lezer weten over deze cijfers?"
               />
             </label>
             <label class="chart-field">
-              <span>Y-aslabel <span class="chart-optional">(optioneel)</span></span>
+              <span
+                >Bronvermelding
+                <span class="chart-optional">(optioneel)</span></span
+              >
               <input
-                v-model="draft.yAxisLabel"
+                v-model="draft.source"
                 type="text"
-                placeholder="Bijv. Aantal inwoners"
+                placeholder="Bijv. Statbel, 2026"
               />
             </label>
           </div>
-        </fieldset>
-
-        <fieldset class="space-y-4">
-          <legend class="chart-section-title mb-3">
-            3. Extra informatie (optioneel)
-          </legend>
-          <label class="chart-field">
-            <span>Titel <span class="chart-optional">(optioneel)</span></span>
-            <input
-              v-model="draft.title"
-              type="text"
-              placeholder="Bijv. Hoe verplaatsen we ons naar het werk?"
-            />
-          </label>
-          <label class="chart-field">
-            <span
-              >Toelichting <span class="chart-optional">(optioneel)</span></span
-            >
-            <textarea
-              v-model="draft.description"
-              rows="2"
-              placeholder="Wat moet de lezer weten over deze cijfers?"
-            />
-          </label>
-          <label class="chart-field">
-            <span
-              >Bronvermelding
-              <span class="chart-optional">(optioneel)</span></span
-            >
-            <input
-              v-model="draft.source"
-              type="text"
-              placeholder="Bijv. Statbel, 2026"
-            />
-          </label>
-        </fieldset>
+        </details>
       </form>
       <template #footer>
         <div
@@ -1104,7 +1107,7 @@ watch(
   cursor: not-allowed;
 }
 .chart-settings
-  :is(input:not([type="radio"]), select, textarea, button):focus-visible {
+  :is(input:not([type="radio"]), select, textarea, button, summary):focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
