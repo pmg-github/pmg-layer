@@ -493,7 +493,7 @@ const getAllVideoCodes = (...args: any[]) =>
                     :editable="editable"
                     :empty="!t.videoCode?.value"
                     kind="video"
-                    ratio="fixed"
+                    ratio="video"
                     class="rounded-lg"
                     ><PMGVideoPlayer
                       :key="t.videoCode?.value"
