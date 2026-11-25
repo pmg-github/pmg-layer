@@ -290,7 +290,7 @@ watch(
     </button>
     <figure
       v-if="chart"
-      class="article-chart"
+      class="article-chart rounded-lg"
       :aria-label="chart.title.trim() || 'Grafiek'"
     >
       <figcaption
@@ -905,7 +905,6 @@ watch(
   margin: 1rem 0;
   padding: 1rem;
   border: 1px solid #e2e8f0;
-  border-radius: 1rem;
   background: #eff6ff;
   color: #0f172a;
   overflow-wrap: anywhere;
