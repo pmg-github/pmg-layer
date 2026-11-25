@@ -14,10 +14,10 @@ export interface ChartData {
 }
 
 export const chartTypes: { value: ChartType; label: string }[] = [
-  { value: "bar", label: "Staafdiagram" },
-  { value: "line", label: "Lijndiagram" },
-  { value: "pie", label: "Taartdiagram" },
-  { value: "donut", label: "Donutdiagram" },
+  { value: "bar", label: "Staaf" },
+  { value: "line", label: "Lijn" },
+  { value: "pie", label: "Taart" },
+  { value: "donut", label: "Donut" },
 ];
 
 export const chartPalettes: { value: ChartPalette; label: string; colors: string[] }[] = [
