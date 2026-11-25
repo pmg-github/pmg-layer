@@ -48,6 +48,8 @@ const isEmpty = computed(() => {
   );
 });
 const isOpen = ref(false);
+const showAdvanced = ref(false);
+const csvInput = ref<HTMLInputElement | null>(null);
 const settingsId = useId();
 const typeDescriptions: Record<ChartType, string> = {
   bar: "Vergelijk categorieen met elkaar.",
@@ -189,6 +191,7 @@ function openSettings() {
   csvError.value = "";
   csvStatus.value = "";
   csvRequest++;
+  showAdvanced.value = false;
   isOpen.value = true;
 }
 
@@ -534,7 +537,7 @@ watch(
     >
       <form
         :id="`${settingsId}-form`"
-        class="min-w-0 space-y-7"
+        class="min-w-0 space-y-4"
         @submit.prevent="save"
       >
         <DialogDescription class="text-sm text-gray-600">
@@ -548,6 +551,7 @@ watch(
               v-for="type in chartTypes"
               :key="type.value"
               class="chart-choice"
+              :title="typeDescriptions[type.value]"
             >
               <input
                 v-model="draft.type"
@@ -558,7 +562,7 @@ watch(
               />
               <svg
                 viewBox="0 0 40 32"
-                class="mb-2 h-8 w-10 text-blue-700"
+                class="h-6 w-8 shrink-0 text-blue-600"
                 fill="none"
                 aria-hidden="true"
               >
@@ -593,8 +597,8 @@ watch(
                   />
                 </g>
               </svg>
-              <span class="block text-sm font-semibold">{{ type.label }}</span>
-              <span class="mt-1 block text-xs leading-5 text-gray-600">{{
+              <span class="text-sm font-medium">{{ type.label }}</span>
+              <span class="sr-only">{{
                 typeDescriptions[type.value]
               }}</span>
             </label>
@@ -615,40 +619,34 @@ watch(
             Gegevens
           </legend>
           <div>
-            <label class="chart-upload">
-              <input
-                class="sr-only"
-                type="file"
-                accept=".csv,text/csv"
-                :aria-describedby="`${settingsId}-csv-help`"
-                @change="importCsv"
-              />
-              <span class="chart-upload-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="h-6 w-6">
-                  <path d="M12 16V4m-4 4 4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </span>
-              <span class="min-w-0">
-                <span class="block text-sm font-semibold text-blue-700">CSV-bestand kiezen</span>
-                <span class="mt-1 block text-xs text-gray-600">Importeer gegevens uit een CSV-bestand</span>
-              </span>
-            </label>
-            <p :id="`${settingsId}-csv-help`" class="mb-3 mt-2 text-xs leading-5 text-gray-600">
-              Gebruik twee kolommen: naam en waarde, gescheiden door een komma of puntkomma.
-              Een eerste rij met Naam en Waarde is optioneel. Importeren vervangt de gegevensrijen.
-            </p>
-            <p v-if="csvError" class="mb-3 text-sm text-red-700" role="alert">{{ csvError }}</p>
-            <p v-if="csvStatus" class="mb-3 text-sm text-green-700" role="status">{{ csvStatus }}</p>
-            <div class="mb-2 flex items-center justify-between gap-2">
-              <p class="text-sm font-medium text-gray-700">Gegevensrijen</p>
+            <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
               <span class="text-xs text-gray-500"
                 >{{ draft.points.length }} / {{ maxChartPoints }} rijen</span
               >
+              <input
+                ref="csvInput"
+                class="hidden"
+                type="file"
+                accept=".csv,text/csv"
+                aria-label="CSV-bestand kiezen"
+                @change="importCsv"
+              />
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition hover:bg-gray-50"
+                :aria-describedby="`${settingsId}-csv-help`"
+                @click="csvInput?.click()"
+              >
+                <Icon name="material-symbols:upload" class="size-4" aria-hidden="true" />
+                CSV importeren
+              </button>
             </div>
-            <p class="mb-3 text-xs leading-5 text-gray-600">
-              Geef elke rij een naam en een waarde. De volgorde hieronder is ook
-              de volgorde in je grafiek.
+            <p :id="`${settingsId}-csv-help`" class="mb-3 text-xs text-gray-500">
+              CSV: naam en waarde, gescheiden door een komma of puntkomma.
+              Importeren vervangt de rijen.
             </p>
+            <p v-if="csvError" class="mb-3 text-sm text-red-700" role="alert">{{ csvError }}</p>
+            <p v-if="csvStatus" class="mb-3 text-sm text-green-700" role="status">{{ csvStatus }}</p>
             <div class="space-y-2">
               <div
                 v-for="(point, index) in draft.points"
@@ -753,7 +751,7 @@ watch(
             </p>
             <button
               type="button"
-              class="mt-3 w-full rounded-lg border border-dashed border-blue-300 px-3 py-2.5 text-sm font-medium text-blue-700 hover:bg-blue-50"
+              class="mt-3 rounded border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-50"
               :disabled="draft.points.length >= maxChartPoints"
               @click="draft.points.push({ label: '', value: '' })"
             >
@@ -783,11 +781,22 @@ watch(
           </div>
         </fieldset>
 
-        <details class="rounded-lg border border-gray-200 p-4">
-          <summary class="chart-section-title cursor-pointer">
+        <div class="border-t border-gray-200 pt-4">
+          <button
+            type="button"
+            class="flex w-full items-center justify-between rounded py-1 text-left text-sm text-gray-600 transition hover:text-gray-900"
+            :aria-expanded="showAdvanced"
+            :aria-controls="`${settingsId}-advanced`"
+            @click="showAdvanced = !showAdvanced"
+          >
             Geavanceerd
-          </summary>
-          <div class="mt-4 space-y-4">
+            <Icon
+              :name="showAdvanced ? 'material-symbols:expand-less' : 'material-symbols:expand-more'"
+              class="size-5"
+              aria-hidden="true"
+            />
+          </button>
+          <div v-show="showAdvanced" :id="`${settingsId}-advanced`" class="mt-4 space-y-4">
             <label class="chart-field">
               <span>Eenheid <span class="chart-optional">(optioneel)</span></span>
               <input
@@ -836,7 +845,7 @@ watch(
               />
             </label>
           </div>
-        </details>
+        </div>
       </form>
       <template #footer>
         <div
@@ -847,16 +856,16 @@ watch(
           </p>
           <button
             type="button"
-            class="mr-auto rounded-lg px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+            class="mr-auto rounded px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
             aria-label="Grafiek verwijderen"
             @click="removeChart"
           >
             Verwijderen
           </button>
-          <div class="ml-auto flex gap-3">
+          <div class="ml-auto flex gap-2">
             <button
               type="button"
-              class="rounded-lg border border-gray-300 px-4 py-2 text-sm"
+              class="rounded px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100"
               @click="isOpen = false"
             >
               Annuleren
@@ -864,7 +873,7 @@ watch(
             <button
               type="submit"
               :form="`${settingsId}-form`"
-              class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+              class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
             >
               Grafiek opslaan
             </button>
@@ -984,64 +993,36 @@ watch(
 .chart-field {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.25rem;
   font-size: 0.875rem;
-  font-weight: 500;
-  color: #334155;
+  font-weight: 400;
+  color: #4b5563;
 }
 .chart-section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
 }
 .chart-optional {
   font-size: 0.75rem;
   font-weight: 400;
-  color: #64748b;
-}
-.chart-upload {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  border: 1px dashed #93c5fd;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  background: #eff6ff;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-.chart-upload:hover {
-  border-color: #2563eb;
-  background: #dbeafe;
-}
-.chart-upload:focus-within {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
-}
-.chart-upload-icon {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 0.5rem;
-  background: white;
-  color: #2563eb;
+  color: #6b7280;
 }
 .chart-choice {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   min-width: 0;
   cursor: pointer;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.75rem;
-  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  padding: 0.5rem;
   background: white;
-  color: #334155;
+  color: #374151;
 }
 .chart-choice:hover {
   border-color: #93c5fd;
-  background: #f8fafc;
+  background: #f9fafb;
 }
 .chart-choice:has(input:checked) {
   border-color: #2563eb;
@@ -1057,8 +1038,8 @@ watch(
   grid-template-columns: 1rem minmax(0, 1fr) minmax(0, 0.7fr) auto;
   align-items: start;
   gap: 0.5rem;
-  border-radius: 0.5rem;
-  background: #f8fafc;
+  border-radius: 0.25rem;
+  background: #f9fafb;
   padding: 0.5rem;
 }
 .chart-row-actions {
@@ -1074,7 +1055,7 @@ watch(
   border-radius: 0.375rem;
 }
 .chart-row-button:hover:not(:disabled) {
-  background: #e2e8f0;
+  background: #e5e7eb;
 }
 @media (max-width: 639px) {
   .chart-data-row {
@@ -1095,11 +1076,11 @@ watch(
 .chart-field textarea {
   width: 100%;
   min-width: 0;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
   padding: 0.5rem 0.75rem;
   background: white;
-  color: #0f172a;
+  color: #111827;
   font-weight: 400;
 }
 .chart-settings button:disabled {
@@ -1107,7 +1088,7 @@ watch(
   cursor: not-allowed;
 }
 .chart-settings
-  :is(input:not([type="radio"]), select, textarea, button, summary):focus-visible {
+  :is(input:not([type="radio"]), select, textarea, button):focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
