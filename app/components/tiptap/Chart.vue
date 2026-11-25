@@ -154,9 +154,7 @@ function chartView(data: ChartData | null) {
     slices,
     pointText,
     tooltipAt,
-    viewBox: circular
-      ? { x: 160, y: 20, width: 320, height: 300 }
-      : { x: data.yAxisLabel.trim() ? 0 : 25, y: 20, width: data.yAxisLabel.trim() ? 640 : 615, height: data.xAxisLabel.trim() ? 360 : 320 },
+    viewBox: { x: 0, y: circular ? -10 : 20, width: 640, height: 360 },
     linePath: geometry.points
       .map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`)
       .join(" "),
@@ -444,27 +442,6 @@ watch(
         <div class="chart-tooltip-value">{{ activeTooltip.value }}</div>
       </div>
       </div>
-      <ul class="chart-legend" aria-label="Gegevens">
-        <li v-for="(point, index) in chart.points" :key="index">
-          <button
-            type="button"
-            :aria-label="chart.pointText(index)"
-            @mouseenter="hoveredIndex = index"
-            @mouseleave="hoveredIndex = null"
-            @focus="focusedIndex = index"
-            @blur="focusedIndex = null"
-            @click="focusedIndex = index"
-          >
-            <span
-              class="chart-swatch"
-              :style="{
-                backgroundColor: chart.color(chart.type === 'line' ? 0 : index),
-              }"
-            />
-            {{ point.label }}
-          </button>
-        </li>
-      </ul>
       <p v-if="chart.source" class="chart-source">Bron: {{ chart.source }}</p>
     </figure>
     <div
@@ -627,7 +604,7 @@ watch(
                 ref="csvInput"
                 class="hidden"
                 type="file"
-                accept=".csv,text/csv"
+                accept=".csv,.tsv,text/csv,text/tab-separated-values"
                 aria-label="CSV-bestand kiezen"
                 @change="importCsv"
               />
@@ -642,8 +619,8 @@ watch(
               </button>
             </div>
             <p :id="`${settingsId}-csv-help`" class="mb-3 text-xs text-gray-500">
-              CSV: naam en waarde, gescheiden door een komma of puntkomma.
-              Importeren vervangt de rijen.
+              Kolommen en scheidingstekens worden automatisch herkend, ook bij
+              extra kolommen. Importeren vervangt de rijen.
             </p>
             <p v-if="csvError" class="mb-3 text-sm text-red-700" role="alert">{{ csvError }}</p>
             <p v-if="csvStatus" class="mb-3 text-sm text-green-700" role="status">{{ csvStatus }}</p>
@@ -909,11 +886,12 @@ watch(
 .chart-graphic {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
   overflow: visible;
 }
 .chart-graphic-container {
   position: relative;
+  aspect-ratio: 16 / 9;
 }
 .axis-label {
   font-size: 12px;
@@ -957,28 +935,6 @@ watch(
 }
 .chart-tooltip-value {
   color: #e2e8f0;
-}
-.article-chart .chart-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
-  list-style: none;
-  padding: 0;
-  margin: 0.35rem 0 0.25rem;
-}
-.chart-legend button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem;
-  text-align: left;
-  font-size: 0.875rem;
-}
-.chart-swatch {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 0.125rem;
-  flex-shrink: 0;
 }
 @media (prefers-reduced-motion: reduce) {
   .chart-point {

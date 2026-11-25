@@ -32,11 +32,41 @@ type ChartCsvResult =
   | { points: ChartData["points"]; error: null }
   | { points: null; error: string };
 
+function csvNumber(raw: string): number | null {
+  let value = raw.trim();
+  if (/[ \u00a0\u202f]/.test(value)) {
+    if (!/^[+-]?\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?:[.,]\d+)?$/.test(value)) return null;
+    value = value.replace(/[ \u00a0\u202f]/g, "");
+  }
+  if (value.includes(",") && value.includes(".")) {
+    if (/^[+-]?\d{1,3}(?:\.\d{3})+,\d+$/.test(value)) {
+      value = value.replace(/\./g, "").replace(",", ".");
+    } else if (/^[+-]?\d{1,3}(?:,\d{3})+\.\d+$/.test(value)) {
+      value = value.replace(/,/g, "");
+    } else {
+      return null;
+    }
+  } else if (/^[+-]?\d{1,3}(?:,\d{3}){2,}$/.test(value)) {
+    value = value.replace(/,/g, "");
+  } else if (/^[+-]?\d{1,3}(?:\.\d{3}){2,}$/.test(value)) {
+    value = value.replace(/\./g, "");
+  } else {
+    // A single separator is decimal, preserving existing decimal-comma imports.
+    value = value.replace(",", ".");
+  }
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value)) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
 export function parseChartCsv(text: string): ChartCsvResult {
   const invalid = (error: string): ChartCsvResult => ({ points: null, error });
-  text = text.replace(/^\uFEFF/, "");
+  text = text.replace(/^\uFEFF/, "").replace(/^(?:[ \t]*\r?\n)+/, "");
+  const separatorHint = /^sep=([,;\t])\r?\n/i.exec(text);
+  if (separatorHint) text = text.slice(separatorHint[0].length).replace(/^(?:[ \t]*\r?\n)+/, "");
   let quoted = false;
   let semicolons = 0;
+  let tabs = 0;
   for (let i = 0; i < text.length; i++) {
     if (text[i] === '"') {
       if (quoted && text[i + 1] === '"') i++;
@@ -45,9 +75,11 @@ export function parseChartCsv(text: string): ChartCsvResult {
       break;
     } else if (!quoted && text[i] === ";") {
       semicolons++;
+    } else if (!quoted && text[i] === "\t") {
+      tabs++;
     }
   }
-  const delimiter = semicolons ? ";" : ",";
+  const delimiter = separatorHint?.[1] ?? (tabs ? "\t" : semicolons ? ";" : ",");
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
@@ -76,7 +108,8 @@ export function parseChartCsv(text: string): ChartCsvResult {
         if (row.some((cell) => cell.trim())) rows.push(row);
         row = [];
       }
-    } else if (char === '"' && !field && !afterQuote) {
+    } else if (char === '"' && !field.trim() && !afterQuote) {
+      field = "";
       inQuotes = true;
     } else if (char === '"' || (afterQuote && !/\s/.test(char ?? ""))) {
       return invalid("Het CSV-bestand bevat ongeldige aanhalingstekens.");
@@ -88,25 +121,66 @@ export function parseChartCsv(text: string): ChartCsvResult {
   row.push(field);
   if (row.some((cell) => cell.trim())) rows.push(row);
 
-  if (rows[0]?.length === 2 &&
-      /^(label|naam|name|categorie|category)$/i.test(rows[0][0]!.trim()) &&
-      /^(value|waarde)$/i.test(rows[0][1]!.trim())) {
-    rows.shift();
+  const first = rows[0];
+  if (!first || first.length < 2) {
+    return invalid("Geen gegevenskolommen gevonden. Gebruik een komma, puntkomma of tab als scheidingsteken.");
   }
+  if (rows.some((cells) => cells.length !== first.length)) {
+    return invalid("De CSV-rijen hebben niet evenveel kolommen. Controleer scheidingstekens en aanhalingstekens.");
+  }
+  const labelHeader = /^(label|naam|name|categorie|category|jaar|year|maand|month|datum|date)$/i;
+  const valueHeader = /^(value|waarde|aantal|count|amount|totaal|total|percentage|percent)$/i;
+  const hasHeader =
+    first.every((cell) => csvNumber(cell) === null) &&
+    (first.some((cell) => valueHeader.test(cell.trim())) ||
+      (rows.length > 1 &&
+        first.some((_, column) => rows.slice(1).every((cells) => csvNumber(cells[column]!) !== null))));
+  const headers = hasHeader ? rows.shift()! : [];
   if (!rows.length || rows.length > maxChartPoints) {
     return invalid(`Het CSV-bestand moet 1 tot ${maxChartPoints} gegevensrijen bevatten.`);
   }
+  const columns = first.map((_, index) => index);
+  const headerColumns = (preferred: RegExp, fallback: RegExp) => {
+    const matches = columns.filter((index) => preferred.test(headers[index]?.trim() ?? ""));
+    return matches.length ? matches : columns.filter((index) => fallback.test(headers[index]?.trim() ?? ""));
+  };
+  const namedLabels = headerColumns(/^(label|naam|name)$/i, labelHeader);
+  const namedValues = headerColumns(/^(value|waarde)$/i, valueHeader);
+  if (namedLabels.length > 1 || namedValues.length > 1) {
+    return invalid("Meerdere naam- of waardekolommen gevonden. Gebruik precies een kolom Naam en een kolom Waarde.");
+  }
+  let labelColumn = namedLabels[0];
+  let valueColumn = namedValues[0];
+  const numericColumns = columns.filter((column) =>
+    rows.every((cells) => csvNumber(cells[column]!) !== null),
+  );
+  if (labelColumn === undefined) {
+    const textColumns = columns.filter((column) =>
+      column !== valueColumn && rows.every((cells) => cells[column]!.trim() && csvNumber(cells[column]!) === null),
+    );
+    if (textColumns.length === 1) labelColumn = textColumns[0];
+    else if (columns.length === 2) labelColumn = valueColumn === 0 ? 1 : 0;
+  }
+  if (valueColumn === undefined) {
+    const candidates = numericColumns.filter((column) => column !== labelColumn);
+    if (candidates.length === 1) valueColumn = candidates[0];
+    else if (columns.length === 2 && labelColumn !== undefined) valueColumn = 1 - labelColumn;
+  }
+  if (labelColumn === undefined || valueColumn === undefined || labelColumn === valueColumn) {
+    return invalid("De naam- en waardekolommen zijn niet eenduidig. Noem de gewenste kolommen Naam en Waarde, of gebruik een bestand met twee kolommen.");
+  }
   const points: ChartData["points"] = [];
   for (const [index, cells] of rows.entries()) {
-    if (cells.length !== 2 || !cells[0]?.trim()) {
-      return invalid(`CSV-rij ${index + 1} moet een naam en een waarde bevatten.`);
+    const rowNumber = index + (hasHeader ? 2 : 1);
+    const label = cells[labelColumn]!.trim();
+    if (!label) {
+      return invalid(`CSV-rij ${rowNumber} bevat geen naam.`);
     }
-    const raw = cells[1]?.trim() ?? "";
-    const number = delimiter === ";" ? raw.replace(",", ".") : raw;
-    if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(number) || !Number.isFinite(Number(number))) {
-      return invalid(`CSV-rij ${index + 1} bevat geen geldig getal.`);
+    const number = csvNumber(cells[valueColumn]!);
+    if (number === null) {
+      return invalid(`CSV-rij ${rowNumber} bevat geen geldig getal in kolom ${valueColumn + 1}.`);
     }
-    points.push({ label: cells[0].trim(), value: Number(number) });
+    points.push({ label, value: number });
   }
   return { points, error: null };
 }
