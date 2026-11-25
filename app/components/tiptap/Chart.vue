@@ -204,7 +204,8 @@ async function importCsv(event: Event) {
   csvStatus.value = "";
   try {
     const text = await file.text();
-    if (request !== csvRequest || !isOpen.value || !props.editor.isEditable) return;
+    if (request !== csvRequest || !isOpen.value || !props.editor.isEditable)
+      return;
     const result = parseChartCsv(text);
     if (result.points === null) {
       csvError.value = result.error;
@@ -287,160 +288,170 @@ watch(
         aria-hidden="true"
       />
     </button>
-    <figure v-if="chart" class="article-chart" :aria-label="chart.title.trim() || 'Grafiek'">
-      <figcaption v-if="chart.title.trim() || chart.description" :class="{ 'pr-12': isEditable }">
+    <figure
+      v-if="chart"
+      class="article-chart"
+      :aria-label="chart.title.trim() || 'Grafiek'"
+    >
+      <figcaption
+        v-if="chart.title.trim() || chart.description"
+        :class="{ 'pr-12': isEditable }"
+      >
         <h3 v-if="chart.title.trim()" class="chart-title">{{ chart.title }}</h3>
         <p v-if="chart.description" class="chart-description">
           {{ chart.description }}
         </p>
       </figcaption>
       <div class="chart-graphic-container">
-      <!-- Explicit geometry attributes also work during SVG hydration. -->
-      <svg
-        :viewBox="`${chart.viewBox.x} ${chart.viewBox.y} ${chart.viewBox.width} ${chart.viewBox.height}`"
-        class="chart-graphic"
-        role="group"
-        :aria-label="chart.title.trim() || 'Grafiek'"
-      >
-        <template v-if="!chart.circular">
-          <g
-            v-for="(tick, index) in chart.geometry.ticks"
-            :key="index"
-            aria-hidden="true"
-          >
+        <!-- Explicit geometry attributes also work during SVG hydration. -->
+        <svg
+          :viewBox="`${chart.viewBox.x} ${chart.viewBox.y} ${chart.viewBox.width} ${chart.viewBox.height}`"
+          class="chart-graphic"
+          role="group"
+          :aria-label="chart.title.trim() || 'Grafiek'"
+        >
+          <template v-if="!chart.circular">
+            <g
+              v-for="(tick, index) in chart.geometry.ticks"
+              :key="index"
+              aria-hidden="true"
+            >
+              <line
+                x1="90"
+                x2="610"
+                :y1.attr="tick.y"
+                :y2.attr="tick.y"
+                stroke="#e2e8f0"
+              />
+              <text
+                x="80"
+                :y.attr="tick.y + 4"
+                text-anchor="end"
+                class="axis-label"
+              >
+                {{ tickFormat.format(tick.value) }}
+              </text>
+            </g>
+            <line
+              x1="90"
+              x2="90"
+              y1="40"
+              y2="300"
+              stroke="#64748b"
+              stroke-width="1.5"
+            />
             <line
               x1="90"
               x2="610"
-              :y1.attr="tick.y"
-              :y2.attr="tick.y"
-              stroke="#e2e8f0"
+              :y1.attr="chart.geometry.baseline"
+              :y2.attr="chart.geometry.baseline"
+              stroke="#64748b"
+              stroke-width="1.5"
             />
             <text
-              x="80"
-              :y.attr="tick.y + 4"
-              text-anchor="end"
-              class="axis-label"
+              v-if="chart.yAxisLabel"
+              x="22"
+              y="170"
+              text-anchor="middle"
+              class="axis-title"
+              transform="rotate(-90 22 170)"
             >
-              {{ tickFormat.format(tick.value) }}
+              {{ chart.yAxisLabel }}
+            </text>
+            <text
+              v-if="chart.xAxisLabel"
+              x="350"
+              y="365"
+              text-anchor="middle"
+              class="axis-title"
+            >
+              {{ chart.xAxisLabel }}
+            </text>
+            <path
+              v-if="chart.type === 'line'"
+              :d.attr="chart.linePath"
+              fill="none"
+              :stroke="chart.color(0)"
+              stroke-width="3"
+            />
+          </template>
+          <g
+            v-for="(point, index) in chart.geometry.points"
+            :key="index"
+            tabindex="0"
+            role="img"
+            :aria-label="chart.pointText(index)"
+            class="chart-point"
+            :class="{
+              'is-muted': activeIndex !== null && activeIndex !== index,
+            }"
+            @mouseenter="hoveredIndex = index"
+            @mouseleave="hoveredIndex = null"
+            @focus="focusedIndex = index"
+            @blur="focusedIndex = null"
+            @click="focusedIndex = index"
+          >
+            <template v-if="chart.circular">
+              <path
+                v-if="point.value > 0"
+                :d.attr="chart.slices[index]?.path"
+                :fill="chart.color(index)"
+                stroke="white"
+                stroke-width="2"
+              />
+            </template>
+            <rect
+              v-else-if="chart.type === 'bar'"
+              :x.attr="point.x - 180 / chart.points.length"
+              :y.attr="Math.min(point.y, chart.geometry.baseline)"
+              :width.attr="360 / chart.points.length"
+              :height.attr="
+                Math.max(1, Math.abs(point.y - chart.geometry.baseline))
+              "
+              :fill="chart.color(index)"
+              rx="2"
+            />
+            <template v-else>
+              <circle
+                :cx.attr="point.x"
+                :cy.attr="point.y"
+                r="14"
+                fill="transparent"
+              />
+              <circle
+                :cx.attr="point.x"
+                :cy.attr="point.y"
+                :r.attr="activeIndex === index ? 7 : 5"
+                :fill="chart.color(0)"
+                stroke="white"
+                stroke-width="2"
+              />
+            </template>
+            <text
+              v-if="!chart.circular && chart.showTickLabel(index)"
+              :x.attr="point.x"
+              y="325"
+              text-anchor="middle"
+              class="axis-label"
+              aria-hidden="true"
+            >
+              {{ shortLabel(point.label) }}
             </text>
           </g>
-          <line
-            x1="90"
-            x2="90"
-            y1="40"
-            y2="300"
-            stroke="#64748b"
-            stroke-width="1.5"
-          />
-          <line
-            x1="90"
-            x2="610"
-            :y1.attr="chart.geometry.baseline"
-            :y2.attr="chart.geometry.baseline"
-            stroke="#64748b"
-            stroke-width="1.5"
-          />
-          <text
-            v-if="chart.yAxisLabel"
-            x="22"
-            y="170"
-            text-anchor="middle"
-            class="axis-title"
-            transform="rotate(-90 22 170)"
-          >
-            {{ chart.yAxisLabel }}
-          </text>
-          <text
-            v-if="chart.xAxisLabel"
-            x="350"
-            y="365"
-            text-anchor="middle"
-            class="axis-title"
-          >
-            {{ chart.xAxisLabel }}
-          </text>
-          <path
-            v-if="chart.type === 'line'"
-            :d.attr="chart.linePath"
-            fill="none"
-            :stroke="chart.color(0)"
-            stroke-width="3"
-          />
-        </template>
-        <g
-          v-for="(point, index) in chart.geometry.points"
-          :key="index"
-          tabindex="0"
-          role="img"
-          :aria-label="chart.pointText(index)"
-          class="chart-point"
-          :class="{
-            'is-muted': activeIndex !== null && activeIndex !== index,
+        </svg>
+        <div
+          v-if="activeTooltip"
+          class="chart-tooltip"
+          :class="{ 'is-below': activeTooltip.below }"
+          :style="{
+            left: `clamp(0px, calc(${activeTooltip.x}% - min(7rem, 50%)), calc(100% - min(14rem, 100%)))`,
+            top: `${activeTooltip.y}%`,
           }"
-          @mouseenter="hoveredIndex = index"
-          @mouseleave="hoveredIndex = null"
-          @focus="focusedIndex = index"
-          @blur="focusedIndex = null"
-          @click="focusedIndex = index"
+          role="tooltip"
         >
-          <template v-if="chart.circular">
-            <path
-              v-if="point.value > 0"
-              :d.attr="chart.slices[index]?.path"
-              :fill="chart.color(index)"
-              stroke="white"
-              stroke-width="2"
-            />
-          </template>
-          <rect
-            v-else-if="chart.type === 'bar'"
-            :x.attr="point.x - 180 / chart.points.length"
-            :y.attr="Math.min(point.y, chart.geometry.baseline)"
-            :width.attr="360 / chart.points.length"
-            :height.attr="
-              Math.max(1, Math.abs(point.y - chart.geometry.baseline))
-            "
-            :fill="chart.color(index)"
-            rx="2"
-          />
-          <template v-else>
-            <circle
-              :cx.attr="point.x"
-              :cy.attr="point.y"
-              r="14"
-              fill="transparent"
-            />
-            <circle
-              :cx.attr="point.x"
-              :cy.attr="point.y"
-              :r.attr="activeIndex === index ? 7 : 5"
-              :fill="chart.color(0)"
-              stroke="white"
-              stroke-width="2"
-            />
-          </template>
-          <text
-            v-if="!chart.circular && chart.showTickLabel(index)"
-            :x.attr="point.x"
-            y="325"
-            text-anchor="middle"
-            class="axis-label"
-            aria-hidden="true"
-          >
-            {{ shortLabel(point.label) }}
-          </text>
-        </g>
-      </svg>
-      <div
-        v-if="activeTooltip"
-        class="chart-tooltip"
-        :class="{ 'is-below': activeTooltip.below }"
-        :style="{ left: `clamp(0px, calc(${activeTooltip.x}% - min(7rem, 50%)), calc(100% - min(14rem, 100%)))`, top: `${activeTooltip.y}%` }"
-        role="tooltip"
-      >
-        <div class="chart-tooltip-label">{{ activeTooltip.label }}</div>
-        <div class="chart-tooltip-value">{{ activeTooltip.value }}</div>
-      </div>
+          <div class="chart-tooltip-label">{{ activeTooltip.label }}</div>
+          <div class="chart-tooltip-value">{{ activeTooltip.value }}</div>
+        </div>
       </div>
       <p v-if="chart.source" class="chart-source">Bron: {{ chart.source }}</p>
     </figure>
@@ -509,7 +520,7 @@ watch(
       :open="isEditable && isOpen"
       title="Grafiek instellen"
       size="2xl"
-      class="chart-settings max-h-[calc(100dvh-14rem)] overflow-y-auto"
+      class="chart-settings"
       @update:open="isOpen = $event"
     >
       <form
@@ -575,9 +586,7 @@ watch(
                 </g>
               </svg>
               <span class="text-sm font-medium">{{ type.label }}</span>
-              <span class="sr-only">{{
-                typeDescriptions[type.value]
-              }}</span>
+              <span class="sr-only">{{ typeDescriptions[type.value] }}</span>
             </label>
           </div>
         </fieldset>
@@ -592,9 +601,7 @@ watch(
         </label>
 
         <fieldset class="space-y-4">
-          <legend class="chart-section-title mb-3">
-            Gegevens
-          </legend>
+          <legend class="chart-section-title mb-3">Gegevens</legend>
           <div>
             <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
               <span class="text-xs text-gray-500"
@@ -614,16 +621,31 @@ watch(
                 :aria-describedby="`${settingsId}-csv-help`"
                 @click="csvInput?.click()"
               >
-                <Icon name="material-symbols:upload" class="size-4" aria-hidden="true" />
+                <Icon
+                  name="material-symbols:upload"
+                  class="size-4"
+                  aria-hidden="true"
+                />
                 CSV importeren
               </button>
             </div>
-            <p :id="`${settingsId}-csv-help`" class="mb-3 text-xs text-gray-500">
+            <p
+              :id="`${settingsId}-csv-help`"
+              class="mb-3 text-xs text-gray-500"
+            >
               Kolommen en scheidingstekens worden automatisch herkend, ook bij
               extra kolommen. Importeren vervangt de rijen.
             </p>
-            <p v-if="csvError" class="mb-3 text-sm text-red-700" role="alert">{{ csvError }}</p>
-            <p v-if="csvStatus" class="mb-3 text-sm text-green-700" role="status">{{ csvStatus }}</p>
+            <p v-if="csvError" class="mb-3 text-sm text-red-700" role="alert">
+              {{ csvError }}
+            </p>
+            <p
+              v-if="csvStatus"
+              class="mb-3 text-sm text-green-700"
+              role="status"
+            >
+              {{ csvStatus }}
+            </p>
             <div class="space-y-2">
               <div
                 v-for="(point, index) in draft.points"
@@ -768,14 +790,24 @@ watch(
           >
             Geavanceerd
             <Icon
-              :name="showAdvanced ? 'material-symbols:expand-less' : 'material-symbols:expand-more'"
+              :name="
+                showAdvanced
+                  ? 'material-symbols:expand-less'
+                  : 'material-symbols:expand-more'
+              "
               class="size-5"
               aria-hidden="true"
             />
           </button>
-          <div v-show="showAdvanced" :id="`${settingsId}-advanced`" class="mt-4 space-y-4">
+          <div
+            v-show="showAdvanced"
+            :id="`${settingsId}-advanced`"
+            class="mt-4 space-y-4"
+          >
             <label class="chart-field">
-              <span>Eenheid <span class="chart-optional">(optioneel)</span></span>
+              <span
+                >Eenheid <span class="chart-optional">(optioneel)</span></span
+              >
               <input
                 v-model="draft.unit"
                 type="text"
@@ -784,7 +816,10 @@ watch(
             </label>
             <div class="grid gap-4 sm:grid-cols-2">
               <label class="chart-field">
-                <span>X-aslabel <span class="chart-optional">(optioneel)</span></span>
+                <span
+                  >X-aslabel
+                  <span class="chart-optional">(optioneel)</span></span
+                >
                 <input
                   v-model="draft.xAxisLabel"
                   type="text"
@@ -792,7 +827,10 @@ watch(
                 />
               </label>
               <label class="chart-field">
-                <span>Y-aslabel <span class="chart-optional">(optioneel)</span></span>
+                <span
+                  >Y-aslabel
+                  <span class="chart-optional">(optioneel)</span></span
+                >
                 <input
                   v-model="draft.yAxisLabel"
                   type="text"
@@ -802,7 +840,8 @@ watch(
             </div>
             <label class="chart-field">
               <span
-                >Toelichting <span class="chart-optional">(optioneel)</span></span
+                >Toelichting
+                <span class="chart-optional">(optioneel)</span></span
               >
               <textarea
                 v-model="draft.description"
