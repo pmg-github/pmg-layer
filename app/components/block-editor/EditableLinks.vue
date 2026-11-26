@@ -1,7 +1,19 @@
 <script setup lang="ts">
-import EditorOnly from './EditorOnly.vue';
+import { ref } from "vue";
+import { useBlockEditorComponent } from "./context";
+defineOptions({ inheritAttrs: false });
+const editor = useBlockEditorComponent("EditableLinks");
+const editorRef = ref<{
+  open?: (...args: any[]) => void;
+  close?: () => void;
+} | null>(null);
+defineExpose({
+  open: (...args: any[]) => editorRef.value?.open?.(...args),
+  close: () => editorRef.value?.close?.(),
+});
 </script>
-
 <template>
-  <EditorOnly name="EditableLinks" v-bind="$attrs"><slot /></EditorOnly>
+  <component v-if="editor" :is="editor" ref="editorRef" v-bind="$attrs"
+    ><slot
+  /></component>
 </template>

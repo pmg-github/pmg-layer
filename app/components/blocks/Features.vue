@@ -38,6 +38,7 @@ const props = withDefaults(
       text: string;
       target?: string;
       color?: string | null;
+      variant?: "primary" | "secondary" | "tertiary" | null;
     }[];
   }>(),
   { content: () => [] },
@@ -234,7 +235,7 @@ defineExpose({
           ref="editableLinksRef"
           :model-value="props.links"
           :color-scheme="props.colorScheme"
-          :max="2"
+          :max="3"
           @update:model-value="update(['links'], $event)"
         />
         <template v-else-if="props.links && props.links.length">
@@ -248,7 +249,12 @@ defineExpose({
               idx === 0 ? themeClasses.button : themeClasses.secondaryButton
             "
             :style="
-              linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')
+              linkButtonStyle(
+                l.color,
+                idx === 0 ? 'primary' : 'secondary',
+                l.variant,
+                props.colorScheme === 'dark',
+              )
             "
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >

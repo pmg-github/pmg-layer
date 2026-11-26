@@ -20,6 +20,7 @@ export const blockEditorComponentNames = [
   "EditableIcon",
   "EditableImage",
   "EditableLinks",
+  "EditableTileLink",
   "EditableText",
   "ImageManager",
   "ItemControls",

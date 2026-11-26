@@ -31,7 +31,13 @@ const props = withDefaults(
     padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
     id?: string;
-    links?: { url: string; text: string; target?: string; color?: string | null }[];
+    links?: {
+      url: string;
+      text: string;
+      target?: string;
+      color?: string | null;
+      variant?: "primary" | "secondary" | "tertiary" | null;
+    }[];
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
@@ -43,7 +49,14 @@ const props = withDefaults(
         title?: string;
         subtitle?: string;
         description?: string;
-        link?: { url: string; text?: string; target?: string; color?: string | null };
+        links?: any[];
+        link?: {
+          url: string;
+          text?: string;
+          target?: string;
+          color?: string | null;
+          variant?: "primary" | "secondary" | "tertiary" | null;
+        };
       }>;
       slidesPerView?: number;
       autoplay?: boolean;
@@ -224,10 +237,7 @@ const updateSlideLink = (
   index: number,
   links: { url: string; text?: string; target?: string }[],
 ) => {
-  update(
-    ["content", "tiles", index, "link"],
-    links[0] || { url: "", text: "", target: "_self" },
-  );
+  update(["content", "tiles", index, "links"], links);
 };
 
 const setSlidesPerView = (value: string | number | null) => {
@@ -301,7 +311,9 @@ const setSlidesPerView = (value: string | number | null) => {
           class="relative"
         >
           <component
-            :is="editable || !t?.link?.url?.trim() ? 'div' : 'a'"
+            :is="
+              editable || t.links != null || !t?.link?.url?.trim() ? 'div' : 'a'
+            "
             :class="[
               'flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 shadow-sm',
               themeClasses.card,
@@ -368,24 +380,38 @@ const setSlidesPerView = (value: string | number | null) => {
               </div>
             </div>
             <div
-              v-if="editable || (t?.link?.url?.trim() && t?.link?.text?.trim())"
-              :class="['mt-auto flex px-6 pb-6', cardJustifyClass]"
+              v-if="editable || t.links?.length || t.link?.text"
+              :class="[
+                'mt-auto flex flex-wrap gap-3 px-6 pb-6',
+                cardJustifyClass,
+              ]"
             >
               <BlocksSharedEditableLinks
                 v-if="editable"
-                :model-value="t?.link?.url || t?.link?.text ? [t.link] : []"
-                :max="1"
+                :model-value="
+                  t.links ?? (t?.link?.url || t?.link?.text ? [t.link] : [])
+                "
+                :max="3"
                 color-scheme="white"
                 title="Carrousellink"
                 @update:model-value="updateSlideLink(i, $event)"
               />
-              <span
-                v-else
-                class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 bg-primary-900 text-white hover:bg-primary-950"
-                :style="linkButtonStyle(t?.link?.color, 'primary')"
-              >
-                {{ t?.link?.text }}
-              </span>
+              <template v-else>
+                <component
+                  :is="t.links == null ? 'span' : 'a'"
+                  v-for="(link, linkIndex) in t.links ??
+                  (t.link ? [t.link] : [])"
+                  :key="linkIndex"
+                  :href="link.url"
+                  :target="link.target || '_self'"
+                  class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 bg-primary-900 text-white hover:bg-primary-950"
+                  :style="
+                    linkButtonStyle(link.color, 'primary', link.variant, false)
+                  "
+                >
+                  {{ link.text }}
+                </component>
+              </template>
             </div>
           </component>
         </SwiperSlide>
@@ -443,7 +469,7 @@ const setSlidesPerView = (value: string | number | null) => {
           ref="editableLinksRef"
           :model-value="props.links"
           :color-scheme="props.colorScheme"
-          :max="2"
+          :max="3"
           @update:model-value="update(['links'], $event)"
         />
         <template v-else-if="props.links && props.links.length">
@@ -457,7 +483,14 @@ const setSlidesPerView = (value: string | number | null) => {
             :class="
               idx === 0 ? themeClasses.button : themeClasses.secondaryButton
             "
-            :style="linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')"
+            :style="
+              linkButtonStyle(
+                l.color,
+                idx === 0 ? 'primary' : 'secondary',
+                l.variant,
+                props.colorScheme === 'dark',
+              )
+            "
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >
             <BlocksSharedEditableText

@@ -28,6 +28,7 @@ const props = withDefaults(
       text: string;
       target?: string;
       color?: string | null;
+      variant?: "primary" | "secondary" | "tertiary" | null;
     }[];
     title?: string;
     subtitle?: string;
@@ -40,6 +41,7 @@ const props = withDefaults(
           text: string;
           target?: string;
           color?: string | null;
+          variant?: "primary" | "secondary" | "tertiary" | null;
         }[];
         title?: string;
         subtitle?: string;
@@ -324,7 +326,9 @@ function addTile() {
                 :href="link.url"
                 :target="link.target || '_self'"
                 class="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-primary-900 px-6 py-3 text-center text-sm font-semibold leading-5 text-white transition-colors hover:bg-primary-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-                :style="linkButtonStyle(link.color, 'primary')"
+                :style="
+                  linkButtonStyle(link.color, 'primary', link.variant, false)
+                "
                 @click.prevent="handleAnchorClick(link.url, link.target)"
               >
                 {{ link.text }}
@@ -350,7 +354,7 @@ function addTile() {
           ref="editableLinksRef"
           :model-value="props.links"
           :color-scheme="props.colorScheme"
-          :max="2"
+          :max="3"
           @update:model-value="update(['links'], $event)"
         />
         <template v-else-if="props.links && props.links.length">
@@ -364,7 +368,12 @@ function addTile() {
               idx === 0 ? themeClasses.button : themeClasses.secondaryButton
             "
             :style="
-              linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')
+              linkButtonStyle(
+                l.color,
+                idx === 0 ? 'primary' : 'secondary',
+                l.variant,
+                props.colorScheme === 'dark',
+              )
             "
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >

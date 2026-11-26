@@ -19,7 +19,13 @@ const props = withDefaults(
     editable?: boolean;
     padding?: { top?: number; bottom?: number } | null;
     selected?: boolean;
-    links?: { url: string; text: string; target?: string; color?: string | null }[];
+    links?: {
+      url: string;
+      text: string;
+      target?: string;
+      color?: string | null;
+      variant?: "primary" | "secondary" | "tertiary" | null;
+    }[];
     id?: string;
     title?: string;
     subtitle?: string;
@@ -35,6 +41,7 @@ const props = withDefaults(
       benefits?: Array<{ label: string; included: boolean }>;
       price?: string;
       priceNote?: string;
+      links?: any[];
       buttonLabel?: string;
       buttonUrl?: string;
       buttonTarget?: string;
@@ -197,6 +204,7 @@ defineExpose({
 // card: { title, label:{text,color}, tags[], benefits:[{label,included}], price, priceNote, buttonLabel, buttonUrl, buttonTarget, buttonColor }
 
 function cardButtonLinks(card: any) {
+  if (Array.isArray(card.links)) return card.links;
   if (!card.buttonLabel && !card.buttonUrl) return [];
 
   return [
@@ -213,6 +221,7 @@ function updateCardButton(index: number, card: any, links: any[]) {
   const link = links[0];
   update(["content", index], {
     ...card,
+    links,
     buttonLabel: link?.text || "",
     buttonUrl: link?.url || "",
     buttonTarget: link?.target || "_self",
@@ -499,19 +508,23 @@ function shouldShowEuroPrefix(price?: string) {
               v-if="editable"
               class="mt-2"
               :model-value="cardButtonLinks(card)"
-              :max="1"
+              :max="3"
               color-scheme="white"
               title="Knopinstellingen"
               @update:model-value="updateCardButton(i, card, $event)"
             />
             <a
-              v-else-if="card.buttonLabel"
-              :href="card.buttonUrl || undefined"
-              :target="card.buttonTarget || '_self'"
+              v-else
+              v-for="(link, linkIndex) in cardButtonLinks(card)"
+              :key="linkIndex"
+              :href="link.url || undefined"
+              :target="link.target || '_self'"
               class="mt-2 w-full inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 bg-primary-900 text-white hover:bg-primary-950"
-              :style="linkButtonStyle(card.buttonColor, 'primary')"
+              :style="
+                linkButtonStyle(link.color, 'primary', link.variant, false)
+              "
             >
-              {{ card.buttonLabel }}
+              {{ link.text }}
             </a>
           </div>
           <BlocksSharedItemControls

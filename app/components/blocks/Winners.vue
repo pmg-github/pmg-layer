@@ -30,6 +30,7 @@ interface WinnerLink {
   text: string;
   target?: string;
   color?: string | null;
+  variant?: "primary" | "secondary" | "tertiary" | null;
 }
 
 interface WinnerItem {
@@ -350,13 +351,15 @@ async function addWinner() {
             ref="editableLinksRef"
             :model-value="props.links"
             :color-scheme="props.colorScheme"
-            :max="1"
+            :max="3"
             @update:model-value="update(['links'], $event)"
           />
 
           <!-- Public button -->
           <a
-            v-else-if="primaryLink"
+            v-else
+            v-for="(primaryLink, linkIndex) in links"
+            :key="linkIndex"
             :href="primaryLink.url"
             :target="primaryLink.target || '_self'"
             rel="noopener noreferrer"
@@ -364,7 +367,14 @@ async function addWinner() {
               'mt-6 inline-flex rounded-full px-8 py-3 text-center font-medium transition-colors',
               theme.button,
             ]"
-            :style="linkButtonStyle(primaryLink.color, 'primary')"
+            :style="
+              linkButtonStyle(
+                primaryLink.color,
+                'primary',
+                primaryLink.variant,
+                props.colorScheme === 'dark',
+              )
+            "
             @click.prevent="
               handleLinkClick(primaryLink.url, primaryLink.target)
             "

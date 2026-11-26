@@ -1,6 +1,6 @@
 import type { CSSProperties } from "vue";
 
-export type ButtonVariant = "primary" | "secondary";
+export type ButtonVariant = "primary" | "secondary" | "tertiary";
 
 export const buttonColorPresets = [
   "#111827",
@@ -52,8 +52,31 @@ export function readableTextColor(background: string): string {
 export function linkButtonStyle(
   color: string | null | undefined,
   variant: ButtonVariant,
+  selectedVariant?: ButtonVariant | null,
+  dark = false,
 ): CSSProperties | undefined {
   const hex = normalizeButtonColor(color);
+  if (
+    selectedVariant === "primary" ||
+    selectedVariant === "secondary" ||
+    selectedVariant === "tertiary"
+  ) {
+    const accent = hex || (dark ? "#ffffff" : "rgb(var(--primary-900))");
+    const filled = selectedVariant === "primary";
+    return {
+      backgroundColor: filled ? accent : "transparent",
+      color: filled
+        ? hex
+          ? readableTextColor(hex)
+          : dark
+            ? "rgb(var(--primary-950))"
+            : "#ffffff"
+        : accent,
+      borderColor: selectedVariant === "secondary" ? accent : "transparent",
+      borderStyle: "solid",
+      borderWidth: selectedVariant === "secondary" ? "1px" : "0px",
+    };
+  }
   if (!hex) return undefined;
 
   if (variant === "primary") {

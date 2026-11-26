@@ -16,3 +16,5 @@ export { default as BlocksSharedImageManager } from "./ImageManager.vue";
 export { default as BlocksSharedItemControls } from "./ItemControls.vue";
 export { default as BlocksSharedLinkReferenceSelect } from "./LinkReferenceSelect.vue";
 export { default as BlocksSharedSelectionFrame } from "./SelectionFrame.vue";
+
+export { default as BlocksSharedEditableTileLink } from "./EditableTileLink.vue";

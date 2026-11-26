@@ -6,6 +6,7 @@ import { blockPaddingStyle } from "../../utils/blockPadding";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import { linkButtonStyle } from "../../utils/buttonColor";
 import {
+  BlocksSharedEditableTileLink as EditorTileLink,
   BlocksSharedAddItem,
   BlocksSharedBlockSettings,
   BlocksSharedHeaderAlignment,
@@ -31,6 +32,7 @@ const props = withDefaults(
       text: string;
       target?: string;
       color?: string | null;
+      variant?: "primary" | "secondary" | "tertiary" | null;
     }[];
     title?: string;
     subtitle?: string;
@@ -45,6 +47,7 @@ const props = withDefaults(
         title?: string;
         subtitle?: string;
         description?: string;
+        links?: any[];
         link?: { url: string; target?: string };
       }>;
       columns?: number;
@@ -231,40 +234,49 @@ const tileImageUrl = (tile: any) => {
 
       <div :class="gridClass">
         <component
-          :is="editable || !t?.link?.url?.trim() ? 'div' : 'a'"
+          :is="
+            editable || t.links?.length || !t?.link?.url?.trim() ? 'div' : 'a'
+          "
           v-for="(t, i) in props.content?.tiles || []"
           :key="i"
           :class="['relative', cardClass, themeClasses.card]"
           :href="t?.link?.url ? t.link.url : undefined"
           :target="t?.link?.target || '_self'"
         >
-          <MediaFrame
-            :empty="
-              t?.type === 'video' ? !t?.videoCode?.value : !tileImageUrl(t)
-            "
-            :editable="editable"
-            :kind="t?.type === 'video' ? 'video' : 'image'"
-            ratio="video"
+          <component
+            :is="!editable && t.links?.length && t.link?.url ? 'a' : 'div'"
+            :href="!editable && t.links?.length ? t.link?.url : undefined"
+            :target="t.link?.target || '_self'"
+            class="block"
           >
-            <img
-              v-if="t?.type !== 'video'"
-              :src="tileImageUrl(t)"
-              :alt="t?.title || ''"
-              class="h-full w-full object-cover"
-            />
-            <PMGVideoPlayer
-              v-else
-              :key="t.videoCode?.value"
-              :video-id="t.videoCode?.value"
-              :language="props.language || locale"
-            />
-            <template #empty
-              ><MediaPlaceholder
-                :kind="t?.type === 'video' ? 'video' : 'image'"
-                action-label="Media beheren"
-                @action="imageManagerRef?.open?.()"
-            /></template>
-          </MediaFrame>
+            <MediaFrame
+              :empty="
+                t?.type === 'video' ? !t?.videoCode?.value : !tileImageUrl(t)
+              "
+              :editable="editable"
+              :kind="t?.type === 'video' ? 'video' : 'image'"
+              ratio="video"
+            >
+              <img
+                v-if="t?.type !== 'video'"
+                :src="tileImageUrl(t)"
+                :alt="t?.title || ''"
+                class="h-full w-full object-cover"
+              />
+              <PMGVideoPlayer
+                v-else
+                :key="t.videoCode?.value"
+                :video-id="t.videoCode?.value"
+                :language="props.language || locale"
+              />
+              <template #empty
+                ><MediaPlaceholder
+                  :kind="t?.type === 'video' ? 'video' : 'image'"
+                  action-label="Media beheren"
+                  @action="imageManagerRef?.open?.()"
+              /></template>
+            </MediaFrame>
+          </component>
           <div
             v-if="editable || t?.title || t?.subtitle || t?.description"
             :class="['p-6', contentAlignmentClass]"
@@ -295,39 +307,37 @@ const tileImageUrl = (tile: any) => {
               />
             </div>
 
-            <div
+            <EditorTileLink
               v-if="editable"
-              class="mt-4 flex min-w-0 items-center gap-2"
-              @click.stop
-            >
-              <SharedInput
-                :model-value="t?.link?.url || ''"
-                type="url"
-                placeholder="https://... of #sectie"
-                aria-label="Volledige tegel linken"
-                class="min-w-0 flex-1"
-                @update:model-value="
-                  setField(t, 'link', {
-                    ...t.link,
-                    url: String($event ?? ''),
-                    target: t.link?.target || '_self',
-                  })
-                "
-              />
-              <BlocksSharedLinkReferenceSelect
-                :model-value="t?.link?.url || ''"
-                @update:model-value="
-                  setField(t, 'link', {
-                    ...t.link,
-                    url: String($event ?? ''),
-                    target: t.link?.target || '_self',
-                  })
-                "
-              />
-            </div>
+              class="mt-4"
+              :model-value="t.link"
+              @update:model-value="setField(t, 'link', $event)"
+            />
           </div>
 
-          <div class="mt-auto flex"></div>
+          <div class="mt-auto flex flex-wrap gap-3 px-6 pb-6">
+            <BlocksSharedEditableLinks
+              v-if="editable"
+              :model-value="t.links || []"
+              :max="3"
+              color-scheme="white"
+              @update:model-value="setField(t, 'links', $event)"
+            />
+            <template v-else>
+              <a
+                v-for="(link, linkIndex) in t.links || []"
+                :key="linkIndex"
+                :href="link.url"
+                :target="link.target || '_self'"
+                class="inline-flex min-h-11 items-center justify-center rounded-full bg-primary-900 px-6 py-3 text-sm font-semibold text-white hover:bg-primary-950"
+                :style="
+                  linkButtonStyle(link.color, 'primary', link.variant, false)
+                "
+              >
+                {{ link.text }}
+              </a>
+            </template>
+          </div>
         </component>
         <BlocksSharedAddItem
           v-if="editable"
@@ -346,7 +356,7 @@ const tileImageUrl = (tile: any) => {
           ref="editableLinksRef"
           :model-value="props.links"
           :color-scheme="props.colorScheme"
-          :max="2"
+          :max="3"
           @update:model-value="update(['links'], $event)"
         />
         <template v-else-if="props.links && props.links.length">
@@ -361,7 +371,12 @@ const tileImageUrl = (tile: any) => {
               idx === 0 ? themeClasses.button : themeClasses.secondaryButton
             "
             :style="
-              linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')
+              linkButtonStyle(
+                l.color,
+                idx === 0 ? 'primary' : 'secondary',
+                l.variant,
+                props.colorScheme === 'dark',
+              )
             "
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >

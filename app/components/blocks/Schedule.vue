@@ -25,7 +25,13 @@ const props = withDefaults(
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
-    links?: { url: string; text: string; target?: string; color?: string | null }[];
+    links?: {
+      url: string;
+      text: string;
+      target?: string;
+      color?: string | null;
+      variant?: "primary" | "secondary" | "tertiary" | null;
+    }[];
     content: {
       items?: {
         title: string;
@@ -310,7 +316,7 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
             ref="editableLinksRef"
             :model-value="props.links"
             :color-scheme="props.colorScheme"
-            :max="2"
+            :max="3"
             @update:model-value="update(['links'], $event)"
           />
           <template v-else-if="props.links && props.links.length">
@@ -323,7 +329,14 @@ import { VueDraggableNext as Draggable } from "vue-draggable-next";
               :class="
                 idx === 0 ? themeClasses.button : themeClasses.secondaryButton
               "
-              :style="linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')"
+              :style="
+                linkButtonStyle(
+                  l.color,
+                  idx === 0 ? 'primary' : 'secondary',
+                  l.variant,
+                  props.colorScheme === 'dark',
+                )
+              "
               @click.prevent="handleAnchorClick(l.url, l.target)"
             >
               <BlocksSharedEditableText

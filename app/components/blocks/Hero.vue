@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import MediaPlaceholder from "./shared/MediaPlaceholder.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
+
+import MediaPlaceholder from "./shared/MediaPlaceholder.vue";
 import { useInlineBlock } from "../../composables/useInlineBlock";
 import { linkButtonStyle } from "../../utils/buttonColor";
 import {
+  BlocksSharedEditableLinks as EditorEditableLinks,
   BlocksSharedBlockSettings,
-  BlocksSharedButtonColorPicker,
   BlocksSharedEditableText,
-  BlocksSharedLinkReferenceSelect,
 } from "../block-editor";
 const props = withDefaults(
   defineProps<{
@@ -24,6 +24,7 @@ const props = withDefaults(
       text: string;
       target?: string | null;
       color?: string | null;
+      variant?: "primary" | "secondary" | "tertiary" | null;
     }[];
     content: {
       height?: string;
@@ -58,20 +59,9 @@ const { model, update } = useInlineBlock(props, emits);
 
 const heroEl = ref<HTMLElement | null>(null);
 const blockSettingsRef = ref();
-const linkPanelOpen = ref(false);
-const selectedLinkIndex = ref<number | null>(null);
-const activeLink = computed(() =>
-  selectedLinkIndex.value === null
-    ? undefined
-    : model.links?.[selectedLinkIndex.value],
+const editableLinksRef = ref<InstanceType<typeof EditorEditableLinks> | null>(
+  null,
 );
-const setActiveLinkField = (
-  field: "url" | "target" | "color",
-  value: string | null,
-) => {
-  if (selectedLinkIndex.value === null) return;
-  update(["links", selectedLinkIndex.value, field], value);
-};
 const resizeState = ref<{ startY: number; startHeight: number } | null>(null);
 
 const heightPresets = [
@@ -149,58 +139,13 @@ const inlineClearImage = () => {
 };
 
 const openMediaPanel = () => {
-  linkPanelOpen.value = false;
+  editableLinksRef.value?.close();
   blockSettingsRef.value?.open?.();
 };
 
-const openLinkEditor = (index?: number) => {
+const openLinkEditor = () => {
   blockSettingsRef.value?.close?.();
-
-  if (typeof index === "number") {
-    selectedLinkIndex.value = index;
-    linkPanelOpen.value = true;
-    return;
-  }
-
-  if (model.links?.length) {
-    selectedLinkIndex.value = 0;
-    linkPanelOpen.value = true;
-    return;
-  }
-
-  addButton();
-};
-
-const handleLinksRowFocusOut = (event: FocusEvent) => {
-  const row = event.currentTarget as HTMLElement;
-  const next = event.relatedTarget as Node | null;
-  if (next && row.contains(next)) return;
-  linkPanelOpen.value = false;
-};
-
-const addButton = () => {
-  const links = [...(model.links || [])];
-  if (links.length >= 2) return;
-
-  links.push({
-    text: "Nieuwe knop",
-    url: "#",
-    target: null,
-  });
-  update(["links"], links);
-  selectedLinkIndex.value = links.length - 1;
-  linkPanelOpen.value = true;
-  blockSettingsRef.value?.close?.();
-};
-
-const removeActiveButton = () => {
-  if (selectedLinkIndex.value === null || !model.links) return;
-  const links = model.links.filter(
-    (_: any, index: number) => index !== selectedLinkIndex.value,
-  );
-  update(["links"], links);
-  selectedLinkIndex.value = links.length ? 0 : null;
-  if (!links.length) linkPanelOpen.value = false;
+  editableLinksRef.value?.open();
 };
 
 const setHeightPreset = (height: string) => {
@@ -261,8 +206,7 @@ watch(
   (selected) => {
     if (!selected) {
       blockSettingsRef.value?.close?.();
-      linkPanelOpen.value = false;
-      selectedLinkIndex.value = null;
+      editableLinksRef.value?.close();
     }
   },
 );
@@ -497,7 +441,7 @@ defineExpose({
       </div>
       <!-- Hero content -->
       <div
-        class="relative z-20 container flex h-full flex-col items-start justify-end py-8 sm:py-12"
+        class="container relative z-20 flex h-full flex-col items-start justify-end py-8 sm:py-12"
         :style="blockPaddingStyle(props.padding)"
       >
         <div class="flex w-full flex-col md:flex-row">
@@ -548,22 +492,22 @@ defineExpose({
               />
             </div>
 
-            <!-- Keep the real buttons visible while editing -->
-            <div
-              v-if="editable || props.links?.length"
-              class="relative mt-6 flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap md:mt-8"
-              @focusout="handleLinksRowFocusOut"
-            >
-              <div
-                v-for="(link, idx) in model.links || []"
-                :key="idx"
-                class="group/button relative"
-                @focusin="editable && selected && openLinkEditor(Number(idx))"
-              >
+            <div v-if="editable || props.links?.length" class="mt-6 md:mt-8">
+              <EditorEditableLinks
+                v-if="editable"
+                ref="editableLinksRef"
+                :model-value="model.links"
+                :max="3"
+                color-scheme="dark"
+                @update:model-value="update(['links'], $event)"
+              />
+              <div v-else class="flex flex-wrap items-center gap-3">
                 <a
+                  v-for="(link, idx) in props.links || []"
+                  :key="idx"
                   :href="link.url || '#'"
                   :target="link.target || '_self'"
-                  class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 text-white"
+                  class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
                   :class="
                     idx === 0
                       ? 'bg-primary-900 hover:bg-primary-950'
@@ -573,98 +517,16 @@ defineExpose({
                     linkButtonStyle(
                       link.color,
                       idx === 0 ? 'primary' : 'secondary',
+                      link.variant,
+                      true,
                     )
                   "
                   @click.prevent="
                     handleAnchorClick(link.url || '#', link.target)
                   "
+                  >{{ link.text }}</a
                 >
-                  <BlocksSharedEditableText
-                    v-if="editable"
-                    :editable="editable"
-                    :model-value="link.text"
-                    placeholder="Knoptekst"
-                    @update:model-value="
-                      update(['links', Number(idx), 'text'], $event)
-                    "
-                  />
-                  <template v-else>{{ link.text }}</template>
-                </a>
               </div>
-
-              <div
-                v-if="editable && selected && linkPanelOpen && activeLink"
-                class="absolute bottom-full left-1/2 z-20 mb-2 flex w-[min(22rem,100%)] -translate-x-1/2 items-center gap-1 rounded-full border border-gray-200 bg-white p-1.5 pl-3 text-gray-900 shadow-2xl"
-                @click.stop
-              >
-                <Icon
-                  name="material-symbols:link-rounded"
-                  class="size-4 shrink-0 text-gray-400"
-                />
-                <PMGInput
-                  :model-value="activeLink.url"
-                  @update:model-value="
-                    setActiveLinkField('url', String($event ?? ''))
-                  "
-                  type="url"
-                  placeholder="https://... of #sectie"
-                  class="min-w-0 flex-1"
-                />
-                <BlocksSharedLinkReferenceSelect
-                  :model-value="activeLink.url"
-                  @update:model-value="
-                    setActiveLinkField('url', String($event ?? ''))
-                  "
-                />
-                <BlocksSharedButtonColorPicker
-                  :model-value="activeLink.color"
-                  @update:model-value="setActiveLinkField('color', $event)"
-                />
-                <PMGButton
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  icon="material-symbols:open-in-new-rounded"
-                  class="!size-8 !shrink-0 !rounded-full !border-0 !p-0"
-                  :class="
-                    activeLink.target === '_blank'
-                      ? '!bg-blue-100 !text-blue-600'
-                      : '!bg-transparent !text-gray-400 hover:!bg-gray-100 hover:!text-gray-700'
-                  "
-                  title="Openen in nieuw tabblad"
-                  aria-label="Openen in nieuw tabblad"
-                  @click="
-                    setActiveLinkField(
-                      'target',
-                      activeLink.target === '_blank' ? null : '_blank',
-                    )
-                  "
-                />
-                <PMGButton
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  icon="material-symbols:delete-outline-rounded"
-                  class="!size-8 !shrink-0 !rounded-full !border-0 !bg-transparent !p-0 !text-red-500 hover:!bg-red-50"
-                  title="Verwijderen"
-                  aria-label="Link verwijderen"
-                  @click="removeActiveButton"
-                />
-              </div>
-
-              <PMGButton
-                v-if="
-                  editable &&
-                  selected &&
-                  (!model.links || model.links.length < 2)
-                "
-                type="button"
-                variant="ghost"
-                class="!rounded-full !border-dashed !border-white/70 !bg-black/20 !px-6 !py-3 !text-sm !font-medium !text-white backdrop-blur-sm hover:!bg-black/30"
-                @click.stop="addButton"
-              >
-                + Knop toevoegen
-              </PMGButton>
             </div>
           </div>
         </div>

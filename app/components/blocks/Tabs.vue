@@ -33,12 +33,24 @@ const props = withDefaults(
         image?: FileButtonViewModel;
         videoCode?: { value: string; key: string } | null;
         type?: "image" | "video";
-        links?: Array<{ url: string; text: string; target?: string | null; color?: string | null }>;
+        links?: Array<{
+          url: string;
+          text: string;
+          target?: string | null;
+          color?: string | null;
+          variant?: "primary" | "secondary" | "tertiary" | null;
+        }>;
       }>;
       modelValue?: number;
     };
     language?: string;
-    links?: { url: string; text: string; target?: string; color?: string | null }[];
+    links?: {
+      url: string;
+      text: string;
+      target?: string;
+      color?: string | null;
+      variant?: "primary" | "secondary" | "tertiary" | null;
+    }[];
     title?: string;
     subtitle?: string;
     headerAlignment?: "left" | "center" | "right";
@@ -406,7 +418,7 @@ const removeTab = (index: number) => {
                     :model-value="t.links"
                     class="mt-5"
                     :color-scheme="props.colorScheme"
-                    :max="4"
+                    :max="3"
                     compact
                     title="Kleine knoppen in deze tab"
                     @update:model-value="setField(t, 'links', $event)"
@@ -424,7 +436,14 @@ const removeTab = (index: number) => {
                         'inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-semibold transition',
                         theme.chip,
                       ]"
-                      :style="linkButtonStyle(link.color, 'primary')"
+                      :style="
+                        linkButtonStyle(
+                          link.color,
+                          'primary',
+                          link.variant,
+                          false,
+                        )
+                      "
                       @click.prevent="handleAnchorClick(link.url, link.target)"
                     >
                       {{ link.text }}
@@ -536,7 +555,7 @@ const removeTab = (index: number) => {
           ref="editableLinksRef"
           :model-value="props.links"
           :color-scheme="props.colorScheme"
-          :max="2"
+          :max="3"
           @update:model-value="update(['links'], $event)"
         />
         <template v-else-if="props.links && props.links.length">
@@ -547,7 +566,14 @@ const removeTab = (index: number) => {
             :target="l.target || '_self'"
             class="inline-flex min-h-11 max-w-full items-center justify-center rounded-full px-6 py-3 text-center text-sm font-semibold leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
             :class="idx === 0 ? theme.button : theme.secondaryButton"
-            :style="linkButtonStyle(l.color, idx === 0 ? 'primary' : 'secondary')"
+            :style="
+              linkButtonStyle(
+                l.color,
+                idx === 0 ? 'primary' : 'secondary',
+                l.variant,
+                props.colorScheme === 'dark',
+              )
+            "
             @click.prevent="handleAnchorClick(l.url, l.target)"
           >
             <BlocksSharedEditableText
