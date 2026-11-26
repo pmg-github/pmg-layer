@@ -508,6 +508,7 @@ function shouldShowEuroPrefix(price?: string) {
               v-if="editable"
               class="mt-2"
               :model-value="cardButtonLinks(card)"
+              full-width
               :max="3"
               color-scheme="white"
               title="Knopinstellingen"

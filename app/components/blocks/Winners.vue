@@ -158,31 +158,11 @@ const autoplayOptions = computed(() => {
   };
 });
 
-const swiperBreakpoints = computed(() =>
-  props.editable
-    ? {
-        0: {
-          slidesPerView: 1,
-          spaceBetween: 16,
-        },
-
-        768: {
-          slidesPerView: 2,
-          spaceBetween: 20,
-        },
-      }
-    : {
-        0: {
-          slidesPerView: 1.5,
-          spaceBetween: 15,
-        },
-
-        768: {
-          slidesPerView: 2.7,
-          spaceBetween: 30,
-        },
-      },
-);
+// Use the live carousel geometry while editing; only autoplay and dragging differ.
+const swiperBreakpoints = {
+  0: { slidesPerView: 1.5, spaceBetween: 15 },
+  768: { slidesPerView: 2.7, spaceBetween: 30 },
+};
 
 const setSwiper = (swiper: SwiperInstance) => {
   swiperRef.value = swiper;
@@ -349,6 +329,8 @@ async function addWinner() {
           <BlocksSharedEditableLinks
             v-if="editable"
             ref="editableLinksRef"
+            class="mt-6"
+            size="large"
             :model-value="props.links"
             :color-scheme="props.colorScheme"
             :max="3"
@@ -386,8 +368,8 @@ async function addWinner() {
         <!-- Winners -->
         <div v-if="editable || content.length" class="relative min-w-0">
           <div
-            v-if="editable && content.length"
-            class="mb-4 flex items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50/80 px-4 py-3"
+            v-if="editable && selected && content.length"
+            class="absolute right-0 top-0 z-30 flex -translate-y-full items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50/95 px-4 py-2"
           >
             <p class="text-sm font-medium text-blue-950">
               {{ content.length }}
@@ -432,9 +414,9 @@ async function addWinner() {
                 :allow-touch-move="!editable"
                 class="w-full min-w-0 max-w-full overflow-visible"
                 :modules="modules"
-                :slides-per-view="editable ? 1 : 2.7"
-                :space-between="editable ? 16 : 10"
-                :centered-slides="!editable"
+                :slides-per-view="2.7"
+                :space-between="10"
+                :centered-slides="true"
                 :center-insufficient-slides="!loopEnabled"
                 :loop="loopEnabled"
                 :rewind="rewindEnabled"
@@ -444,7 +426,7 @@ async function addWinner() {
                 :observer="true"
                 :observe-parents="true"
                 :watch-overflow="true"
-                :effect="editable ? 'slide' : 'coverflow'"
+                effect="coverflow"
                 :coverflow-effect="{
                   rotate: 0,
                   stretch: 0,

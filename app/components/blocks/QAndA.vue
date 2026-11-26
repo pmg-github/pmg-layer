@@ -161,74 +161,92 @@ defineExpose({
             :key="index"
             class="group/item relative"
           >
-            <div v-if="editable" class="flex items-start gap-3 p-5 md:p-6">
-              <div class="min-w-0 flex-1">
-                <h3 :class="['font-semibold', themeClasses.question]">
-                  <BlocksSharedEditableText
-                    :editable="editable"
-                    :model-value="item.question"
-                    placeholder="Vraag toevoegen"
-                    @update:model-value="setField(item, 'question', $event)"
-                  />
-                </h3>
-                <div :class="['mt-3 text-sm leading-6', themeClasses.answer]">
-                  <BlocksSharedEditableText
-                    :editable="editable"
-                    :model-value="item.answer"
-                    placeholder="Antwoord toevoegen"
-                    rich
-                    @update:model-value="setField(item, 'answer', $event)"
-                  />
-                </div>
-              </div>
-
-              <BlocksSharedItemControls
-                v-if="selected"
-                label="Vraag en antwoord bewerken"
-                direction="vertical"
-                :items="model.content"
-                :index="index"
-                @update:items="model.content = $event"
+            <h3
+              v-if="editable"
+              :id="`${sectionId}-question-${index}`"
+              :class="[
+                'flex w-full items-center justify-between gap-4 p-5 text-left font-semibold md:p-6',
+                themeClasses.question,
+              ]"
+            >
+              <BlocksSharedEditableText
+                class="min-w-0 flex-1"
+                :editable="editable"
+                :model-value="item.question"
+                placeholder="Vraag toevoegen"
+                @update:model-value="setField(item, 'question', $event)"
+              />
+              <button
+                type="button"
+                class="flex size-5 flex-none items-center justify-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                :aria-label="
+                  (openIndex === index
+                    ? 'Antwoord sluiten: '
+                    : 'Antwoord openen: ') + (item.question || 'Nieuwe vraag')
+                "
+                :aria-expanded="openIndex === index"
+                :aria-controls="`${sectionId}-answer-${index}`"
+                @click="toggleItem(index)"
+              >
+                <Icon
+                  :name="
+                    openIndex === index
+                      ? 'material-symbols:remove-rounded'
+                      : 'material-symbols:add-rounded'
+                  "
+                  :class="['size-5 flex-none', themeClasses.icon]"
+                  aria-hidden="true"
+                />
+              </button>
+            </h3>
+            <h3 v-else>
+              <button
+                type="button"
+                class="flex w-full items-center justify-between gap-4 p-5 text-left font-semibold md:p-6"
+                :class="themeClasses.question"
+                :aria-expanded="openIndex === index"
+                :aria-controls="`${sectionId}-answer-${index}`"
+                :id="`${sectionId}-question-${index}`"
+                @click="toggleItem(index)"
+              >
+                <span>{{ item.question }}</span>
+                <Icon
+                  :name="
+                    openIndex === index
+                      ? 'material-symbols:remove-rounded'
+                      : 'material-symbols:add-rounded'
+                  "
+                  :class="['size-5 flex-none', themeClasses.icon]"
+                  aria-hidden="true"
+                />
+              </button>
+            </h3>
+            <div
+              v-show="openIndex === index"
+              :id="`${sectionId}-answer-${index}`"
+              role="region"
+              :aria-labelledby="`${sectionId}-question-${index}`"
+              :class="[
+                'p-5 text-left text-sm leading-6 md:p-6',
+                themeClasses.answer,
+              ]"
+            >
+              <BlocksSharedEditableText
+                :editable="editable"
+                :model-value="item.answer"
+                placeholder="Antwoord toevoegen"
+                rich
+                @update:model-value="setField(item, 'answer', $event)"
               />
             </div>
-
-            <template v-else>
-              <h3>
-                <button
-                  type="button"
-                  class="flex w-full items-center justify-between gap-4 p-5 text-left font-semibold transition-colors md:p-6"
-                  :class="themeClasses.question"
-                  :aria-expanded="openIndex === index"
-                  :aria-controls="`${sectionId}-answer-${index}`"
-                  :id="`${sectionId}-question-${index}`"
-                  @click="toggleItem(index)"
-                >
-                  <span>{{ item.question }}</span>
-                  <Icon
-                    :name="
-                      openIndex === index
-                        ? 'material-symbols:remove-rounded'
-                        : 'material-symbols:add-rounded'
-                    "
-                    :class="['size-5 flex-none', themeClasses.icon]"
-                    aria-hidden="true"
-                  />
-                </button>
-              </h3>
-
-              <div
-                v-show="openIndex === index"
-                :id="`${sectionId}-answer-${index}`"
-                role="region"
-                :aria-labelledby="`${sectionId}-question-${index}`"
-                :class="[
-                  'p-5 text-left text-sm leading-6 md:p-6',
-                  themeClasses.answer,
-                ]"
-              >
-                <BlocksSharedEditableText :model-value="item.answer" rich />
-              </div>
-            </template>
+            <BlocksSharedItemControls
+              v-if="editable && selected"
+              label="Vraag en antwoord bewerken"
+              direction="vertical"
+              :items="model.content"
+              :index="index"
+              @update:items="model.content = $event"
+            />
           </article>
 
           <div v-if="editable" class="p-4 md:p-5">
@@ -239,7 +257,8 @@ defineExpose({
                 model.content = [
                   ...(model.content || []),
                   { question: '', answer: '' },
-                ]
+                ];
+                openIndex = model.content.length - 1;
               "
             />
           </div>
