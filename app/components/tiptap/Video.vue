@@ -413,10 +413,12 @@ const selectNode = () => {
     >
       <div class="space-y-4">
         <VideoLibraryButton
+          variant="subtle"
           :selected="draftSelection"
           :language="pickerLanguage"
           @update:selected="selectVideo"
-        />
+          >Video kiezen</VideoLibraryButton
+        >
 
         <div class="flex items-center gap-6">
           <label class="inline-flex items-center gap-2 text-sm text-gray-700">

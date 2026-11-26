@@ -142,7 +142,6 @@ defineExpose({
   openMedia: () => imageManagerRef.value?.open?.(),
 });
 
-
 const openLinkEditor = (index?: number) => {
   if (typeof index === "number") {
     selectedLinkIndex.value = index;
@@ -571,10 +570,12 @@ const removeActiveButton = () => {
 
         <div v-if="model.content.type === 'video'" class="space-y-2">
           <VideoLibraryButton
+            variant="subtle"
             :language="props.language || locale"
             :selected="props.content?.videoCode ?? undefined"
             @update:selected="update(['content', 'videoCode'], $event)"
-          />
+            >Video kiezen</VideoLibraryButton
+          >
         </div>
 
         <p v-else class="text-xs text-gray-500">

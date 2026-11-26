@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, useSlots } from "vue";
 
-const props = defineProps<{
-  selected?: { value: string | number | boolean; key: string } | null;
-  language?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    selected?: { value: string | number | boolean; key: string } | null;
+    language?: string;
+    variant?: "primary" | "subtle";
+    showSelection?: boolean;
+  }>(),
+  { variant: "primary", showSelection: true },
+);
+const slots = useSlots();
 const emit = defineEmits<{
   "update:selected": [video: { value: string; key: string }];
 }>();
@@ -42,18 +48,35 @@ const choose = async () => {
 </script>
 
 <template>
-  <div class="space-y-2">
-    <p v-if="selected?.value" class="text-sm text-gray-700">
+  <div class="flex flex-col items-start gap-2">
+    <p v-if="showSelection && selected?.value" class="text-sm text-gray-700">
       {{ selected.key }}
       <span class="block text-xs text-gray-500">{{ selected.value }}</span>
     </p>
     <button
       type="button"
       :disabled="isOpening"
-      class="inline-flex items-center gap-2 rounded-md bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 disabled:opacity-50"
+      class="inline-flex items-center justify-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+      :class="
+        variant === 'subtle'
+          ? [
+              'rounded-lg border border-gray-300 bg-white text-sm font-medium leading-5 text-gray-700 hover:border-gray-400 hover:bg-gray-100',
+              slots.default ? 'min-h-9 gap-2 px-3 py-2' : 'size-9',
+            ]
+          : [
+              'rounded-full bg-blue-500 text-white hover:bg-blue-700',
+              slots.default ? 'h-8 gap-2 px-3' : 'size-8',
+            ]
+      "
+      aria-label="Open videobibliotheek"
+      title="Bibliotheek"
       @click="choose"
     >
-      {{ selected?.value ? "Andere video kiezen" : "Video kiezen" }}
+      <Icon
+        name="material-symbols:video-library-outline-rounded"
+        :class="variant === 'subtle' ? 'size-4 shrink-0' : 'size-5'"
+      />
+      <slot />
     </button>
     <p v-if="error" role="alert" class="text-sm text-red-600">{{ error }}</p>
   </div>

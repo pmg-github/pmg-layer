@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import VideoLibraryButton from "../block-editor/VideoLibraryButton.vue";
+import VideoLibraryTile from "../block-editor/VideoLibraryTile.vue";
 import MediaFrame from "./shared/MediaFrame.vue";
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
@@ -485,7 +485,7 @@ const removeTab = (index: number) => {
                   </div>
 
                   <MediaFrame
-                    v-if="t.type === 'video'"
+                    v-if="!editable && t.type === 'video'"
                     :editable="editable"
                     :empty="!t.videoCode?.value"
                     kind="video"
@@ -496,7 +496,7 @@ const removeTab = (index: number) => {
                       :video-id="t.videoCode?.value"
                       :language="props.language || locale"
                   /></MediaFrame>
-                  <VideoLibraryButton
+                  <VideoLibraryTile
                     v-if="editable && t.type === 'video'"
                     :language="props.language || locale"
                     :selected="t.videoCode"
