@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import VideoLibraryButton from "../block-editor/VideoLibraryButton.vue";
 import MediaFrame from "./shared/MediaFrame.vue";
 import MediaPlaceholder from "./shared/MediaPlaceholder.vue";
 import BlockHeading from "./shared/BlockHeading.vue";
@@ -141,10 +142,6 @@ defineExpose({
   openMedia: () => imageManagerRef.value?.open?.(),
 });
 
-// Keep the dashboard-only filter provider lazy so read-only consumers do not
-// need to ship or initialize it.
-const getAllVideoCodes = (...args: any[]) =>
-  useFetchFilters().getAllVideoCodes(...args);
 
 const openLinkEditor = (index?: number) => {
   if (typeof index === "number") {
@@ -573,12 +570,9 @@ const removeActiveButton = () => {
         </div>
 
         <div v-if="model.content.type === 'video'" class="space-y-2">
-          <SharedInputSelect
-            name="content-gallery-video-code"
-            :fetch-data="(search: any) => getAllVideoCodes(search)"
+          <VideoLibraryButton
+            :language="props.language || locale"
             :selected="props.content?.videoCode ?? undefined"
-            placeholder="Zoek op jobnummer of titel..."
-            search-in-data
             @update:selected="update(['content', 'videoCode'], $event)"
           />
         </div>

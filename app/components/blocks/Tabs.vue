@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import VideoLibraryButton from "../block-editor/VideoLibraryButton.vue";
 import MediaFrame from "./shared/MediaFrame.vue";
 import BlockHeading from "./shared/BlockHeading.vue";
 import { blockPaddingStyle } from "../../utils/blockPadding";
@@ -235,11 +236,6 @@ const removeTab = (index: number) => {
 };
 
 // verwacht: model.content.tabs = [{ text,title,subtitle,image,videoCode,type,links:[] }]
-
-// Keep the dashboard-only filter provider lazy so read-only consumers do not
-// need to ship or initialize it.
-const getAllVideoCodes = (...args: any[]) =>
-  useFetchFilters().getAllVideoCodes(...args);
 </script>
 
 <template>
@@ -500,16 +496,13 @@ const getAllVideoCodes = (...args: any[]) =>
                       :video-id="t.videoCode?.value"
                       :language="props.language || locale"
                   /></MediaFrame>
-                  <SharedInputSelect
+                  <VideoLibraryButton
                     v-if="editable && t.type === 'video'"
-                    :name="`tab-video-code-${tabIndex}`"
-                    :fetch-data="(e) => getAllVideoCodes(e)"
+                    :language="props.language || locale"
                     :selected="t.videoCode"
                     @update:selected="
                       update(['content', 'tabs', tabIndex, 'videoCode'], $event)
                     "
-                    search-in-data
-                    placeholder="Zoek op jobnummer of titel..."
                   />
                   <ImageLibraryTile
                     v-if="editable && t.type !== 'video'"
